@@ -1,11 +1,18 @@
 function applySoftcap(value) {
-    let cap = new Decimal(100);
+    let cap;
+    if (player.c.activeChallenge === 12) {
+        cap = new Decimal(2);
+    } 
+    else {
+        cap = new Decimal(100);
+    }
     if (hasChallenge('c', 11)) {
         if (value.lte(cap)) return value;
         let excess = value.sub(cap);
         let logGrowth = Decimal.log10(excess).add(1);
         return cap.add(logGrowth);
-    } else {
+    } 
+    else {
         return value.min(cap);
     }
 }
@@ -57,6 +64,19 @@ addLayer("a", {
         tooltip: "要求：获得 9e15 狂怒能量",
         done() {return player.b.power.gte(9e15)},
     },
+    21: {
+    name: "超越极限",
+    tooltip: "要求：蛮王升级12的效果超过100倍。",
+    done() {
+        return upgradeEffect('p', 12).gt(100);
+    },
+    effect() {
+        return new Decimal(1.25);
+    },
+    effectDisplay() {
+        return format(achievementEffect(this.layer, this.id)) + "x";
+    },
+}
 },
     tabFormat:{
         '成就':{
@@ -250,6 +270,65 @@ addLayer("p", {
 
 
         },
+        41: {    
+            title: "Wv",
+            description: "基于已经完成的成就数量增益蛮王经验值获取。",
+            cost: new Decimal(2e15),
+            effect() {
+            let raw = new Decimal(player.a.achievements.length).add(1).pow(0.2);
+            return applySoftcap(raw);
+            },
+            effectDisplay() { 
+                if (hasUpgrade(this.layer, this.id)) 
+                return format(upgradeEffect(this.layer, this.id)) + "x"; 
+                else 
+                return "1.00x";
+            },// Add formatting to the effect
+            unlocked() {
+            return hasChallenge('c',12)
+            },
+
+        },
+        42: {    
+            title: "bonker",
+            description: "基于Ethelse增益蛮王经验值获取。",
+            cost: new Decimal(5e15),
+            effect() {
+            let raw = getBuyableAmount("k", 21).add(1).pow(0.2);
+            return applySoftcap(raw);
+            },
+            effectDisplay() { 
+                if (hasUpgrade(this.layer, this.id)) 
+                return format(upgradeEffect(this.layer, this.id)) + "x"; 
+                else 
+                return "1.00x";
+            },// Add formatting to the effect
+            unlocked() {
+            return hasChallenge('c',12)
+            },
+
+        },
+        43: {    
+            title: "Waelen",
+            description: "基于狂战士营人口增益蛮王经验值获取。",
+            cost: new Decimal(9e15),
+            effect() {
+            let raw = player.b.points.add(1).pow(0.2);
+            return applySoftcap(raw);
+            },
+            effectDisplay() { 
+                if (hasUpgrade(this.layer, this.id)) 
+                return format(upgradeEffect(this.layer, this.id)) + "x"; 
+                else 
+                return "1.00x";
+            },// Add formatting to the effect
+            unlocked() {
+            return hasChallenge('c',12)
+            },
+
+        },
+        
+        
     },
     automate() {
     if (hasMilestone("k", 1)) {
@@ -319,7 +398,7 @@ addLayer("k", {
             cost(x) { return new Decimal(1).mul(x).add(1) },
             display() {return "增益蛮王经验值获取。<br>需要"+format(this.cost())+"骑士团人口<br>Currently:倍增"+format(buyableEffect(this.layer, this.id))},
             canAfford() { 
-            if (player.c.activeChallenge === 11) return false;
+            if (player.c.activeChallenge === 11 || player.c.activeChallenge === 12) return false;
             return player[this.layer].points.gte(this.cost());
             },
             buy() {
@@ -335,7 +414,7 @@ addLayer("k", {
             cost(x) { return new Decimal(1).mul(x).mul(10).add(10) },
             display() {return "增益蛮王等级获取。<br>需要"+format(this.cost())+"骑士团人口<br>Currently:倍增"+format(buyableEffect(this.layer, this.id))},
             canAfford() { 
-            if (player.c.activeChallenge === 11) return false;
+            if (player.c.activeChallenge === 11 || player.c.activeChallenge === 12) return false;
             return player[this.layer].points.gte(this.cost());
             },
             buy() {
@@ -351,7 +430,7 @@ addLayer("k", {
             cost(x) { return new Decimal(1).mul(x).mul(22).add(22) },
             display() {return "增益第四个骑士里程碑的效果。<br>需要"+format(this.cost())+"骑士团人口<br>Currently:倍增"+format(buyableEffect(this.layer, this.id))},
             canAfford() { 
-            if (player.c.activeChallenge === 11) return false;
+            if (player.c.activeChallenge === 11 || player.c.activeChallenge === 12) return false;
             return player[this.layer].points.gte(this.cost());
             },
             buy() {
@@ -368,7 +447,7 @@ addLayer("k", {
             cost(x) { return new Decimal(1).mul(x).pow(x) },
             display() {return "增益骑士团人口获取。<br>需要"+format(this.cost())+"骑士团人口<br>Currently:倍增"+format(buyableEffect(this.layer, this.id))},
             canAfford() { 
-            if (player.c.activeChallenge === 11) return false;
+            if (player.c.activeChallenge === 11 || player.c.activeChallenge === 12) return false;
             return player[this.layer].points.gte(this.cost());
             },
             buy() {
@@ -387,7 +466,7 @@ addLayer("k", {
             cost(x) { return new Decimal(1).add(x).mul(x).pow(x) },
             display() {return "增益狂战士营人口的生成效果。<br>需要"+format(this.cost())+"骑士团人口<br>Currently:倍增"+format(buyableEffect(this.layer, this.id))},
             canAfford() { 
-            if (player.c.activeChallenge === 11) return false;
+            if (player.c.activeChallenge === 11 || player.c.activeChallenge === 12) return false;
             return player[this.layer].points.gte(this.cost());
             },
             buy() {
@@ -445,6 +524,12 @@ addLayer("k", {
         requirementDescription:"43 骑士团人口",
         effectDescription:"解锁第四位骑士。",
         done() {return player.k.points.gte(43)}
+        },
+        6:
+        {
+        requirementDescription:"200 骑士团人口",
+        effectDescription:"解锁狂战士营。",
+        done() {return player.k.points.gte(200)}
         },
     },
     automate() {
@@ -517,11 +602,17 @@ addLayer("b", {
         effectDescription:"解锁第五位骑士。",
         done() {return player.b.points.gte(8)}
         },
-    3:
+        3:
         {
         requirementDescription:"12 狂战士营人口",
         effectDescription:"自动购买第一行骑士可购买。",
         done() {return player.b.points.gte(12)}
+        },
+        4:
+        {
+        requirementDescription:"25 狂战士营人口",
+        effectDescription:"解锁挑战精神。",
+        done() {return player.b.points.gte(25)}
         },
     },
     getpower() {
@@ -651,7 +742,7 @@ addLayer("b", {
             ],
         },
     },
-    layerShown(){return player.k.points.gte(200)||player.b.points.gte(1)},
+    layerShown(){return hasMilestone('k',6)||player.b.points.gte(1)},
     })
 addLayer("c", {
     name: "挑战者", // This is optional, only used in a few places, If absent it just uses the layer id.
@@ -693,6 +784,12 @@ addLayer("c", {
         effectDescription:"解锁第一个挑战。",
         done() {return player.c.points.gte(3)}
         },
+        3:
+        {
+        requirementDescription:"5 挑战精神",
+        effectDescription:"解锁第二个挑战。",
+        done() {return player.c.points.gte(5)}
+        },
     },
     challenges: {
         11: {
@@ -707,8 +804,28 @@ addLayer("c", {
         onComplete() {
             doPopup("challenge", "Tchef 挑战完成！", "挑战完成", 3, "#7FFF7F");
         },
+        unlocked() {
+            return hasMilestone('c',2)
+        },
+        },
+        12: {
+        name: "Gunaar",
+        challengeDescription: "在Tchef的基础上，蛮王升级的软上限起始于 2（而非 100）。",
+        goal: new Decimal(2077),
+        goalDescription: "2077 蛮王等级",
+        rewardDescription: "解锁第四行蛮王升级。",
+        canComplete() {
+            return player.p.points.gte(2077);
+        },
+        onComplete() {
+            doPopup("challenge", "Tchef 挑战完成！", "挑战完成", 3, "#7FFF7F");
+        },
+        unlocked() {
+            return hasMilestone('c',3)
+        },
         },
     },
+    
     tabFormat:{
         '挑战':{
             content:[
@@ -735,5 +852,5 @@ addLayer("c", {
             ],
         },
     },
-    layerShown(){return player.b.points.gte(25)||player.c.points.gte(1)},
+    layerShown(){return hasMilestone('b',4)||player.c.points.gte(1)},
     })

@@ -15,15 +15,21 @@
 	cursor: pointer;
 	padding: 5px 20px;
 	margin: 5px;
-	border-radius: 10px;
 	border: 2px solid;
 	color: var(--color);
+    background: rgba(20, 30, 45, 0.8);
+    backdrop-filter: blur(4px);
+    border-radius: 30px;
+    padding: 8px 24px;
+    font-weight: bold;
+    transition: 0.2s;
 
 }
 
 .tabButton:hover {
-	transform: scale(1.1, 1.1);
-	text-shadow: 0 0 7px var(--color);
+	background: var(--color);
+    color: #000;
+    transform: translateY(-3px);
 }
 
 .tooltip { 

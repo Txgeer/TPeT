@@ -2,7 +2,10 @@
 body {
 	color: var(--color);
 	overflow: hidden;
-	--background: #0f0f0f;
+	--background: linear-gradient(135deg, #000000 0%, #007f7f 100%);
+    font-family: 'Segoe UI', 'Inconsolata', monospace;
+    text-shadow: 0 0 2px rgba(0,0,0,0.5);
+    scroll-behavior: smooth;
 	--color: #dfdfdf;
 	--points: #ffffff;
 	background: var(--background)
@@ -28,16 +31,24 @@ h1, h2, h3, b, input {
 }
 
 .can:hover {
-	transform: scale(1.15, 1.15);
-	box-shadow: 0 0 20px var(--points)
+    transition: all 0.2s ease;
+    filter: brightness(1.05);
+    box-shadow: 0 0 20px var(--points), 0 5px 15px rgba(0,0,0,0.4);
+    transform: translateY(-3px) scale(1.02);
 }
 
 .bought {
 	background-color: #77bf5f;
 	cursor: default;
+	box-shadow: 0 0 12px #5fbf4f, inset 0 1px 2px rgba(255,255,255,0.3);
 }
 
 #points {
-	color: var(--points);
-	text-shadow: 0 0 10px var(--points);
+    background: #FFF;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+    font-weight: bold;
+    display: inline-block;
 }
