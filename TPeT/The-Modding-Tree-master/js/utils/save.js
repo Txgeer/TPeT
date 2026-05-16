@@ -1,12 +1,22 @@
 // ************ Save stuff ************
-let getModID = () => modInfo.id ?? `${modInfo.name.replace(/\s+/g, '-')}-${modInfo.author.replace(/\s+/g, '-')}`;
-
+function utf8_to_b64(str) {
+    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+        return String.fromCharCode('0x' + p1);
+    }));
+}
+function b64_to_utf8(str) {
+    return decodeURIComponent(escape(atob(str)));
+}
 function save(force) {
-	NaNcheck(player)
-	if (NaNalert && !force) return
-	localStorage.setItem(getModID(), btoa(unescape(encodeURIComponent(JSON.stringify(player)))));
-	localStorage.setItem(getModID()+"_options", btoa(unescape(encodeURIComponent(JSON.stringify(options)))));
-
+    NaNcheck(player);
+    if (NaNalert && !force) return;
+    let saveStr = JSON.stringify(player);
+    let encoded = utf8_to_b64(saveStr);
+    localStorage.setItem(getModID(), encoded);
+    
+    let optStr = JSON.stringify(options);
+    let encodedOpt = utf8_to_b64(optStr);
+    localStorage.setItem(getModID() + "_options", encodedOpt);
 }
 function startPlayerBase() {
 	return {
@@ -14,13 +24,12 @@ function startPlayerBase() {
 		navTab: (layoutInfo.showTree ? layoutInfo.startNavTab : "none"),
 		time: Date.now(),
 		notify: {},
-		versionType: getModID(),
+		versionType: modInfo.id,
 		version: VERSION.num,
 		beta: VERSION.beta,
 		timePlayed: 0,
 		keepGoing: false,
 		hasNaN: false,
-		tick:new Decimal(0),
 
 		points: modInfo.initialStartPoints,
 		subtabs: {},
@@ -189,18 +198,22 @@ function fixData(defaultData, newData) {
 }
 function load() {
 	let get = localStorage.getItem(getModID());
+    if (get === null || get === undefined) {
+        player = getStartPlayer();
+        options = getStartOptions();
+    } else {
+        try {
+            let decoded = b64_to_utf8(get);
+            player = JSON.parse(decoded);
+        } catch(e) {
+            console.error("Save decode failed, resetting save", e);
+            player = getStartPlayer();
+        }
+        fixSave();
+        loadOptions();
+    }
 
-	if (get === null || get === undefined) {
-		player = getStartPlayer();
-		options = getStartOptions();
-	}
-	else {
-		player = Object.assign(getStartPlayer(), JSON.parse(decodeURIComponent(escape(atob(get)))));
-		fixSave();
-		loadOptions();
-	}
-
-	if (options.offlineProd) {
+	if (player.offlineProd) {
 		if (player.offTime === undefined)
 			player.offTime = { remain: 0 };
 		player.offTime.remain += (Date.now() - player.time) / 1000;
@@ -220,14 +233,19 @@ function load() {
 }
 
 function loadOptions() {
-	let get2 = localStorage.getItem(getModID()+"_options");
-	if (get2) 
-		options = Object.assign(getStartOptions(), JSON.parse(decodeURIComponent(escape(atob(get2)))));
-	else 
-		options = getStartOptions()
-	if (themes.indexOf(options.theme) < 0) theme = "default"
-	fixData(options, getStartOptions())
-
+    let get2 = localStorage.getItem(getModID() + "_options");
+    if (get2) {
+        try {
+            let decoded = b64_to_utf8(get2);
+            options = Object.assign(getStartOptions(), JSON.parse(decoded));
+        } catch(e) {
+            console.error("Options decode failed, using defaults", e);
+            options = getStartOptions();
+        }
+    } else {
+        options = getStartOptions();
+    }
+    if (themes.indexOf(options.theme) < 0) options.theme = "default";
 }
 
 function setupModInfo() {
@@ -261,45 +279,47 @@ function NaNcheck(data) {
 	}
 }
 function exportSave() {
-	//if (NaNalert) return
-	let str = btoa(JSON.stringify(player));
-
-	const el = document.createElement("textarea");
-	el.value = str;
-	document.body.appendChild(el);
-	el.select();
-	el.setSelectionRange(0, 99999);
-	document.execCommand("copy");
-	document.body.removeChild(el);
+    let saveStr = JSON.stringify(player);
+    let str = utf8_to_b64(saveStr);
+    const el = document.createElement("textarea");
+    el.value = str;
+    document.body.appendChild(el);
+    el.select();
+    el.setSelectionRange(0, 99999);
+    document.execCommand("copy");
+    document.body.removeChild(el);
 }
 function importSave(imported = undefined, forced = false) {
-	if (imported === undefined)
-		imported = prompt("Paste your save here");
-	try {
-		tempPlr = Object.assign(getStartPlayer(), JSON.parse(atob(imported)));
-		if (tempPlr.versionType != getModID() && !forced && !confirm("This save appears to be for a different mod! Are you sure you want to import?")) // Wrong save (use "Forced" to force it to accept.)
-			return;
-		player = tempPlr;
-		player.versionType = getModID();
-		fixSave();
-		versionCheck();
-		NaNcheck(save)
-		save();
-		window.location.reload();
-	} catch (e) {
-		return;
-	}
+    if (imported === undefined)
+        imported = prompt("Paste your save here");
+    try {
+        let decoded = b64_to_utf8(imported);
+        let tempPlr = Object.assign(getStartPlayer(), JSON.parse(decoded));
+        if (tempPlr.versionType != modInfo.id && !forced && !confirm("This save appears to be for a different mod! Are you sure you want to import?"))
+            return;
+        player = tempPlr;
+        player.versionType = modInfo.id;
+        fixSave();
+        versionCheck();
+        NaNcheck(save);
+        save();
+        window.location.reload();
+    } catch (e) {
+        console.error("Import failed", e);
+        alert("无效的存档代码！");
+        return;
+    }
 }
 function versionCheck() {
 	let setVersion = true;
 
 	if (player.versionType === undefined || player.version === undefined) {
-		player.versionType = getModID();
+		player.versionType = modInfo.id;
 		player.version = 0;
 	}
 
 	if (setVersion) {
-		if (player.versionType == getModID() && VERSION.num > player.version) {
+		if (player.versionType == modInfo.id && VERSION.num > player.version) {
 			player.keepGoing = false;
 			if (fixOldSave)
 				fixOldSave(player.version);

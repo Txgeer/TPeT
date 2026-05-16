@@ -141,7 +141,7 @@ addLayer("p", {
     mult = mult.times(buyableEffect('k', 12))
     mult = mult.times(buyableEffect('k', 23))
     mult = mult.times(player.b.power.pow(0.1)).add(1)
-    mult = mult.times(player.c.points.pow(0.5).add(1))
+    mult = mult.times(player.b.power.pow(0.1).add(1))
     let threshold;
     if (player.c.activeChallenge === 23) {
     threshold = 1;
@@ -787,12 +787,19 @@ addLayer("b", {
         done() {return player.b.points.gte(36)}
         },
     },
-    getpower() {
-        if (!hasUpgrade('b', 21)) player.b.power=player.b.power.add(player.tick.times(player.b.points))
-        else if (!hasMilestone('b', 2)) player.b.power=player.b.power.add(player.tick.times(player.b.points)).add(upgradeEffect("b",21))
-        else if (!hasUpgrade('b', 22)) player.b.power=player.b.power.add(player.tick.times(player.b.points.times(buyableEffect("k",22))).times(upgradeEffect("b",21)))
-        else if (!hasUpgrade('b', 24)) player.b.power=player.b.power.add(player.tick.times(player.b.points.pow(buyableEffect("k",22))).times(upgradeEffect("b",21)))
-        else player.b.power=player.b.power.add(player.tick.times(player.b.points.pow(buyableEffect("k",22))).times(player.k.points).times(upgradeEffect("b",21)))
+    gupdate(diff) {
+    let delta = new Decimal(diff);
+    if (!hasUpgrade('b', 21)) {
+        player.b.power = player.b.power.add(delta.times(player.b.points));
+    } else if (!hasMilestone('b', 2)) {
+        player.b.power = player.b.power.add(delta.times(player.b.points)).add(upgradeEffect("b",21));
+    } else if (!hasUpgrade('b', 22)) {
+        player.b.power = player.b.power.add(delta.times(player.b.points.times(buyableEffect("k",22))).times(upgradeEffect("b",21)));
+    } else if (!hasUpgrade('b', 24)) {
+        player.b.power = player.b.power.add(delta.times(player.b.points.pow(buyableEffect("k",22))).times(upgradeEffect("b",21)));
+    } else {
+        player.b.power = player.b.power.add(delta.times(player.b.points.pow(buyableEffect("k",22))).times(player.k.points).times(upgradeEffect("b",21)));
+    }
     },
     upgrades:{
      11: {    
