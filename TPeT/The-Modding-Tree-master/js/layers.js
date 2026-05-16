@@ -141,7 +141,7 @@ addLayer("p", {
     mult = mult.times(buyableEffect('k', 12))
     mult = mult.times(buyableEffect('k', 23))
     mult = mult.times(player.b.power.pow(0.1)).add(1)
-    gain = gain.times(player.c.points.pow(0.5).add(1))
+    mult = mult.times(player.c.points.pow(0.5).add(1))
     let threshold;
     if (player.c.activeChallenge === 23) {
     threshold = 1;
