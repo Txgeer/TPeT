@@ -25,6 +25,17 @@ function isKnightDisabled() {
     let active = player.c.activeChallenge;
     return active === 11 || active === 12 || active === 13 || active === 21 || active === 22 || active === 23;
 }
+function getUpgradeDisplay(layer, id) {
+    let eff = upgradeEffect(layer, id);
+    let formatted = format(eff) + "x";
+    if (hasChallenge('c', 11) && eff.gt(100)) {
+        return formatted + "（受软上限限制）";
+    }
+    if (!hasChallenge('c', 11) && eff.gte(100)) {
+        return formatted + "（受硬上限限制）";
+    }
+    return formatted;
+}
 addLayer("a", {
     name: "成就", // This is optional, only used in a few places, If absent it just uses the layer id.
     symbol: "A", // This appears on the layer's node. Default is the id with the first letter capitalized
@@ -130,6 +141,7 @@ addLayer("p", {
     mult = mult.times(buyableEffect('k', 12))
     mult = mult.times(buyableEffect('k', 23))
     mult = mult.times(player.b.power.pow(0.1)).add(1)
+    gain = gain.times(player.c.points.pow(0.5).add(1))
     let threshold;
     if (player.c.activeChallenge === 23) {
     threshold = 1;
@@ -182,10 +194,10 @@ addLayer("p", {
             return applySoftcap(raw);
             },
             effectDisplay() { 
-                if (hasUpgrade(this.layer, this.id)) 
-                return format(upgradeEffect(this.layer, this.id)) + "x"; 
-                else 
-                return "1.00x";
+            if (hasUpgrade(this.layer, this.id)) 
+            return getUpgradeDisplay(this.layer, this.id);
+            else 
+            return "1.00x";
             }// Add formatting to the effect
 
 
@@ -199,10 +211,10 @@ addLayer("p", {
             return applySoftcap(raw);
             },
             effectDisplay() { 
-                if (hasUpgrade(this.layer, this.id)) 
-                return format(upgradeEffect(this.layer, this.id)) + "x"; 
-                else 
-                return "1.00x";
+            if (hasUpgrade(this.layer, this.id)) 
+            return getUpgradeDisplay(this.layer, this.id);
+            else 
+            return "1.00x";
             }// Add formatting to the effect
 
 
@@ -210,16 +222,16 @@ addLayer("p", {
         21: {    
             title: "吾即是王",
             description: "基于你的蛮王等级增益蛮王等级获取。",
-            cost: new Decimal(12),
+            cost: new Decimal(15),
             effect() {
             let raw = player[this.layer].points.add(1).pow(0.15);
             return applySoftcap(raw);
             },
             effectDisplay() { 
-                if (hasUpgrade(this.layer, this.id)) 
-                return format(upgradeEffect(this.layer, this.id)) + "x"; 
-                else 
-                return "1.00x";
+            if (hasUpgrade(this.layer, this.id)) 
+            return getUpgradeDisplay(this.layer, this.id);
+            else 
+            return "1.00x";
             }// Add formatting to the effect
 
 
@@ -233,10 +245,10 @@ addLayer("p", {
             return applySoftcap(raw);
             },
             effectDisplay() { 
-                if (hasUpgrade(this.layer, this.id)) 
-                return format(upgradeEffect(this.layer, this.id)) + "x"; 
-                else 
-                return "1.00x";
+            if (hasUpgrade(this.layer, this.id)) 
+            return getUpgradeDisplay(this.layer, this.id);
+            else 
+            return "1.00x";
             }// Add formatting to the effect
 
         },
@@ -250,10 +262,10 @@ addLayer("p", {
             return applySoftcap(raw);
             },
             effectDisplay() { 
-                if (hasUpgrade(this.layer, this.id)) 
-                return format(upgradeEffect(this.layer, this.id)) + "x"; 
-                else 
-                return "1.00x";
+            if (hasUpgrade(this.layer, this.id)) 
+            return getUpgradeDisplay(this.layer, this.id);
+            else 
+            return "1.00x";
             },// Add formatting to the effect
             unlocked() {
             if (player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || player.c.activeChallenge === 23) return false;
@@ -271,10 +283,10 @@ addLayer("p", {
             return applySoftcap(raw);
             },
             effectDisplay() { 
-                if (hasUpgrade(this.layer, this.id)) 
-                return format(upgradeEffect(this.layer, this.id)) + "x"; 
-                else 
-                return "1.00x";
+            if (hasUpgrade(this.layer, this.id)) 
+            return getUpgradeDisplay(this.layer, this.id);
+            else 
+            return "1.00x";
             },// Add formatting to the effect
             unlocked() {
             if (player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || player.c.activeChallenge === 23) return false;
@@ -292,10 +304,10 @@ addLayer("p", {
             return applySoftcap(raw);
             },
             effectDisplay() { 
-                if (hasUpgrade(this.layer, this.id)) 
-                return format(upgradeEffect(this.layer, this.id)) + "x"; 
-                else 
-                return "1.00x";
+            if (hasUpgrade(this.layer, this.id)) 
+            return getUpgradeDisplay(this.layer, this.id);
+            else 
+            return "1.00x";
             },// Add formatting to the effect
             unlocked() {
             if (player.c.activeChallenge === 22 || player.c.activeChallenge === 23) return false;
@@ -313,10 +325,10 @@ addLayer("p", {
             return applySoftcap(raw);
             },
             effectDisplay() { 
-                if (hasUpgrade(this.layer, this.id)) 
-                return format(upgradeEffect(this.layer, this.id)) + "x"; 
-                else 
-                return "1.00x";
+            if (hasUpgrade(this.layer, this.id)) 
+            return getUpgradeDisplay(this.layer, this.id);
+            else 
+            return "1.00x";
             },// Add formatting to the effect
             unlocked() {
             if (player.c.activeChallenge === 22 || player.c.activeChallenge === 23) return false;
@@ -334,11 +346,11 @@ addLayer("p", {
             return applySoftcap(raw);
             },
             effectDisplay() { 
-                if (hasUpgrade(this.layer, this.id)) 
-                return format(upgradeEffect(this.layer, this.id)) + "x"; 
-                else 
-                return "1.00x";
-            },// Add formatting to the effect
+            if (hasUpgrade(this.layer, this.id)) 
+            return getUpgradeDisplay(this.layer, this.id);
+            else 
+            return "1.00x";
+            },// Add formatting to the effect// Add formatting to the effect
             unlocked() {
             if (player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || player.c.activeChallenge === 23) return false;
             return hasChallenge('c', 12);
@@ -354,10 +366,10 @@ addLayer("p", {
             return applySoftcap(raw);
             },
             effectDisplay() { 
-                if (hasUpgrade(this.layer, this.id)) 
-                return format(upgradeEffect(this.layer, this.id)) + "x"; 
-                else 
-                return "1.00x";
+            if (hasUpgrade(this.layer, this.id)) 
+            return getUpgradeDisplay(this.layer, this.id);
+            else 
+            return "1.00x";
             },// Add formatting to the effect
             unlocked() {
             if (player.c.activeChallenge === 13 || player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || player.c.activeChallenge === 23) return false;
@@ -375,10 +387,10 @@ addLayer("p", {
             return applySoftcap(raw);
             },
             effectDisplay() { 
-                if (hasUpgrade(this.layer, this.id)) 
-                return format(upgradeEffect(this.layer, this.id)) + "x"; 
-                else 
-                return "1.00x";
+            if (hasUpgrade(this.layer, this.id)) 
+            return getUpgradeDisplay(this.layer, this.id);
+            else 
+            return "1.00x";
             },// Add formatting to the effect
             unlocked() {
             if (player.c.activeChallenge === 13 || player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || player.c.activeChallenge === 23) return false;
@@ -880,7 +892,7 @@ addLayer("b", {
             'main-display',
             ['display-text',
             function() {
-            	return `你有 <h3 style="color: #7F0000; text-shadow: 10px">${format(player.b.power)}</h3> 狂怒能量,为你的蛮王提供 <h3 style="color: #7F0000; text-shadow: 10px">${format(player.b.power.pow(0.1).add(1))}</h3> 倍率的经验值`}
+            	return `你有 <h3 style="color: #7F0000; text-shadow: 10px">${format(player.b.power)}</h3> 狂怒能量,为你的蛮王提供 <h3 style="color: #7F0000; text-shadow: 10px">${format(player.b.power.pow(0.1).add(1))}</h3> 倍率的经验值和等级`}
             ],
             'prestige-button',
             'upgrades',
@@ -892,7 +904,7 @@ addLayer("b", {
             'main-display',
             ['display-text',
             function() {
-            	return `你有 <h3 style="color: #7F0000; text-shadow: 10px">${format(player.b.power)}</h3> 狂怒能量,为你的蛮王提供 <h3 style="color: #7F0000; text-shadow: 10px">${format(player.b.power.pow(0.1).add(1))}</h3> 倍率的经验值`}
+            	return `你有 <h3 style="color: #7F0000; text-shadow: 10px">${format(player.b.power)}</h3> 狂怒能量,为你的蛮王提供 <h3 style="color: #7F0000; text-shadow: 10px">${format(player.b.power.pow(0.1).add(1))}</h3> 倍率的经验值和等级`}
             ],
             'prestige-button',
             'milestones',
@@ -1052,7 +1064,7 @@ addLayer("c", {
         challengeDescription: "在 Sangyu & Bitdotdo 的基础上，天意的阈值变为 1（而非 9e15）。",
         goal: new Decimal(65535),
         goalDescription: "65535 蛮王等级",
-        rewardDescription: "（奖励待定）",
+        rewardDescription: "解锁第六个骑士可购买。",
         canComplete() { return player.p.points.gte(65535); },
         onComplete() {
         doPopup("challenge", "Drewdrinks 挑战完成！", "挑战完成", 3, "#7FFF7F");
@@ -1070,7 +1082,7 @@ addLayer("c", {
             'main-display',
             ['display-text',
             function() {
-            	return `你的挑战精神为你的蛮王提供 <h3 style="color: #7FFF7F; text-shadow: 10px">${format(player.c.points.pow(0.5).add(1))}</h3> 倍率的经验值`}
+            	return `你的挑战精神为你的蛮王提供 <h3 style="color: #7FFF7F; text-shadow: 10px">${format(player.c.points.pow(0.5).add(1))}</h3> 倍率的经验值和等级`}
             ],
             'prestige-button',
             'challenges',
@@ -1082,7 +1094,7 @@ addLayer("c", {
             'main-display',
             ['display-text',
             function() {
-            	return `你的挑战精神为你的蛮王提供 <h3 style="color: #7FFF7F; text-shadow: 10px">${format(player.c.points.pow(0.5).add(1))}</h3> 倍率的经验值`}
+            	return `你的挑战精神为你的蛮王提供 <h3 style="color: #7FFF7F; text-shadow: 10px">${format(player.c.points.pow(0.5).add(1))}</h3> 倍率的经验值和等级`}
             ],
             'prestige-button',
             'milestones',

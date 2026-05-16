@@ -3,15 +3,15 @@ var themes = ["default", "aqua"]
 
 var colors = {
 	default: {
-		1: "#ffffff",//Branch color 1
-		2: "#bfbfbf",//Branch color 2
-		3: "#7f7f7f",//Branch color 3
-		color: "#dfdfdf",
-		points: "#ffffff",
-		locked: "#bf8f8f",
-		background: "#0f0f0f",
-		background_tooltip: "rgba(0, 0, 0, 0.75)",
-	},
+        1: "#ffffff",
+        2: "#bfbfbf",
+        3: "#7f7f7f",
+        color: "#dfdfdf",
+        points: "#ffffff",
+        locked: "#bf8f8f",
+        background: "linear-gradient(135deg, #000000 0%, #003f3f 100%)",   // 改为渐变
+        background_tooltip: "rgba(0, 0, 0, 0.75)",
+    },
 	aqua: {
 		1: "#bfdfff",
 		2: "#8fa7bf",
