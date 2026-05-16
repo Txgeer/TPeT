@@ -12,19 +12,22 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.4.2",
+	num: "0.5",
 	name: "Literally nothing",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
+    <h3>v0.5 2026.5.16</h3><br>
+		- Added 1 Achievement.<br>
+		- Added 4 Challenges.<br>
     <h3>v0.4.2 2026.5.14</h3><br>
 		- Added the Row 4 Pretox Upgrades.<br>
-		- Added 1 Achievements.<br>
+		- Added 1 Achievement.<br>
 		- Added 1 Challenge.<br>
     <h3>v0.4.1 2026.5.10</h3><br>
 		- Remastered the game.<br>
 		- Added 4 Achievements.<br>
-		- Added Challenge Spirit and 1 Challenge.<br>
+		- Added Competitor and 1 Challenge.<br>
     <h3>v0.4</h3><br>
 		- Added Berserker and the fifth Knight Buyable.<br>
     <h3>v0.3</h3><br>
@@ -37,10 +40,10 @@ let changelog = `<h1>Changelog:</h1><br>
 		- Added things.<br>
 		- Added stuff.`
 
-let winText = `Congratulations! You have reached the end and beaten this game, but for now...`
+let winText = `Congratulations! You have reached the end ame, but for now...`
 
 // If you add new functions anywhere inside of a layer, and those functions have an effect when called, add them here.
-// (The ones here are examples, all official functions are already taken care of)
+// (The ones here are examples, all official functions are already and beaten this gtaken care of)
 var doNotCallTheseFunctionsEveryTick = ["blowUpEverything"]
 
 function getStartPoints(){
@@ -55,7 +58,7 @@ function canGenPoints(){
 // Calculate points/sec!
 function getPointGen() {
 	if(!canGenPoints())
-		return new Decimal(0)
+		return new Decimal(1)
 
 	let gain = new Decimal(1)
 	if (hasUpgrade('p', 11)) gain = gain.times(upgradeEffect('p', 11))
@@ -67,6 +70,7 @@ function getPointGen() {
 	if (hasUpgrade('p', 42)) gain = gain.times(upgradeEffect('p', 42))
 	if (hasUpgrade('p', 43)) gain = gain.times(upgradeEffect('p', 43))
 	gain = gain.times(buyableEffect('k', 11))
+    gain = gain.times(buyableEffect('k', 23))
     gain = gain.times(player.b.power.pow(0.1).add(1))
 	gain = gain.times(player.c.points.pow(0.5).add(1))
 	if (hasAchievement('a', 12)) gain = gain.times(achievementEffect('a', 12));
@@ -77,9 +81,17 @@ function getPointGen() {
 function addedPlayerData() { return {
 }}
 
-// Display extra things at the top of the page
+function closeDragHint() {
+    localStorage.setItem('hideDragHint', 'true');
+    location.reload();
+}
+
 var displayThings = [
-]
+    function() {
+        if (localStorage.getItem('hideDragHint') === 'true') return '';
+        return '<div style="background: #FFD966; color: #000; padding: 4px 8px; border-radius: 8px; cursor: pointer; margin-top: 5px;" onclick="closeDragHint()">💡 提示：按住鼠标左键并拖拽可以批量购买升级和可购买！点击此处关闭提示。</div>';
+    }
+];
 
 // Determines when the game "ends"
 function isEndgame() {

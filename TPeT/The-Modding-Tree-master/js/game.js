@@ -435,3 +435,61 @@ var interval = setInterval(function() {
 }, 50)
 
 setInterval(function() {needCanvasUpdate = true}, 500)
+// ========== 拖拽批量购买升级和可购买 ==========
+window.addEventListener('load', function() {
+    let isDragging = false;
+    let lastBoughtId = null;
+
+    function handleDragStart(e) {
+        if (e.button !== 0) return;
+        isDragging = true;
+        e.preventDefault();
+    }
+
+    function handleDragMove(e) {
+        if (!isDragging) return;
+        const elem = document.elementFromPoint(e.clientX, e.clientY);
+        if (!elem) return;
+        const btn = elem.closest('.upg, .buyable');
+        if (!btn) return;
+
+        let layer, id;
+        const upgMatch = btn.id.match(/upgrade-([^-]+)-(\d+)/);
+        const buyMatch = btn.id.match(/buyable-([^-]+)-(\d+)/);
+        if (upgMatch) {
+            layer = upgMatch[1];
+            id = upgMatch[2];
+        } else if (buyMatch) {
+            layer = buyMatch[1];
+            id = buyMatch[2];
+        } else {
+            return;
+        }
+
+        const key = `${layer}-${id}`;
+        if (lastBoughtId === key) return;
+        lastBoughtId = key;
+
+        if (upgMatch) {
+            if (typeof canAffordUpgrade !== 'undefined' && canAffordUpgrade(layer, id) && !hasUpgrade(layer, id)) {
+                buyUpg(layer, id);
+            }
+        } else if (buyMatch) {
+            if (typeof canBuyBuyable !== 'undefined' && canBuyBuyable(layer, id)) {
+                buyBuyable(layer, id);
+            }
+        }
+
+        setTimeout(() => { lastBoughtId = null; }, 50);
+    }
+
+    function handleDragEnd() {
+        isDragging = false;
+        lastBoughtId = null;
+    }
+
+    document.addEventListener('mousedown', handleDragStart);
+    document.addEventListener('mousemove', handleDragMove);
+    document.addEventListener('mouseup', handleDragEnd);
+    console.log('拖拽批量购买功能已启用'); // 确认加载
+});
