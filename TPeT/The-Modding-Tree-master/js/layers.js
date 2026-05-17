@@ -140,8 +140,8 @@ addLayer("p", {
     if (hasUpgrade('p', 32)) mult = mult.times(upgradeEffect('p', 32))
     mult = mult.times(buyableEffect('k', 12))
     mult = mult.times(buyableEffect('k', 23))
-    mult = mult.times(player.b.power.pow(0.1)).add(1)
     mult = mult.times(player.b.power.pow(0.1).add(1))
+    mult = mult.times(player.c.points.pow(0.1).add(1))
     let threshold;
     if (player.c.activeChallenge === 23) {
     threshold = 1;
@@ -172,7 +172,7 @@ addLayer("p", {
             description: "翻倍蛮王经验值获取。<br>",
             cost: new Decimal(1),
             effect() {
-                return 2
+            return hasChallenge('c', 13) ? 10 : 2;
             },
             effectDisplay() { 
                 if (hasUpgrade(this.layer, this.id)) 
@@ -278,7 +278,7 @@ addLayer("p", {
             description: "基于蛮王升级的数量增益蛮王等级获取。",
             cost: new Decimal(60),
             effect() {
-            let exponent = hasChallenge('c', 21) ? 0.5 : 0.15;
+            let exponent = hasChallenge('c', 21) ? 0.4 : 0.15;
             let raw = new Decimal(player.p.upgrades.length).add(1).pow(exponent);
             return applySoftcap(raw);
             },
@@ -298,7 +298,7 @@ addLayer("p", {
             description: "基于本次蛮王重置的时间增益蛮王等级获取。",
             cost: new Decimal(80),
             effect() {
-            let exponent = hasChallenge('c', 22) ? 0.5 : 0.15;
+            let exponent = hasChallenge('c', 22) ? 0.4 : 0.15;
             let base= hasChallenge('c', 22) ? player.a.resetTime : player.p.resetTime;
             let raw = new Decimal(base).add(1).pow(exponent);
             return applySoftcap(raw);
@@ -451,6 +451,10 @@ addLayer("p", {
         ]
     }
     },
+    style: {
+        background: "linear-gradient(135deg, #000000, #1f1f1f)",
+        minHeight: "100vh"
+    },
     layerShown(){return true}
 })
 addLayer("k", {
@@ -498,7 +502,6 @@ addLayer("k", {
     hotkeys: [
         {key: "k", description: "K: Reset for Knight", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
         ],
-    layerShown(){return hasUpgrade('p',33)||hasMilestone('k',1)},
     buyables: {
         11: {
             title: "Anya",
@@ -732,6 +735,11 @@ addLayer("k", {
             ],
         },
     },
+    style: {
+        background: "linear-gradient(135deg, #000000, #3f3f3f",
+        minHeight: "100vh"
+    },
+    layerShown(){return hasUpgrade('p',33)||hasMilestone('k',1)},
 })
 addLayer("b", {
     name: "狂战士", // This is optional, only used in a few places, If absent it just uses the layer id.
@@ -787,7 +795,7 @@ addLayer("b", {
         done() {return player.b.points.gte(36)}
         },
     },
-    gupdate(diff) {
+    update(diff) {
     let delta = new Decimal(diff);
     if (!hasUpgrade('b', 21)) {
         player.b.power = player.b.power.add(delta.times(player.b.points));
@@ -918,6 +926,10 @@ addLayer("b", {
             ],
         },
     },
+    style: {
+        background: "linear-gradient(135deg, #000000, #3f0000)",
+        minHeight: "100vh"
+    },
     layerShown(){return hasMilestone('k',6)||player.b.points.gte(1)},
     })
 addLayer("c", {
@@ -1029,7 +1041,7 @@ addLayer("c", {
         challengeDescription: "在 Gunaar 的基础上，禁用蛮王升级 11 42 43。",
         goal: new Decimal(8191),
         goalDescription: "8191 蛮王等级",
-        rewardDescription: "蛮王升级 42 43 的效果更强。",
+        rewardDescription: "提高新的被禁用升级的效果。",
         canComplete() { return player.p.points.gte(8191); },
         onComplete() {
             doPopup("challenge", "Lightadapt 挑战完成！", "挑战完成", 3, "#7FFF7F");
@@ -1043,7 +1055,7 @@ addLayer("c", {
         challengeDescription: "在 Lightadapt 的基础上，禁用蛮王升级 23 31 41。",
         goal: new Decimal(16383),
         goalDescription: "16383 蛮王等级",
-        rewardDescription: "蛮王升级 23 31 41 的效果更强。",
+        rewardDescription: "提高新的被禁用升级的效果。",
         canComplete() { return player.p.points.gte(16383); },
         onComplete() {
             doPopup("challenge", "Ayabehaori & Jaxinator", "挑战完成", 3, "#7FFF7F");
@@ -1057,7 +1069,7 @@ addLayer("c", {
         challengeDescription: "在 Ayabehaori & Jaxinator 的基础上，禁用蛮王升级 32 33。",
         goal: new Decimal(32767),
         goalDescription: "32767 蛮王等级",
-        rewardDescription: "蛮王升级 32 33 的效果更强。",
+        rewardDescription: "提高新的被禁用升级的效果,且时间不再会被重置。",
         canComplete() { return player.p.points.gte(32767); },
         onComplete() {
             doPopup("challenge", "Sangyu & Bitdotdo", "挑战完成", 3, "#7FFF7F");
@@ -1081,7 +1093,6 @@ addLayer("c", {
         }
         }
     },
-    
     tabFormat:{
         '挑战':{
             content:[
@@ -1107,6 +1118,10 @@ addLayer("c", {
             'milestones',
             ],
         },
+    },
+    style: {
+        background: "linear-gradient(135deg, #000000, #003f00)",
+        minHeight: "100vh"
     },
     layerShown(){return hasMilestone('b',4)||player.c.points.gte(1)},
     })
@@ -1162,6 +1177,10 @@ addLayer("c", {
             'milestones',
             ],
         },
+    },
+    style: {
+        background: "linear-gradient(135deg, #000000, #1f003f)",
+        minHeight: "100vh"
     },
     layerShown(){return hasMilestone('k',7)||player.e.points.gte(1)},
     })

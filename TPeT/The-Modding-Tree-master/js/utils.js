@@ -53,7 +53,7 @@ function buyUpgrade(layer, id) {
 function buyUpg(layer, id) {
 	if (!tmp[layer].upgrades || !tmp[layer].upgrades[id]) return
 	let upg = tmp[layer].upgrades[id]
-	if (!player[layer].unlocked || player[layer].deactivated) return
+	if (!player[layer].unlocked) return
 	if (!tmp[layer].upgrades[id].unlocked) return
 	if (player[layer].upgrades.includes(id)) return
 	if (upg.canAfford === false) return
@@ -219,12 +219,12 @@ function notifyLayer(name) {
 }
 
 function subtabShouldNotify(layer, family, id) {
-    let subtab = {}
-    if (family == "mainTabs") subtab = tmp[layer].tabFormat[id]
-    else subtab = tmp[layer].microtabs[family][id]
-	if (!subtab.unlocked) return false
-    if (subtab.embedLayer) return tmp[subtab.embedLayer].notify
-    else return subtab.shouldNotify
+	let subtab = {}
+	if (family == "mainTabs") subtab = tmp[layer].tabFormat[id]
+	else subtab = tmp[layer].microtabs[family][id]
+
+	if (subtab.embedLayer) return tmp[subtab.embedLayer].notify
+	else return subtab.shouldNotify
 }
 
 function subtabResetNotify(layer, family, id) {
@@ -256,19 +256,17 @@ function toNumber(x) {
 }
 
 function updateMilestones(layer) {
-	if (tmp[layer].deactivated) return
 	for (id in layers[layer].milestones) {
 		if (!(hasMilestone(layer, id)) && layers[layer].milestones[id].done()) {
 			player[layer].milestones.push(id)
 			if (layers[layer].milestones[id].onComplete) layers[layer].milestones[id].onComplete()
-			if ((tmp[layer].milestonePopups || tmp[layer].milestonePopups === undefined) && !options.hideMilestonePopups) doPopup("milestone", tmp[layer].milestones[id].requirementDescription, "Milestone Gotten!", 3, tmp[layer].color);
+			if (tmp[layer].milestonePopups || tmp[layer].milestonePopups === undefined) doPopup("milestone", tmp[layer].milestones[id].requirementDescription, "Milestone Gotten!", 3, tmp[layer].color);
 			player[layer].lastMilestone = id
 		}
 	}
 }
 
 function updateAchievements(layer) {
-	if (tmp[layer].deactivated) return
 	for (id in layers[layer].achievements) {
 		if (isPlainObject(layers[layer].achievements[id]) && !(hasAchievement(layer, id)) && layers[layer].achievements[id].done()) {
 			player[layer].achievements.push(id)
@@ -346,7 +344,7 @@ document.title = modInfo.name
 function toValue(value, oldValue) {
 	if (oldValue instanceof Decimal) {
 		value = new Decimal (value)
-		if (checkDecimalNaN(value)) return decimalZero
+		if (value.eq(decimalNaN)) return decimalZero
 		return value
 	}
 	if (!isNaN(oldValue)) 
