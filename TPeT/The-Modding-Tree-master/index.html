@@ -38,6 +38,7 @@
 </head>
 
 <body onload="load()" onmousemove="updateMouse(event)">
+	<audio id="bgm" loop preload="auto" style="display: none;"></audio>
 	<div id="app">
 		<canvas id="treeCanvas" class="canvas" v-if="!(tmp.gameEnded && !player.keepGoing)"></canvas>
 

@@ -4,10 +4,12 @@ function utf8_to_b64(str) {
         return String.fromCharCode('0x' + p1);
     }));
 }
+
 function b64_to_utf8(str) {
     return decodeURIComponent(escape(atob(str)));
 }
 function save(force) {
+	if (!player) return;
     NaNcheck(player);
     if (NaNalert && !force) return;
     let saveStr = JSON.stringify(player);
@@ -164,40 +166,37 @@ function fixSave() {
 	}
 }
 function fixData(defaultData, newData) {
-	for (item in defaultData) {
-		if (defaultData[item] == null) {
-			if (newData[item] === undefined)
-				newData[item] = null;
-		}
-		else if (Array.isArray(defaultData[item])) {
-			if (newData[item] === undefined)
-				newData[item] = defaultData[item];
-
-			else
-				fixData(defaultData[item], newData[item]);
-		}
-		else if (defaultData[item] instanceof Decimal) { // Convert to Decimal
-			if (newData[item] === undefined)
-				newData[item] = defaultData[item];
-
-			else
-				newData[item] = new Decimal(newData[item]);
-		}
-		else if ((!!defaultData[item]) && (typeof defaultData[item] === "object")) {
-			if (newData[item] === undefined || (typeof defaultData[item] !== "object"))
-				newData[item] = defaultData[item];
-
-			else
-				fixData(defaultData[item], newData[item]);
-		}
-		else {
-			if (newData[item] === undefined)
-				newData[item] = defaultData[item];
-		}
-	}
+    if (!newData) return;
+    for (let item in defaultData) {
+        if (defaultData[item] == null) {
+            if (newData[item] === undefined) newData[item] = null;
+        }
+        else if (Array.isArray(defaultData[item])) {
+            if (newData[item] === undefined) newData[item] = defaultData[item];
+            else fixData(defaultData[item], newData[item]);
+        }
+        else if (defaultData[item] instanceof Decimal) {
+            if (newData[item] === undefined) newData[item] = defaultData[item];
+            else newData[item] = new Decimal(newData[item]);
+        }
+        else if (defaultData[item] && typeof defaultData[item] === "object") {
+            if (newData[item] === undefined || typeof newData[item] !== "object") newData[item] = defaultData[item];
+            else fixData(defaultData[item], newData[item]);
+        }
+        else {
+            if (newData[item] === undefined) newData[item] = defaultData[item];
+        }
+    }
 }
 function load() {
-	let get = localStorage.getItem(getModID());
+    let get;
+    try {
+        get = localStorage.getItem(getModID());
+    } catch(e) {
+        console.error("localStorage access failed", e);
+        get = null;
+    }
+
     if (get === null || get === undefined) {
         player = getStartPlayer();
         options = getStartOptions();
@@ -209,9 +208,13 @@ function load() {
             console.error("Save decode failed, resetting save", e);
             player = getStartPlayer();
         }
+        if (!player) player = getStartPlayer();
         fixSave();
         loadOptions();
     }
+
+    if (!player) player = getStartPlayer();
+    if (!options) options = getStartOptions();
 
 	if (player.offlineProd) {
 		if (player.offTime === undefined)
@@ -330,6 +333,7 @@ function versionCheck() {
 	}
 }
 var saveInterval = setInterval(function () {
+	if (!player || !tmp) return;
 	if (player === undefined)
 		return;
 	if (tmp.gameEnded && !player.keepGoing)

@@ -390,16 +390,18 @@ function gameLoop(diff) {
 }
 
 function hardReset(resetOptions) {
-	if (!confirm("Are you sure you want to do this? You will lose all your progress!")) return
-	player = null
-	if(resetOptions) options = null
-	save(true);
-	window.location.reload();
+    if (!confirm("Are you sure you want to do this? You will lose all your progress!")) return;
+    localStorage.removeItem(getModID());
+    localStorage.removeItem(getModID() + "_options");
+    player = null;
+    tmp = null;
+    window.location.reload();
 }
 
 var ticking = false
 
 var interval = setInterval(function() {
+	if (!player || !tmp) return;
 	if (player===undefined||tmp===undefined) return;
 	if (ticking) return;
 	if (tmp.gameEnded&&!player.keepGoing) return;
@@ -491,5 +493,33 @@ window.addEventListener('load', function() {
     document.addEventListener('mousedown', handleDragStart);
     document.addEventListener('mousemove', handleDragMove);
     document.addEventListener('mouseup', handleDragEnd);
-    console.log('拖拽批量购买功能已启用'); // 确认加载
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    let bgm = document.getElementById('bgm');
+    if (!bgm) return;
+    bgm.src = 'resources/bgm.mp3';
+    if (options.musicEnabled) {
+        let musicStarted = false;
+        document.body.addEventListener('click', function() {
+            if (!musicStarted && options.musicEnabled) {
+                bgm.play().catch(e => console.log("播放失败", e));
+                musicStarted = true;
+            }
+        }, { once: true });
+    }
+});
+
+function toggleMusic() {
+    options.musicEnabled = !options.musicEnabled;
+    let bgm = document.getElementById('bgm');
+    if (!bgm) return;
+    if (options.musicEnabled) {
+        if (bgm.paused) {
+            bgm.play().catch(e => console.log("播放失败", e));
+        }
+    } else {
+        bgm.pause();
+    }
+    save();
+}

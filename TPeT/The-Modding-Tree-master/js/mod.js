@@ -12,11 +12,13 @@ let modInfo = {
 let getModID = () => modInfo.id ?? `${modInfo.name.replace(/\s+/g, '-')}-${modInfo.author.replace(/\s+/g, '-')}`;
 // Set your version in num and name
 let VERSION = {
-	num: "0.5",
+	num: "0.5.1",
 	name: "Literally nothing",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
+    <h3>v0.5.1 2026.5.17</h3><br>
+		- Added Enhancer and 9 Enhancer Upgrades.<br>
     <h3>v0.5 2026.5.16</h3><br>
 		- Added 1 Achievement.<br>
 		- Added 4 Challenges.<br>
@@ -71,7 +73,7 @@ function getPointGen() {
 	if (hasUpgrade('p', 43)) gain = gain.times(upgradeEffect('p', 43))
 	gain = gain.times(buyableEffect('k', 11))
     gain = gain.times(buyableEffect('k', 23))
-    gain = gain.times(player.b.power.pow(0.1).add(1))
+    gain = gain.times(getFuryBonus(player.b.power))
 	gain = gain.times(player.c.points.pow(0.5).add(1))
 	if (hasAchievement('a', 12)) gain = gain.times(achievementEffect('a', 12));
 	return gain
@@ -79,6 +81,7 @@ function getPointGen() {
 
 // You can add non-layer related variables that should to into "player" and be saved here, along with default values
 function addedPlayerData() { return {
+    milkUnlocked: false
 }}
 
 function closeDragHint() {
@@ -114,5 +117,5 @@ function maxTickLength() {
 
 // Use this if you need to undo inflation from an older version. If the version is older than the version that fixed the issue,
 // you can cap their current resources with this.
-function fixOldSave(oldVersion){
+function fixOldSave(){
 }

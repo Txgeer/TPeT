@@ -15,7 +15,12 @@ function applySoftcap(value) {
     if (isSoftcap) {
         if (value.lte(cap)) return value;
         let excess = value.sub(cap);
-        let logGrowth = Decimal.log10(excess).add(1);
+        let logGrowth;
+        if (hasUpgrade('e', 12)) {
+            logGrowth = Decimal.log2(excess).add(1);
+        } else {
+            logGrowth = Decimal.log10(excess).add(1);
+        }
         return cap.add(logGrowth);
     } else {
         return value.min(100);
@@ -35,6 +40,27 @@ function getUpgradeDisplay(layer, id) {
         return formatted + "（受硬上限限制）";
     }
     return formatted;
+}
+function getFuryBonus(power) {
+    let safePower = power.max(1);
+    if (hasUpgrade('e', 13)) {
+        return safePower.log2().add(1);
+    } else {
+        return safePower.ln().add(1);
+    }
+}
+function getCurrentThreshold() {
+    let baseThreshold;
+    if (player.c.activeChallenge === 23) {
+        baseThreshold = new Decimal(1);
+    } else {
+        baseThreshold = new Decimal(9e15);
+    }
+    if (player.milkUnlocked) {
+        let milkFactor = player.k.milk.max(1);
+        baseThreshold = baseThreshold.times(milkFactor);
+    }
+    return baseThreshold;
 }
 addLayer("a", {
     name: "成就", // This is optional, only used in a few places, If absent it just uses the layer id.
@@ -140,17 +166,12 @@ addLayer("p", {
     if (hasUpgrade('p', 32)) mult = mult.times(upgradeEffect('p', 32))
     mult = mult.times(buyableEffect('k', 12))
     mult = mult.times(buyableEffect('k', 23))
-    mult = mult.times(player.b.power.pow(0.1).add(1))
-    mult = mult.times(player.c.points.pow(0.1).add(1))
-    let threshold;
-    if (player.c.activeChallenge === 23) {
-    threshold = 1;
-    } else {
-    threshold = 9e15;
-    }
+    mult = mult.times(getFuryBonus(player.b.power))
+    mult = mult.times(player.c.points.pow(0.5).add(1))
+    let threshold = getCurrentThreshold();
     if (player.p.points.gte(threshold)) {
     let logPoints = player.p.points.log10();
-    let logThreshold = new Decimal(threshold).log10();
+    let logThreshold = threshold.log10();
     let delta = logPoints.sub(logThreshold).add(1);
     if (delta.gt(0)) {
         let exponent = Decimal.dOne.div(delta);
@@ -317,7 +338,7 @@ addLayer("p", {
         33: {    
             title: "万灵统一",
             description: "基于本次蛮王重置的时间增益蛮王经验值获取。",
-            cost: new Decimal(110),
+            cost: new Decimal(112),
             effect() {
             let exponent = hasChallenge('c', 22) ? 0.5 : 0.2;
             let base= hasChallenge('c', 22) ? player.a.resetTime : player.p.resetTime;
@@ -427,8 +448,9 @@ addLayer("p", {
         keep.push("upgrades");
         }
         if(layers[resettingLayer].row>=1){
-            player.b.power=new Decimal(0)
-            layerDataReset(this.layer,keep)
+            player.b.power = new Decimal(0);
+            player.k.milk = new Decimal(0);
+            layerDataReset(this.layer, keep);
         }
     },
     tabFormat: {
@@ -437,16 +459,16 @@ addLayer("p", {
             'main-display',
             'prestige-button',
             ['display-text', function() {
-            let threshold = (player.c.activeChallenge === 23) ? 1 : 9e15;
+            let threshold = getCurrentThreshold();
             if (player.p.points.gte(threshold)) {
             let logPoints = player.p.points.log10();
-            let logThreshold = new Decimal(threshold).log10();
+            let logThreshold = threshold.log10();
             let delta = logPoints.sub(logThreshold).add(1);
             if (delta.gt(1)) {
-            return `<span style="color: #3fffff; font-weight: bold;">天意使你的蛮王等级获取开 ${format(delta)} 次根！</span>`;
+            return `天意使你的蛮王等级获取开 <h3 style="color: #3fffff; text-shadow: 10px">${format(delta)}</h3> 次根！`;
             }
             }
-            }],
+        }],
         'upgrades',
         ]
     }
@@ -464,6 +486,8 @@ addLayer("k", {
     startData() { return {
         unlocked: true,
 		points: new Decimal(0),
+        milk: new Decimal(0),
+        milkGainRate: new Decimal(0),
     }},
     color: "#AFAFAF",
     requires: new Decimal(200), // Can be a function that takes requirement increases into account
@@ -477,22 +501,18 @@ addLayer("k", {
         let mult = new Decimal(1)
         mult = mult.times(buyableEffect('k', 21))
         mult = mult.times(buyableEffect('k', 23))
-        if (hasUpgrade('b', 23)) mult = mult.times(player.b.power.pow(0.1).add(1))
-        let threshold;
-        if (player.c.activeChallenge === 23) {
-        threshold = 1;
-        } else {
-        threshold = 9e15;
-        }
+        if (hasUpgrade('b', 23)) mult = mult.times(upgradeEffect('b', 23))
+        if (hasUpgrade('e', 11)) mult = mult.times(upgradeEffect('e', 11))
+        let threshold = getCurrentThreshold();
         if (player.k.points.gte(threshold)) {
         let logPoints = player.k.points.log10();
-        let logThreshold = new Decimal(threshold).log10();
+        let logThreshold = threshold.log10();
         let delta = logPoints.sub(logThreshold).add(1);
         if (delta.gt(0)) {
         let exponent = Decimal.dOne.div(delta);
         mult = mult.pow(exponent);
-    }
-    }
+        }
+        }
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -693,6 +713,14 @@ addLayer("k", {
         if (canBuyBuyable("k", 21)) buyBuyable("k", 21);
         if (canBuyBuyable("k", 22)) buyBuyable("k", 22);
         if (canBuyBuyable("k", 23)) buyBuyable("k", 23);
+        }
+    },
+    update(diff) {
+    if (player.milkUnlocked) {
+        let gainPerSecond = buyableEffect("k",21).times(buyableEffect("k",22)).times(buyableEffect("k",23));
+        player.k.milkGainRate = gainPerSecond;
+        let gain = gainPerSecond.times(diff);
+        player.k.milk = player.k.milk.add(gain);
     }
     },
     tabFormat:{
@@ -700,15 +728,22 @@ addLayer("k", {
             content:[
             //['infoboxes','main-text'],
             'main-display',
+            ['display-text',
+            function() {
+            	return `你有 <h3 style="color: #dfdfdf; text-shadow: 10px">${format(player.k.milk)}</h3> 牛奶,该数值可以增加天意阈值`}
+            ],
+            ['display-text', function() {
+                    return `你每秒获得 <h3 style="color: #dfdfdf; text-shadow: 10px">${format(player.k.milkGainRate)}</h3> 牛奶`;
+            }],
             'prestige-button',
             ['display-text', function() {
-            let threshold = (player.c.activeChallenge === 23) ? 1 : 9e15;
+            let threshold = getCurrentThreshold();
             if (player.k.points.gte(threshold)) {
             let logPoints = player.k.points.log10();
-            let logThreshold = new Decimal(threshold).log10();
+            let logThreshold = threshold.log10();
             let delta = logPoints.sub(logThreshold).add(1);
             if (delta.gt(1)) {
-            return `<span style="color: #3fffff; font-weight: bold;">天意使你的蛮王等级获取开 ${format(delta)} 次根！</span>`;
+            return `天意使你的骑士团人口获取开 <h3 style="color: #3fffff; text-shadow: 10px">${format(delta)}</h3> 次根！`;
             }
             }
             }],
@@ -719,15 +754,22 @@ addLayer("k", {
             content:[
             //['infoboxes','main-text'],
             'main-display',
+            ['display-text',
+            function() {
+            	return `你有 <h3 style="color: #dfdfdf; text-shadow: 10px">${format(player.k.milk)}</h3> 牛奶,该数值可以增加天意阈值`}
+            ],
+            ['display-text', function() {
+                    return `你每秒获得 <h3 style="color: #dfdfdf; text-shadow: 10px">${format(player.k.milkGainRate)}</h3> 牛奶`;
+            }],
             'prestige-button',
             ['display-text', function() {
-            let threshold = (player.c.activeChallenge === 23) ? 1 : 9e15;
+            let threshold = getCurrentThreshold();
             if (player.k.points.gte(threshold)) {
             let logPoints = player.k.points.log10();
-            let logThreshold = new Decimal(threshold).log10();
+            let logThreshold = threshold.log10();
             let delta = logPoints.sub(logThreshold).add(1);
             if (delta.gt(1)) {
-            return `<span style="color: #3fffff; font-weight: bold;">天意使你的蛮王等级获取开 ${format(delta)} 次根！</span>`;
+            return `天意使你的骑士团人口获取开 <h3 style="color: #3fffff; text-shadow: 10px">${format(delta)}</h3> 次根！`;
             }
             }
             }],
@@ -749,8 +791,9 @@ addLayer("b", {
         unlocked: true,
 		points: new Decimal(0),
         power: new Decimal(0),
+        powerGainRate: new Decimal(0),
     }},
-    color: "#AF0000",
+    color: "#af0000",
     requires: new Decimal(200000), // Can be a function that takes requirement increases into account
     resource: "狂战士营人口", // Name of prestige currency
     baseResource: "蛮王等级", // Name of resource prestige is based on
@@ -797,6 +840,7 @@ addLayer("b", {
     },
     update(diff) {
     let delta = new Decimal(diff);
+    let oldPower = player.b.power;   // 记录更新前的狂怒能量
     if (!hasUpgrade('b', 21)) {
         player.b.power = player.b.power.add(delta.times(player.b.points));
     } else if (!hasMilestone('b', 2)) {
@@ -808,6 +852,8 @@ addLayer("b", {
     } else {
         player.b.power = player.b.power.add(delta.times(player.b.points.pow(buyableEffect("k",22))).times(player.k.points).times(upgradeEffect("b",21)));
     }
+    let gain = player.b.power.sub(oldPower);
+    player.b.powerGainRate = gain.div(diff);
     },
     upgrades:{
      11: {    
@@ -874,7 +920,7 @@ addLayer("b", {
             effect() {
                 return buyableEffect("k", 13).mul(buyableEffect("k", 23)).pow(0.5)
             },
-           effectDisplay() { 
+            effectDisplay() { 
                 if (hasUpgrade(this.layer, this.id)) 
                 return format(upgradeEffect(this.layer, this.id)) + "x"; 
                 else 
@@ -889,16 +935,57 @@ addLayer("b", {
         },
         23: {    
             title: "交流互鉴",
-            description: "狂怒能量影响骑士团人口获取。<br>",
+            description: "狂怒能量也可以增益骑士团人口获取。<br>",
             cost: new Decimal(20),
-
+            effect() {
+                return getFuryBonus(player.b.power)
+            },
+            effectDisplay() { 
+                if (hasUpgrade(this.layer, this.id)) 
+                return format(upgradeEffect(this.layer, this.id)) + "x"; 
+                else 
+                return "1.00x";
+            }// Add formatting to the effect
         },
         24: {    
             title: "合作共赢",
             description: "骑士团人口影响狂怒能量获取。<br>",
             cost: new Decimal(24),
+            effect() {
+                return player.k.points
+            },
+            effectDisplay() { 
+                if (hasUpgrade(this.layer, this.id)) 
+                return format(upgradeEffect(this.layer, this.id)) + "x"; 
+                else 
+                return "1.00x";
+            }// Add formatting to the effect
 
         },
+    },
+    automate() {
+    if (hasMilestone("e", 1)) {
+        quickUpgBuy("b", [11, 12, 13, 14]);
+        }
+    if (hasMilestone("e", 2)) {
+        quickUpgBuy("b", [21, 22, 23, 24]);
+        }
+    if (hasMilestone('e', 3)) {
+        const bUpgradeIds = [11, 12, 13, 14];
+        for (let id of bUpgradeIds) {
+            if (!player.b.upgrades.includes(id)) {
+                player.b.upgrades.push(id);
+            }
+        }
+    }
+    if (hasMilestone('e', 4)) {
+        const bUpgradeIds = [21,22,23,24];
+        for (let id of bUpgradeIds) {
+            if (!player.b.upgrades.includes(id)) {
+                player.b.upgrades.push(id);
+            }
+        }
+    }
     },
     tabFormat:{
         '升级':{
@@ -907,8 +994,11 @@ addLayer("b", {
             'main-display',
             ['display-text',
             function() {
-            	return `你有 <h3 style="color: #7F0000; text-shadow: 10px">${format(player.b.power)}</h3> 狂怒能量,为你的蛮王提供 <h3 style="color: #7F0000; text-shadow: 10px">${format(player.b.power.pow(0.1).add(1))}</h3> 倍率的经验值和等级`}
+            	return `你有 <h3 style="color: #7f0000; text-shadow: 10px">${format(player.b.power)}</h3> 狂怒能量,为你的蛮王提供 <h3 style="color: #7F0000; text-shadow: 10px">${format(getFuryBonus(player.b.power))}</h3> 倍率的经验值和等级`}
             ],
+            ['display-text', function() {
+                    return `你每秒获得 <h3 style="color: #7f0000; text-shadow: 10px">${format(player.b.powerGainRate)}</h3> 狂怒能量`;
+            }],
             'prestige-button',
             'upgrades',
             ],
@@ -919,8 +1009,11 @@ addLayer("b", {
             'main-display',
             ['display-text',
             function() {
-            	return `你有 <h3 style="color: #7F0000; text-shadow: 10px">${format(player.b.power)}</h3> 狂怒能量,为你的蛮王提供 <h3 style="color: #7F0000; text-shadow: 10px">${format(player.b.power.pow(0.1).add(1))}</h3> 倍率的经验值和等级`}
+            	return `你有 <h3 style="color: #7f0000; text-shadow: 10px">${format(player.b.power)}</h3> 狂怒能量,为你的蛮王提供 <h3 style="color: #7F0000; text-shadow: 10px">${format(getFuryBonus(player.b.power))}</h3> 倍率的经验值和等级`}
             ],
+            ['display-text', function() {
+                    return `你每秒获得 <h3 style="color: #7f0000; text-shadow: 10px">${format(player.b.powerGainRate)}</h3> 狂怒能量`;
+            }],
             'prestige-button',
             'milestones',
             ],
@@ -1007,11 +1100,11 @@ addLayer("c", {
         11: {
         name: "Tchef",
         challengeDescription: "禁用骑士。",
-        goal: new Decimal(2047),
-        goalDescription: "2047 蛮王等级",
+        goal: new Decimal(4095),
+        goalDescription: "4095 蛮王等级",
         rewardDescription: "蛮王升级的硬上限改为软上限（超过100倍后缓慢增长）。",
         canComplete() {
-            return player.p.points.gte(2047);
+            return player.p.points.gte(4095);
         },
         onComplete() {
             doPopup("challenge", "Tchef 挑战完成！", "挑战完成", 3, "#7FFF7F");
@@ -1023,11 +1116,11 @@ addLayer("c", {
         12: {
         name: "Gunaar",
         challengeDescription: "在 Tchef 的基础上，蛮王升级的软上限阈值变为 2（而非 100）。",
-        goal: new Decimal(4095),
-        goalDescription: "4095 蛮王等级",
+        goal: new Decimal(8191),
+        goalDescription: "8191 蛮王等级",
         rewardDescription: "解锁第四行蛮王升级。",
         canComplete() {
-            return player.p.points.gte(4095);
+            return player.p.points.gte(8191);
         },
         onComplete() {
             doPopup("challenge", "Gunaar 挑战完成！", "挑战完成", 3, "#7FFF7F");
@@ -1039,10 +1132,10 @@ addLayer("c", {
         13: {
         name: "Lightadapt",
         challengeDescription: "在 Gunaar 的基础上，禁用蛮王升级 11 42 43。",
-        goal: new Decimal(8191),
-        goalDescription: "8191 蛮王等级",
+        goal: new Decimal(16383),
+        goalDescription: "16383 蛮王等级",
         rewardDescription: "提高新的被禁用升级的效果。",
-        canComplete() { return player.p.points.gte(8191); },
+        canComplete() { return player.p.points.gte(16383); },
         onComplete() {
             doPopup("challenge", "Lightadapt 挑战完成！", "挑战完成", 3, "#7FFF7F");
         },
@@ -1053,10 +1146,10 @@ addLayer("c", {
         21: {
         name: "Ayabehaori & Jaxinator",
         challengeDescription: "在 Lightadapt 的基础上，禁用蛮王升级 23 31 41。",
-        goal: new Decimal(16383),
-        goalDescription: "16383 蛮王等级",
+        goal: new Decimal(32767),
+        goalDescription: "32767 蛮王等级",
         rewardDescription: "提高新的被禁用升级的效果。",
-        canComplete() { return player.p.points.gte(16383); },
+        canComplete() { return player.p.points.gte(32767); },
         onComplete() {
             doPopup("challenge", "Ayabehaori & Jaxinator", "挑战完成", 3, "#7FFF7F");
         },
@@ -1067,10 +1160,10 @@ addLayer("c", {
         22: {
         name: "Sangyu & Bitdotdo",
         challengeDescription: "在 Ayabehaori & Jaxinator 的基础上，禁用蛮王升级 32 33。",
-        goal: new Decimal(32767),
-        goalDescription: "32767 蛮王等级",
+        goal: new Decimal(65535),
+        goalDescription: "65535 蛮王等级",
         rewardDescription: "提高新的被禁用升级的效果,且时间不再会被重置。",
-        canComplete() { return player.p.points.gte(32767); },
+        canComplete() { return player.p.points.gte(65535); },
         onComplete() {
             doPopup("challenge", "Sangyu & Bitdotdo", "挑战完成", 3, "#7FFF7F");
         },
@@ -1081,10 +1174,10 @@ addLayer("c", {
         23: {
         name: "Drewdrinks",
         challengeDescription: "在 Sangyu & Bitdotdo 的基础上，天意的阈值变为 1（而非 9e15）。",
-        goal: new Decimal(65535),
-        goalDescription: "65535 蛮王等级",
+        goal: new Decimal(99999),
+        goalDescription: "99999 蛮王等级",
         rewardDescription: "解锁第六个骑士可购买。",
-        canComplete() { return player.p.points.gte(65535); },
+        canComplete() { return player.p.points.gte(99999); },
         onComplete() {
         doPopup("challenge", "Drewdrinks 挑战完成！", "挑战完成", 3, "#7FFF7F");
         },
@@ -1125,62 +1218,98 @@ addLayer("c", {
     },
     layerShown(){return hasMilestone('b',4)||player.c.points.gte(1)},
     })
-    addLayer("e", {
-    name: "增强者", // This is optional, only used in a few places, If absent it just uses the layer id.
-    symbol: "E", // This appears on the layer's node. Default is the id with the first letter capitalized
-    position: 0, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
-    startData() { return {
-        unlocked: true,
-		points: new Decimal(0),
-    }},
+addLayer("e", {
+    name: "增强者",
+    symbol: "E",
+    position: 0,
+    startData() { return { unlocked: true, points: new Decimal(0) }; },
     color: "#bf00ff",
-    requires: new Decimal(9e15), // Can be a function that takes requirement increases into account
-    resource: "增强器", // Name of prestige currency
-    baseResource: "骑士团人口", // Name of resource prestige is based on
-    baseAmount() {return player.k.points}, // Get the current amount of baseResource
-    type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
-    exponent: 0.1, // Prestige currency exponent
-    branches:["k"],
-    gainMult() { // Calculate the multiplier for main currency from bonuses
-        let mult = new Decimal(1)
-        return mult
+    requires: new Decimal(9e15),
+    resource: "增强器",
+    baseResource: "骑士团人口",
+    baseAmount() { return player.k.points; },
+    type: "normal",
+    exponent: 0.1,
+    branches: ["k"],
+    gainMult() {
+        let mult = new Decimal(1);
+        return mult;
     },
-    gainExp() { // Calculate the exponent on main currency from bonuses
-        return new Decimal(1)
+    gainExp() { return new Decimal(1); },
+    row: 2,
+    hotkeys: [{ key: "e", description: "E: Reset for Enhancer", onPress() { if (canReset(this.layer)) doReset(this.layer); } }],
+    
+    upgrades: {
+        11: {
+            title: "骑士编制",
+            description: "挑战精神也可以增益骑士团人口获取。<br>",
+            cost: new Decimal(1),
+            effect() {
+                
+                return player.c.points.pow(0.5).add(1)
+            },
+            effectDisplay() { return format(upgradeEffect(this.layer, this.id)) + "x"; }
+        },
+        12: {
+        title: "武器冶炼",
+        description: "削弱蛮王升级的软上限。",
+        cost: new Decimal(4)
+        },
+        13: {
+        title: "营地扩建",
+        description: "狂怒能量的效果由提高。",
+        cost: new Decimal(5)
+        },
+        14: {
+        title: "Milkisgood",
+        description: "解锁牛奶资源。",
+        cost: new Decimal(6),
+        onPurchase() {
+        player.milkUnlocked = true;
+        if (player.k.milk.eq(0)) player.k.milk = new Decimal(1);
+        },
+    }
     },
-    row: 2, // Row the layer is in on the tree (0 is the first row)
-    hotkeys: [
-        {key: "e", description: "E: Reset for Enhancer", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
-        ],
+    
+    tabFormat: {
+        "升级": {
+            content: ['main-display', 'prestige-button', 'upgrades']
+        },
+        "里程碑": {
+            content: ['main-display', 'prestige-button', 'milestones']
+        }
+    },
+
     milestones:{
         1:
         {
-        requirementDescription:"1 增强器",
-        effectDescription:"通关v0.5.0！",
-        done() {return player.e.points.gte(1)}
+        requirementDescription:"2 增强器",
+        effectDescription:"自动购买第一行狂战士升级。",
+        done() {return player.e.points.gte(2)}
+        },
+        2:
+        {
+        requirementDescription:"3 增强器",
+        effectDescription:"自动购买第二行狂战士升级。",
+        done() {return player.e.points.gte(3)}
+        },
+        3:
+        {
+        requirementDescription:"7 增强器",
+        effectDescription:"免费自动购买第一行狂战士升级。",
+        done() {return player.e.points.gte(7)}
+        },
+        4:
+        {
+        requirementDescription:"13 增强器",
+        effectDescription:"免费自动购买第二行狂战士升级。",
+        done() {return player.e.points.gte(13)}
         },
     },
-    tabFormat:{
-        '升级':{
-            content:[
-            //['infoboxes','main-text'],
-            'main-display',
-            'prestige-button',
-            'upgrades',
-            ],
-        },
-        '里程碑':{
-            content:[
-            //['infoboxes','main-text'],
-            'main-display',
-            'prestige-button',
-            'milestones',
-            ],
-        },
-    },
+
     style: {
         background: "linear-gradient(135deg, #000000, #1f003f)",
-        minHeight: "100vh"
+        minHeight: "100vh",
     },
-    layerShown(){return hasMilestone('k',7)||player.e.points.gte(1)},
-    })
+    layerShown() { return hasMilestone('k', 7) || player.e.points.gte(1); }
+});

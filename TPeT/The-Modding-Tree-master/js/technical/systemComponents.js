@@ -169,6 +169,7 @@ var systemComponents = {
             <tr>
                 <td><button class="opt" onclick="toggleOpt('hideChallenges')">已完成的挑战: {{ options.hideChallenges?"隐藏":"显示" }}</button></td>
                 <td><button class="opt" onclick="toggleOpt('forceOneTab'); needsCanvasUpdate = true">单标签页模式: {{ options.forceOneTab?"总是":"自动" }}</button></td>
+				<td><button class="opt" onclick="toggleMusic()">音乐: {{ options.musicEnabled ? "开" : "关" }}</button></td>
 			</tr> 
         </table>`
     },
