@@ -735,7 +735,8 @@ addLayer("k", {
             }
             ],
             ['display-text', function() {
-                    return `你每秒获得 <h3 style="color: #dfdfdf; text-shadow: 10px">${format(player.k.milkGainRate)}</h3> 牛奶`;
+                if (player.milkUnlocked) {
+                    return `你每秒获得 <h3 style="color: #dfdfdf; text-shadow: 10px">${format(player.k.milkGainRate)}</h3> 牛奶`;}
             }],
             'prestige-button',
             ['display-text', function() {
@@ -763,7 +764,8 @@ addLayer("k", {
             }
             ],
             ['display-text', function() {
-                    return `你每秒获得 <h3 style="color: #dfdfdf; text-shadow: 10px">${format(player.k.milkGainRate)}</h3> 牛奶`;
+                if (player.milkUnlocked) {
+                    return `你每秒获得 <h3 style="color: #dfdfdf; text-shadow: 10px">${format(player.k.milkGainRate)}</h3> 牛奶`;}
             }],
             'prestige-button',
             ['display-text', function() {
