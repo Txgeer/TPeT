@@ -730,7 +730,9 @@ addLayer("k", {
             'main-display',
             ['display-text',
             function() {
+                if (player.milkUnlocked) {
             	return `你有 <h3 style="color: #dfdfdf; text-shadow: 10px">${format(player.k.milk)}</h3> 牛奶,该数值可以增加天意阈值`}
+            }
             ],
             ['display-text', function() {
                     return `你每秒获得 <h3 style="color: #dfdfdf; text-shadow: 10px">${format(player.k.milkGainRate)}</h3> 牛奶`;
@@ -756,7 +758,9 @@ addLayer("k", {
             'main-display',
             ['display-text',
             function() {
+                if (player.milkUnlocked) {
             	return `你有 <h3 style="color: #dfdfdf; text-shadow: 10px">${format(player.k.milk)}</h3> 牛奶,该数值可以增加天意阈值`}
+            }
             ],
             ['display-text', function() {
                     return `你每秒获得 <h3 style="color: #dfdfdf; text-shadow: 10px">${format(player.k.milkGainRate)}</h3> 牛奶`;
