@@ -18,7 +18,7 @@ let VERSION = {
 
 let changelog = `<h1>Changelog:</h1><br>
     <h3>v0.5.1 2026.5.17</h3><br>
-		- Added Enhancer and 9 Enhancer Upgrades.<br>
+		- Added Enhancer and 4 Enhancer Upgrades.<br>
     <h3>v0.5 2026.5.16</h3><br>
 		- Added 1 Achievement.<br>
 		- Added 4 Challenges.<br>
