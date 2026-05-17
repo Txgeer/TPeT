@@ -70,7 +70,7 @@ addLayer("a", {
         unlocked: true,
 		points: new Decimal(0),
     }},
-    color: "#FFFF3F",
+    color: "#ffff3f",
     requires: new Decimal(25), // Can be a function that takes requirement increases into account
     resource: "成就", // Name of prestige currency
     baseResource: "狂战士营人口", // Name of resource prestige is based on
@@ -151,7 +151,7 @@ addLayer("p", {
         unlocked: true,
 		points: new Decimal(0),
     }},
-    color: "#7F7F7F",
+    color: "#7f7f7f",
     requires: new Decimal(10), // Can be a function that takes requirement increases into account
     resource: "蛮王等级", // Name of prestige currency
     baseResource: "蛮王经验值", // Name of resource prestige is based on
@@ -489,7 +489,7 @@ addLayer("k", {
         milk: new Decimal(0),
         milkGainRate: new Decimal(0),
     }},
-    color: "#AFAFAF",
+    color: "#bfbfbf",
     requires: new Decimal(200), // Can be a function that takes requirement increases into account
     resource: "骑士团人口", // Name of prestige currency
     baseResource: "蛮王等级", // Name of resource prestige is based on
@@ -994,7 +994,7 @@ addLayer("b", {
             'main-display',
             ['display-text',
             function() {
-            	return `你有 <h3 style="color: #7f0000; text-shadow: 10px">${format(player.b.power)}</h3> 狂怒能量,为你的蛮王提供 <h3 style="color: #7F0000; text-shadow: 10px">${format(getFuryBonus(player.b.power))}</h3> 倍率的经验值和等级`}
+            	return `你有 <h3 style="color: #7f0000; text-shadow: 10px">${format(player.b.power)}</h3> 狂怒能量,为你的蛮王提供 <h3 style="color: #7f0000; text-shadow: 10px">${format(getFuryBonus(player.b.power))}</h3> 倍率的经验值和等级`}
             ],
             ['display-text', function() {
                     return `你每秒获得 <h3 style="color: #7f0000; text-shadow: 10px">${format(player.b.powerGainRate)}</h3> 狂怒能量`;
@@ -1009,7 +1009,7 @@ addLayer("b", {
             'main-display',
             ['display-text',
             function() {
-            	return `你有 <h3 style="color: #7f0000; text-shadow: 10px">${format(player.b.power)}</h3> 狂怒能量,为你的蛮王提供 <h3 style="color: #7F0000; text-shadow: 10px">${format(getFuryBonus(player.b.power))}</h3> 倍率的经验值和等级`}
+            	return `你有 <h3 style="color: #7f0000; text-shadow: 10px">${format(player.b.power)}</h3> 狂怒能量,为你的蛮王提供 <h3 style="color: #7f0000; text-shadow: 10px">${format(getFuryBonus(player.b.power))}</h3> 倍率的经验值和等级`}
             ],
             ['display-text', function() {
                     return `你每秒获得 <h3 style="color: #7f0000; text-shadow: 10px">${format(player.b.powerGainRate)}</h3> 狂怒能量`;
@@ -1033,7 +1033,7 @@ addLayer("c", {
         unlocked: true,
 		points: new Decimal(0),
     }},
-    color: "#7FFF7F",
+    color: "#7fff7f",
     requires: new Decimal(36), // Can be a function that takes requirement increases into account
     resource: "挑战精神", // Name of prestige currency
     baseResource: "狂战士营人口", // Name of resource prestige is based on
@@ -1107,7 +1107,7 @@ addLayer("c", {
             return player.p.points.gte(4095);
         },
         onComplete() {
-            doPopup("challenge", "Tchef 挑战完成！", "挑战完成", 3, "#7FFF7F");
+            doPopup("challenge", "Tchef 挑战完成！", "挑战完成", 3, "#7fff7f");
         },
         unlocked() {
             return hasMilestone('c',2)
@@ -1123,7 +1123,7 @@ addLayer("c", {
             return player.p.points.gte(8191);
         },
         onComplete() {
-            doPopup("challenge", "Gunaar 挑战完成！", "挑战完成", 3, "#7FFF7F");
+            doPopup("challenge", "Gunaar 挑战完成！", "挑战完成", 3, "#7fff7f");
         },
         unlocked() {
             return hasMilestone('c',3)
@@ -1137,7 +1137,7 @@ addLayer("c", {
         rewardDescription: "提高新的被禁用升级的效果。",
         canComplete() { return player.p.points.gte(16383); },
         onComplete() {
-            doPopup("challenge", "Lightadapt 挑战完成！", "挑战完成", 3, "#7FFF7F");
+            doPopup("challenge", "Lightadapt 挑战完成！", "挑战完成", 3, "#7fff7f");
         },
         unlocked() {
             return hasMilestone('c',4)
@@ -1151,7 +1151,7 @@ addLayer("c", {
         rewardDescription: "提高新的被禁用升级的效果。",
         canComplete() { return player.p.points.gte(32767); },
         onComplete() {
-            doPopup("challenge", "Ayabehaori & Jaxinator", "挑战完成", 3, "#7FFF7F");
+            doPopup("challenge", "Ayabehaori & Jaxinator", "挑战完成", 3, "#7fff7f");
         },
         unlocked() {
             return hasMilestone('c',5)
@@ -1165,7 +1165,7 @@ addLayer("c", {
         rewardDescription: "提高新的被禁用升级的效果,且时间不再会被重置。",
         canComplete() { return player.p.points.gte(65535); },
         onComplete() {
-            doPopup("challenge", "Sangyu & Bitdotdo", "挑战完成", 3, "#7FFF7F");
+            doPopup("challenge", "Sangyu & Bitdotdo", "挑战完成", 3, "#7fff7f");
         },
         unlocked() {
             return hasMilestone('c',6)
@@ -1179,7 +1179,7 @@ addLayer("c", {
         rewardDescription: "解锁第六个骑士可购买。",
         canComplete() { return player.p.points.gte(99999); },
         onComplete() {
-        doPopup("challenge", "Drewdrinks 挑战完成！", "挑战完成", 3, "#7FFF7F");
+        doPopup("challenge", "Drewdrinks 挑战完成！", "挑战完成", 3, "#7fff7f");
         },
         unlocked() {
             return hasMilestone('c',7)
@@ -1193,7 +1193,7 @@ addLayer("c", {
             'main-display',
             ['display-text',
             function() {
-            	return `你的挑战精神为你的蛮王提供 <h3 style="color: #7FFF7F; text-shadow: 10px">${format(player.c.points.pow(0.5).add(1))}</h3> 倍率的经验值和等级`}
+            	return `你的挑战精神为你的蛮王提供 <h3 style="color: #7fff7f; text-shadow: 10px">${format(player.c.points.pow(0.5).add(1))}</h3> 倍率的经验值和等级`}
             ],
             'prestige-button',
             'challenges',
@@ -1205,7 +1205,7 @@ addLayer("c", {
             'main-display',
             ['display-text',
             function() {
-            	return `你的挑战精神为你的蛮王提供 <h3 style="color: #7FFF7F; text-shadow: 10px">${format(player.c.points.pow(0.5).add(1))}</h3> 倍率的经验值和等级`}
+            	return `你的挑战精神为你的蛮王提供 <h3 style="color: #7fff7f; text-shadow: 10px">${format(player.c.points.pow(0.5).add(1))}</h3> 倍率的经验值和等级`}
             ],
             'prestige-button',
             'milestones',
