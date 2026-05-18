@@ -1322,7 +1322,7 @@ addLayer("c", {
 addLayer("e", {
     name: "增强者",
     symbol: "E",
-    position: 0,
+    position: 2,
     startData() { return { unlocked: true, points: new Decimal(0) }; },
     color: "#bf00ff",
     requires: new Decimal(9e15),
