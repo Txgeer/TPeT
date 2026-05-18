@@ -12,11 +12,16 @@ let modInfo = {
 let getModID = () => modInfo.id ?? `${modInfo.name.replace(/\s+/g, '-')}-${modInfo.author.replace(/\s+/g, '-')}`;
 // Set your version in num and name
 let VERSION = {
-	num: "0.5.1",
+	num: "0.5.2",
 	name: "Literally nothing",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
+    <h3>v0.5.2 2026.5.18</h3><br>
+		- Added 3 Enhancer Tool.<br>
+		- Added 1 Achievement.<br>
+		- Added 1 Challenge.<br>
+		- Added 4 Pretox Upgrades.<br>
     <h3>v0.5.1 2026.5.17</h3><br>
 		- Added Enhancer and 4 Enhancer Upgrades.<br>
     <h3>v0.5 2026.5.16</h3><br>
@@ -81,7 +86,8 @@ function getPointGen() {
 
 // You can add non-layer related variables that should to into "player" and be saved here, along with default values
 function addedPlayerData() { return {
-    milkUnlocked: false
+    milkUnlocked: false,
+	hasAchieved23: false
 }}
 
 function closeDragHint() {

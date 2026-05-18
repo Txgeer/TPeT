@@ -2,7 +2,7 @@ function applySoftcap(value) {
     let active = player.c.activeChallenge;
     let isSoftcap = false;
     let cap = new Decimal(100);
-    if (active === 12 || active === 13 || active === 21 || active === 22 || active === 23) {
+    if (active === 12 || active === 13 || active === 21 || active === 22 || active === 23 || active === 31) {
         isSoftcap = true;
         cap = new Decimal(2);
     } else if (active === 11) {
@@ -28,7 +28,7 @@ function applySoftcap(value) {
 }
 function isKnightDisabled() {
     let active = player.c.activeChallenge;
-    return active === 11 || active === 12 || active === 13 || active === 21 || active === 22 || active === 23;
+    return active === 11 || active === 12 || active === 13 || active === 21 || active === 22 || active === 23 || active === 31;
 }
 function getUpgradeDisplay(layer, id) {
     let eff = upgradeEffect(layer, id);
@@ -51,7 +51,7 @@ function getFuryBonus(power) {
 }
 function getCurrentThreshold() {
     let baseThreshold;
-    if (player.c.activeChallenge === 23) {
+    if (player.c.activeChallenge === 23 || player.c.activeChallenge === 31) {
         baseThreshold = new Decimal(1);
     } else {
         baseThreshold = new Decimal(9e15);
@@ -132,6 +132,11 @@ addLayer("a", {
                getBuyableAmount("k", 23).gte(1);
         },
     },
+    23: {
+    name: "强度测试",
+    tooltip: "要求：一次增强者重置获得至少2个增强器。<br>奖励：解锁增强工具。",
+    done() { return player.e.hasAchieved23 === true; }
+    }
 },
     tabFormat:{
         '成就':{
@@ -202,7 +207,7 @@ addLayer("p", {
                 return "1.00x";
             },// Add formatting to the effect
             unlocked() {
-            if (player.c.activeChallenge === 13 || player.c.activeChallenge === 21 || player.c.activeChallenge === 22 || player.c.activeChallenge === 23) return false;
+            if (player.c.activeChallenge === 13 || player.c.activeChallenge === 21 || player.c.activeChallenge === 22 || player.c.activeChallenge === 23 || player.c.activeChallenge === 31) return false;
             return true;
             }
         },
@@ -238,6 +243,25 @@ addLayer("p", {
             return "1.00x";
             }// Add formatting to the effect
 
+
+        },
+        14: {    
+            title: "Buff之力",
+            description: "基于增强器增益蛮王经验值获取。",
+            cost: new Decimal(2.22e22),
+            effect() {
+            let raw = player.e.points.add(1).pow(0.5);
+            return applySoftcap(raw);
+            },
+            effectDisplay() { 
+            if (hasUpgrade(this.layer, this.id)) 
+            return getUpgradeDisplay(this.layer, this.id);
+            else 
+            return "1.00x";
+            },// Add formatting to the effect
+            unlocked() {
+            return hasChallenge('c', 31);
+            },
 
         },
         21: {    
@@ -289,9 +313,28 @@ addLayer("p", {
             return "1.00x";
             },// Add formatting to the effect
             unlocked() {
-            if (player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || player.c.activeChallenge === 23) return false;
+            if (player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || player.c.activeChallenge === 23 || player.c.activeChallenge === 31) return false;
             return true;
             }
+
+        },
+        24: {    
+            title: "饮品之力",
+            description: "基于牛奶增益蛮王经验值获取。",
+            cost: new Decimal(9e22),
+            effect() {
+            let raw = player.k.milk.add(1).pow(0.2);
+            return applySoftcap(raw);
+            },
+            effectDisplay() { 
+            if (hasUpgrade(this.layer, this.id)) 
+            return getUpgradeDisplay(this.layer, this.id);
+            else 
+            return "1.00x";
+            },// Add formatting to the effect
+            unlocked() {
+            return hasChallenge('c', 31);
+            },
 
         },
         31: {    
@@ -310,7 +353,7 @@ addLayer("p", {
             return "1.00x";
             },// Add formatting to the effect
             unlocked() {
-            if (player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || player.c.activeChallenge === 23) return false;
+            if (player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || player.c.activeChallenge === 23 || player.c.activeChallenge === 31) return false;
             return true;
             }
         },
@@ -321,7 +364,7 @@ addLayer("p", {
             effect() {
             let exponent = hasChallenge('c', 22) ? 0.4 : 0.15;
             let base= hasChallenge('c', 22) ? player.a.resetTime : player.p.resetTime;
-            let raw = new Decimal(base).add(1).pow(exponent);
+            let raw = new Decimal(base).add(1).mul(buyableEffect("e",11)).pow(exponent);
             return applySoftcap(raw);
             },
             effectDisplay() { 
@@ -331,7 +374,7 @@ addLayer("p", {
             return "1.00x";
             },// Add formatting to the effect
             unlocked() {
-            if (player.c.activeChallenge === 22 || player.c.activeChallenge === 23) return false;
+            if (player.c.activeChallenge === 22 || player.c.activeChallenge === 23 || player.c.activeChallenge === 31) return false;
             return true;
             }
         },
@@ -342,7 +385,7 @@ addLayer("p", {
             effect() {
             let exponent = hasChallenge('c', 22) ? 0.5 : 0.2;
             let base= hasChallenge('c', 22) ? player.a.resetTime : player.p.resetTime;
-            let raw = new Decimal(base).add(1).pow(exponent);
+            let raw = new Decimal(base).add(1).mul(buyableEffect("e",11)).pow(exponent);
             return applySoftcap(raw);
             },
             effectDisplay() { 
@@ -352,8 +395,27 @@ addLayer("p", {
             return "1.00x";
             },// Add formatting to the effect
             unlocked() {
-            if (player.c.activeChallenge === 22 || player.c.activeChallenge === 23) return false;
+            if (player.c.activeChallenge === 22 || player.c.activeChallenge === 23 || player.c.activeChallenge === 31) return false;
             return true;
+            },
+
+        },
+        34: {    
+            title: "亲信之力",
+            description: "基于骑士团人口增益蛮王经验值获取。",
+            cost: new Decimal(2e23),
+            effect() {
+            let raw = player.k.points.add(1).pow(0.2);
+            return applySoftcap(raw);
+            },
+            effectDisplay() { 
+            if (hasUpgrade(this.layer, this.id)) 
+            return getUpgradeDisplay(this.layer, this.id);
+            else 
+            return "1.00x";
+            },// Add formatting to the effect
+            unlocked() {
+            return hasChallenge('c', 31);
             },
 
         },
@@ -373,7 +435,7 @@ addLayer("p", {
             return "1.00x";
             },// Add formatting to the effect// Add formatting to the effect
             unlocked() {
-            if (player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || player.c.activeChallenge === 23) return false;
+            if (player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || player.c.activeChallenge === 23 || player.c.activeChallenge === 31) return false;
             return hasChallenge('c', 12);
             }
         },
@@ -393,7 +455,7 @@ addLayer("p", {
             return "1.00x";
             },// Add formatting to the effect
             unlocked() {
-            if (player.c.activeChallenge === 13 || player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || player.c.activeChallenge === 23) return false;
+            if (player.c.activeChallenge === 13 || player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || player.c.activeChallenge === 23 || player.c.activeChallenge === 31) return false;
             return hasChallenge('c', 12);
             },
 
@@ -414,12 +476,20 @@ addLayer("p", {
             return "1.00x";
             },// Add formatting to the effect
             unlocked() {
-            if (player.c.activeChallenge === 13 || player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || player.c.activeChallenge === 23) return false;
+            if (player.c.activeChallenge === 13 || player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || player.c.activeChallenge === 23 || player.c.activeChallenge === 31) return false;
             return hasChallenge('c', 12);
             },
 
         },
-        
+        44: {    
+            title: "新的旅途",
+            description: "解锁色彩。",
+            cost: new Decimal(4.99e23),
+            unlocked() {
+            return hasChallenge('c', 31);
+            },
+
+        },
         
     },
     automate() {
@@ -448,9 +518,13 @@ addLayer("p", {
         keep.push("upgrades");
         }
         if(layers[resettingLayer].row>=1){
-            player.b.power = new Decimal(0);
-            player.k.milk = new Decimal(0);
-            layerDataReset(this.layer, keep);
+        if (!hasMilestone('e', 5)) {
+        player.b.power = new Decimal(0);
+        }
+        if (!hasMilestone('e', 6)) {
+        player.k.milk = new Decimal(0);
+        }
+        layerDataReset(this.layer, keep);
         }
     },
     tabFormat: {
@@ -612,7 +686,7 @@ addLayer("k", {
         },
         23: {
             title: "骑士道",
-            cost(x) { return new Decimal(2).add(x).mul(x).pow(x) },
+            cost(x) { return new Decimal(3).add(x).mul(x).pow(x) },
             display() {return "增益前四位骑士的效果。<br>需要"+format(this.cost())+"骑士团人口<br>Currently:倍增"+format(buyableEffect(this.layer, this.id))},
             canAfford() { 
             if (isKnightDisabled()) return false;
@@ -716,7 +790,7 @@ addLayer("k", {
         }
     },
     update(diff) {
-    if (player.milkUnlocked) {
+    if (player.milkUnlocked && player.c.activeChallenge !== 31) {
         let gainPerSecond = buyableEffect("k",21).times(buyableEffect("k",22)).times(buyableEffect("k",23));
         player.k.milkGainRate = gainPerSecond;
         let gain = gainPerSecond.times(diff);
@@ -1049,6 +1123,7 @@ addLayer("c", {
     branches:["b"],
     gainMult() { // Calculate the multiplier for main currency from bonuses
         let mult = new Decimal(1)
+        mult = mult.times(buyableEffect('e', 13))
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -1101,13 +1176,19 @@ addLayer("c", {
         effectDescription:"解锁第六个挑战。",
         done() {return player.c.points.gte(40)}
         },
+        8:
+        {
+        requirementDescription:"10000 挑战精神",
+        effectDescription:"解锁第七个挑战。",
+        done() {return player.c.points.gte(10000)}
+        },
     },
     challenges: {
         11: {
         name: "Tchef",
         challengeDescription: "禁用骑士。",
         goal: new Decimal(4095),
-        goalDescription: "4095 蛮王等级",
+        goalDescription: "4095 蛮王等级。",
         rewardDescription: "蛮王升级的硬上限改为软上限（超过100倍后缓慢增长）。",
         canComplete() {
             return player.p.points.gte(4095);
@@ -1123,7 +1204,7 @@ addLayer("c", {
         name: "Gunaar",
         challengeDescription: "在 Tchef 的基础上，蛮王升级的软上限阈值变为 2（而非 100）。",
         goal: new Decimal(8191),
-        goalDescription: "8191 蛮王等级",
+        goalDescription: "8191 蛮王等级。",
         rewardDescription: "解锁第四行蛮王升级。",
         canComplete() {
             return player.p.points.gte(8191);
@@ -1139,7 +1220,7 @@ addLayer("c", {
         name: "Lightadapt",
         challengeDescription: "在 Gunaar 的基础上，禁用蛮王升级 11 42 43。",
         goal: new Decimal(16383),
-        goalDescription: "16383 蛮王等级",
+        goalDescription: "16383 蛮王等级。",
         rewardDescription: "提高新的被禁用升级的效果。",
         canComplete() { return player.p.points.gte(16383); },
         onComplete() {
@@ -1153,7 +1234,7 @@ addLayer("c", {
         name: "Ayabehaori & Jaxinator",
         challengeDescription: "在 Lightadapt 的基础上，禁用蛮王升级 23 31 41。",
         goal: new Decimal(32767),
-        goalDescription: "32767 蛮王等级",
+        goalDescription: "32767 蛮王等级。",
         rewardDescription: "提高新的被禁用升级的效果。",
         canComplete() { return player.p.points.gte(32767); },
         onComplete() {
@@ -1167,7 +1248,7 @@ addLayer("c", {
         name: "Sangyu & Bitdotdo",
         challengeDescription: "在 Ayabehaori & Jaxinator 的基础上，禁用蛮王升级 32 33。",
         goal: new Decimal(65535),
-        goalDescription: "65535 蛮王等级",
+        goalDescription: "65535 蛮王等级。",
         rewardDescription: "提高新的被禁用升级的效果,且时间不再会被重置。",
         canComplete() { return player.p.points.gte(65535); },
         onComplete() {
@@ -1179,9 +1260,9 @@ addLayer("c", {
         },
         23: {
         name: "Drewdrinks",
-        challengeDescription: "在 Sangyu & Bitdotdo 的基础上，天意的阈值变为 1（而非 9e15）。",
+        challengeDescription: "在 Sangyu & Bitdotdo 的基础上，天意阈值变为 1（而非 9e15）。",
         goal: new Decimal(99999),
-        goalDescription: "99999 蛮王等级",
+        goalDescription: "99999 蛮王等级。",
         rewardDescription: "解锁第六个骑士可购买。",
         canComplete() { return player.p.points.gte(99999); },
         onComplete() {
@@ -1189,6 +1270,20 @@ addLayer("c", {
         },
         unlocked() {
             return hasMilestone('c',7)
+        }
+        },
+        31: {
+        name: "Zfd",
+        challengeDescription: "在 Drewdrinks 的基础上，禁用牛奶。",
+        goal: new Decimal(2147483647),
+        goalDescription: "2147483647 蛮王等级。",
+        rewardDescription: "解锁第四列蛮王升级。",
+        canComplete() { return player.p.points.gte(2147483647); },
+        onComplete() {
+        doPopup("challenge", "Drewdrinks 挑战完成！", "挑战完成", 3, "#7fff7f");
+        },
+        unlocked() {
+            return hasMilestone('c',8)
         }
         }
     },
@@ -1239,6 +1334,7 @@ addLayer("e", {
     branches: ["k"],
     gainMult() {
         let mult = new Decimal(1);
+        mult = mult.times(buyableEffect('e', 12))
         return mult;
     },
     gainExp() { return new Decimal(1); },
@@ -1263,13 +1359,13 @@ addLayer("e", {
         },
         13: {
         title: "营地扩建",
-        description: "狂怒能量的效果由提高。",
-        cost: new Decimal(5)
+        description: "狂怒能量的效果提高。",
+        cost: new Decimal(7)
         },
         14: {
         title: "Milkisgood",
         description: "解锁牛奶资源。",
-        cost: new Decimal(6),
+        cost: new Decimal(10),
         onPurchase() {
         player.milkUnlocked = true;
         if (player.k.milk.eq(0)) player.k.milk = new Decimal(1);
@@ -1283,7 +1379,17 @@ addLayer("e", {
         },
         "里程碑": {
             content: ['main-display', 'prestige-button', 'milestones']
+        },
+        "增强工具": {
+        content: [
+            'main-display',
+            'prestige-button',
+            'buyables',
+        ],
+        unlocked() {
+            return player.e.hasAchieved23 === true;
         }
+    }
     },
 
     milestones:{
@@ -1301,21 +1407,142 @@ addLayer("e", {
         },
         3:
         {
-        requirementDescription:"7 增强器",
+        requirementDescription:"5 增强器",
         effectDescription:"免费自动购买第一行狂战士升级。",
-        done() {return player.e.points.gte(7)}
+        done() {return player.e.points.gte(5)}
         },
         4:
         {
-        requirementDescription:"13 增强器",
+        requirementDescription:"6 增强器",
         effectDescription:"免费自动购买第二行狂战士升级。",
-        done() {return player.e.points.gte(13)}
+        done() {return player.e.points.gte(6)}
+        },
+        5:
+        {
+        requirementDescription:"8 增强器",
+        effectDescription:"狂怒能量不再重置。",
+        done() {return player.e.points.gte(8)}
+        },
+        6:
+        {
+        requirementDescription:"11 增强器",
+        effectDescription:"牛奶不再重置。",
+        done() {return player.e.points.gte(11)}
         },
     },
-
+    onPrestige(gain) {
+    if (gain.gte(2) && !player.e.hasAchieved23) {
+        player.e.hasAchieved23 = true;
+    }
+    },
+    buyables:{
+        11: {
+            title: "加速器",
+            cost(x) { return new Decimal(1).add(x).mul(x) },
+            display() {return "增益时间倍率。<br>需要"+format(this.cost())+"增强器<br>Currently:倍增"+format(buyableEffect(this.layer, this.id))},
+            canAfford() { 
+            if (isKnightDisabled()) return false;
+            return player[this.layer].points.gte(this.cost());
+            },
+            buy() {
+                player[this.layer].points = player[this.layer].points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {
+                return new Decimal(getBuyableAmount(this.layer, this.id)).add(1)
+            },
+            
+        },
+        12: {
+            title: "助推器",
+            cost(x) { return new Decimal(3).add(x).mul(x) },
+            display() {return "增益增强器获取。<br>需要"+format(this.cost())+"增强器<br>Currently:倍增"+format(buyableEffect(this.layer, this.id))},
+            canAfford() { 
+            if (isKnightDisabled()) return false;
+            return player[this.layer].points.gte(this.cost());
+            },
+            buy() {
+                player[this.layer].points = player[this.layer].points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {
+                return new Decimal(getBuyableAmount(this.layer, this.id)).add(1)
+            },
+            
+        },
+        12: {
+            title: "助推器",
+            cost(x) { return new Decimal(3).add(x).mul(x) },
+            display() {return "增益增强器获取。<br>需要"+format(this.cost())+"增强器<br>Currently:倍增"+format(buyableEffect(this.layer, this.id))},
+            canAfford() { 
+            if (isKnightDisabled()) return false;
+            return player[this.layer].points.gte(this.cost());
+            },
+            buy() {
+                player[this.layer].points = player[this.layer].points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {
+                return new Decimal(getBuyableAmount(this.layer, this.id)).add(1)
+            },
+            
+        },
+        13: {
+            title: "生成器",
+            cost(x) { return new Decimal(7).add(x).mul(x) },
+            display() {return "增益挑战精神获取。<br>需要"+format(this.cost())+"增强器<br>Currently:倍增"+format(buyableEffect(this.layer, this.id))},
+            canAfford() { 
+            if (isKnightDisabled()) return false;
+            return player[this.layer].points.gte(this.cost());
+            },
+            buy() {
+                player[this.layer].points = player[this.layer].points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {
+                return new Decimal(getBuyableAmount(this.layer, this.id)).add(1)
+            },
+            
+        },
+    },
     style: {
         background: "linear-gradient(135deg, #000000, #1f003f)",
         minHeight: "100vh",
     },
     layerShown() { return hasMilestone('k', 7) || player.e.points.gte(1); }
+});
+addLayer("cr", {
+    name: "色彩",
+    symbol: "CR",
+    position: 1,
+    startData() { return { unlocked: true, points: new Decimal(0) }; },
+    color: "#ffffff",
+    requires: new Decimal(5e23),
+    resource: "色度",
+    baseResource: "蛮王等级",
+    baseAmount() { return player.p.points; },
+    type: "normal",
+    exponent: 0.1,
+    branches: ["p"],
+    gainMult() {
+        let mult = new Decimal(1);
+        mult = mult.times(buyableEffect('e', 12))
+        return mult;
+    },
+    gainExp() { return new Decimal(1); },
+    row: 2,
+    hotkeys: [{ key: "s", description: "S: Reset for Color", onPress() { if (canReset(this.layer)) doReset(this.layer); } }],
+    style: {
+        background: "linear-gradient(135deg, #3f0000, #3f1f00, #3f3f00, #1f3f00, #003f00, #003f1f, #003f3f, #001f3f, #00003f, #1f003f, #3f003f, #3f001f)",
+        minHeight: "100vh",
+    },
+    milestones:{
+        1:
+        {
+        requirementDescription:"1 色度",
+        effectDescription:"v0.5.2残局！",
+        done() {return player.cr.points.gte(1)}
+        },
+    },
+    layerShown() { return hasUpgrade('p', 44) || player.cr.points.gte(1); }
 });

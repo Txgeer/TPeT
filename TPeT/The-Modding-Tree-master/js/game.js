@@ -499,15 +499,18 @@ document.addEventListener('DOMContentLoaded', function() {
     let bgm = document.getElementById('bgm');
     if (!bgm) return;
     bgm.src = 'resources/bgm.mp3';
-    if (options.musicEnabled) {
-        let musicStarted = false;
-        document.body.addEventListener('click', function() {
-            if (!musicStarted && options.musicEnabled) {
-                bgm.play().catch(e => console.log("播放失败", e));
-                musicStarted = true;
-            }
-        }, { once: true });
+    bgm.load();
+    bgm.preload = 'auto';
+    
+    let musicStarted = false;
+    function tryPlay() {
+        if (!options.musicEnabled || musicStarted) return;
+        bgm.play().then(() => {
+            musicStarted = true;
+        }).catch(e => console.log("播放失败", e));
     }
+    
+    document.body.addEventListener('click', tryPlay, { once: true });
 });
 
 function toggleMusic() {
