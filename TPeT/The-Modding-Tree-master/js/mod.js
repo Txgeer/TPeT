@@ -86,7 +86,7 @@ function getPointGen() {
     gain = gain.times(buyableEffect('k', 23))
     gain = gain.times(getFuryBonus(player.b.power))
 	gain = gain.times(player.c.points.pow(0.5).add(1))
-	gain = gain.times((player.cr.redchroma.add(1)).log2())
+	if (player.cr.redchroma.gt(0)) {gain = gain.times(player.cr.redchroma.log2().add(1))}
 	if (hasAchievement('a', 12)) gain = gain.times(achievementEffect('a', 12));
 	return gain
 }

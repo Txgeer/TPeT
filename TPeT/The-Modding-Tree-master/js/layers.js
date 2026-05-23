@@ -194,7 +194,7 @@ addLayer("p", {
     mult = mult.times(buyableEffect('k', 23))
     mult = mult.times(getFuryBonus(player.b.power))
     mult = mult.times(player.c.points.pow(0.5).add(1))
-    mult = mult.times((player.cr.greenchroma.add(1)).log2())
+    if (player.cr.greenchroma.gt(0)) {mult = mult.times(player.cr.greenchroma.log2().add(1))}
     let threshold = getCurrentThreshold();
     if (player.p.points.gte(threshold)) {
     let logPoints = player.p.points.log10();
@@ -391,7 +391,8 @@ addLayer("p", {
             effect() {
             let exponent = hasChallenge('c', 22) ? 0.4 : 0.15;
             let base= hasChallenge('c', 22) ? player.a.resetTime : player.p.resetTime;
-            let raw = new Decimal(base).add(1).mul(buyableEffect("e",11)).mul((player.cr.blackchroma.add(1)).log2()).pow(exponent);
+            let raw = new Decimal(base).add(1).mul(buyableEffect("e",11)).pow(exponent);
+            if (player.cr.blackchroma.gt(0)) {raw = raw.mul(player.cr.blackchroma.log2().add(1))}
             return applySoftcap(raw);
             },
             effectDisplay() { 
@@ -412,7 +413,8 @@ addLayer("p", {
             effect() {
             let exponent = hasChallenge('c', 22) ? 0.5 : 0.2;
             let base= hasChallenge('c', 22) ? player.a.resetTime : player.p.resetTime;
-            let raw = new Decimal(base).add(1).mul(buyableEffect("e",11)).mul((player.cr.blackchroma.add(1)).log2()).pow(exponent);
+            let raw = new Decimal(base).add(1).mul(buyableEffect("e",11)).pow(exponent);
+            if (player.cr.blackchroma.gt(0)) {raw = raw.mul(player.cr.blackchroma.log2().add(1))}
             return applySoftcap(raw);
             },
             effectDisplay() { 
@@ -615,7 +617,7 @@ addLayer("k", {
         if (hasUpgrade('b', 23)) mult = mult.times(upgradeEffect('b', 23))
         if (hasUpgrade('e', 11)) mult = mult.times(upgradeEffect('e', 11))
         if (hasUpgrade('e', 23)) mult = mult.times(upgradeEffect('e', 23))
-        mult = mult.times((player.cr.bluechroma.add(1)).log2())
+        if (player.cr.bluechroma.gt(0)) {mult = mult.times(player.cr.bluechroma.log2().add(1))}
         let threshold = getCurrentThreshold();
         if (player.k.points.gte(threshold)) {
         let logPoints = player.k.points.log10();
@@ -1178,7 +1180,7 @@ addLayer("c", {
     gainMult() { // Calculate the multiplier for main currency from bonuses
         let mult = new Decimal(1)
         mult = mult.times(buyableEffect('e', 13))
-        mult = mult.times((player.cr.greenchroma.add(1)).log2())
+        if (player.cr.cyanchroma.gt(0)) {mult = mult.times(player.cr.cyanchroma.log2().add(1))}
         if (hasUpgrade('e', 24)) mult = mult.times(upgradeEffect('e', 24))
         let threshold = getCurrentThreshold();
         if (player.c.points.gte(threshold)) {
@@ -1449,7 +1451,7 @@ addLayer("e", {
     gainMult() {
         let mult = new Decimal(1);
         mult = mult.times(buyableEffect('e', 12))
-        mult = mult.times(player.cr.magentachroma.log2().add(1))
+        if (player.cr.magentachroma.gt(0)) {mult = mult.times(player.cr.magentachroma.log2().add(1))}
         return mult;
     },
     gainExp() { return new Decimal(1); },
@@ -1694,7 +1696,7 @@ addLayer("cr", {
     branches: ["p"],
     gainMult() {
         let mult = new Decimal(1);
-        mult = mult.times((player.cr.graychroma.add(1)).log2())
+        if (player.cr.graychroma.gt(0)) {mult = mult.times(player.cr.graychroma.log2().add(1))}
         return mult;
     },
     gainExp() { return new Decimal(1); },
