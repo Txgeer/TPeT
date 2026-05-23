@@ -12,13 +12,19 @@ let modInfo = {
 let getModID = () => modInfo.id ?? `${modInfo.name.replace(/\s+/g, '-')}-${modInfo.author.replace(/\s+/g, '-')}`;
 // Set your version in num and name
 let VERSION = {
-	num: "0.5.2",
+	num: "0.6",
 	name: "Literally nothing",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
+    <h3>v0.6 2026.5.23</h3><br>
+		- Added Colors and 8 Chromas.<br>
+		- Added 1 Enhancer Tool.<br>
+		- Added 1 Achievement.<br>
+		- Added 1 Challenge.<br>
+		- Added 4 Enhancer Upgrades.<br>
     <h3>v0.5.2 2026.5.18</h3><br>
-		- Added 3 Enhancer Tool.<br>
+		- Added 3 Enhancer Tools.<br>
 		- Added 1 Achievement.<br>
 		- Added 1 Challenge.<br>
 		- Added 4 Pretox Upgrades.<br>
@@ -80,13 +86,13 @@ function getPointGen() {
     gain = gain.times(buyableEffect('k', 23))
     gain = gain.times(getFuryBonus(player.b.power))
 	gain = gain.times(player.c.points.pow(0.5).add(1))
+	gain = gain.times((player.cr.redchroma.add(1)).log2())
 	if (hasAchievement('a', 12)) gain = gain.times(achievementEffect('a', 12));
 	return gain
 }
 
 // You can add non-layer related variables that should to into "player" and be saved here, along with default values
 function addedPlayerData() { return {
-    milkUnlocked: false,
 	hasAchieved23: false
 }}
 
