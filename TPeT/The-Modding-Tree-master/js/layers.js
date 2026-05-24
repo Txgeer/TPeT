@@ -656,7 +656,7 @@ addLayer("k", {
         },
         12: {
             title: "Verbole",
-            cost(x) { return new Decimal(1).mul(x).mul(10).add(10) },
+            cost(x) { return new Decimal(10).mul(x).add(1) },
             display() {return "增益蛮王等级获取。<br>需要"+format(this.cost())+"骑士团人口<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
             canAfford() { 
             if (isKnightDisabled()) return false;
@@ -672,7 +672,7 @@ addLayer("k", {
         },
         13: {
             title: "Frithpaul",
-            cost(x) { return new Decimal(1).mul(x).mul(22).add(22) },
+            cost(x) { return new Decimal(22).mul(x).add(1) },
             display() {return "增益第四个骑士里程碑的效果。<br>需要"+format(this.cost())+"骑士团人口<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
             canAfford() { 
             if (isKnightDisabled()) return false;
@@ -689,7 +689,7 @@ addLayer("k", {
         },
         21: {
             title: "Ethelse",
-            cost(x) { return new Decimal(1).mul(x).pow(x) },
+            cost(x) { return new Decimal(1).mul(x).pow(x).add(1) },
             display() {return "增益骑士团人口获取。<br>需要"+format(this.cost())+"骑士团人口<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
             canAfford() { 
             if (isKnightDisabled()) return false;
@@ -708,7 +708,7 @@ addLayer("k", {
         },
         22: {
             title: "Galdor",
-            cost(x) { return new Decimal(1).add(x).mul(x).pow(x) },
+            cost(x) { return new Decimal(1).add(x).mul(x).pow(x).add(1) },
             display() {return "增益狂战士营人口的生成效果。<br>需要"+format(this.cost())+"骑士团人口<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
             canAfford() { 
             if (isKnightDisabled()) return false;
@@ -727,7 +727,7 @@ addLayer("k", {
         },
         23: {
             title: "骑士道",
-            cost(x) { return new Decimal(3).add(x).mul(x).pow(x) },
+            cost(x) { return new Decimal(1).add(1).add(x).mul(x).pow(x) },
             display() {return "增益前四位骑士的效果。<br>需要"+format(this.cost())+"骑士团人口<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
             canAfford() { 
             if (isKnightDisabled()) return false;
@@ -1591,7 +1591,7 @@ addLayer("e", {
     buyables:{
         11: {
             title: "加速器",
-            cost(x) { return new Decimal(1).add(x).mul(x) },
+            cost(x) { return new Decimal(1).add(x).mul(x).add(1) },
             display() {return "增益时间倍率。<br>需要"+format(this.cost())+"增强器<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
             canAfford() { 
             if (isKnightDisabled()) return false;
@@ -1608,7 +1608,7 @@ addLayer("e", {
         },
         12: {
             title: "助推器",
-            cost(x) { return new Decimal(3).add(x).mul(x) },
+            cost(x) { return new Decimal(3).add(x).mul(x).add(1) },
             display() {return "增益增强器获取。<br>需要"+format(this.cost())+"增强器<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
             canAfford() { 
             if (isKnightDisabled()) return false;
@@ -1625,7 +1625,7 @@ addLayer("e", {
         },
         13: {
             title: "生成器",
-            cost(x) { return new Decimal(7).add(x).mul(x) },
+            cost(x) { return new Decimal(7).add(x).mul(x).add(1) },
             display() {return "增益挑战精神获取。<br>需要"+format(this.cost())+"增强器<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
             canAfford() { 
             if (isKnightDisabled()) return false;
@@ -1642,7 +1642,7 @@ addLayer("e", {
         },
         14: {
             title: "优化器",
-            cost(x) { return new Decimal(15).add(x).mul(x) },
+            cost(x) { return new Decimal(15).add(x).mul(x).add(1) },
             display() {return "视作蛮王升级。<br>需要"+format(this.cost())+"增强器<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
             canAfford() { 
             if (isKnightDisabled()) return false;
