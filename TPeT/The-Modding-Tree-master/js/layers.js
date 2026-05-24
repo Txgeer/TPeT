@@ -656,7 +656,7 @@ addLayer("k", {
         },
         12: {
             title: "Verbole",
-            cost(x) { return new Decimal(10).mul(x).add(1) },
+            cost(x) { return new Decimal(10).mul(x).add(10) },
             display() {return "增益蛮王等级获取。<br>需要"+format(this.cost())+"骑士团人口<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
             canAfford() { 
             if (isKnightDisabled()) return false;
@@ -672,7 +672,7 @@ addLayer("k", {
         },
         13: {
             title: "Frithpaul",
-            cost(x) { return new Decimal(22).mul(x).add(1) },
+            cost(x) { return new Decimal(22).mul(x).add(22) },
             display() {return "增益第四个骑士里程碑的效果。<br>需要"+format(this.cost())+"骑士团人口<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
             canAfford() { 
             if (isKnightDisabled()) return false;
