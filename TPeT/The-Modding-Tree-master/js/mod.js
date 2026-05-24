@@ -12,13 +12,15 @@ let modInfo = {
 let getModID = () => modInfo.id ?? `${modInfo.name.replace(/\s+/g, '-')}-${modInfo.author.replace(/\s+/g, '-')}`;
 // Set your version in num and name
 let VERSION = {
-	num: "0.6",
+	num: "0.6.1",
 	name: "Literally nothing",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
+    <h3>v0.6.1 2026.5.24</h3><br>
+		- Added God Trigger, φ Energy and 1 φ Energy Upgrade.<br>
     <h3>v0.6 2026.5.23</h3><br>
-		- Added Colors and 8 Chromas.<br>
+		- Added Color and 8 Chromas.<br>
 		- Added 1 Enhancer Tool.<br>
 		- Added 1 Achievement.<br>
 		- Added 1 Challenge.<br>
