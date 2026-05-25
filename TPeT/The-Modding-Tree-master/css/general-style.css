@@ -3,7 +3,7 @@ body {
 	color: var(--color);
 	overflow: hidden;
 	--background: linear-gradient(135deg, #000000 0%, #007f7f 100%);
-    font-family: 'Segoe UI', 'Inconsolata', monospace;
+    font-family: "bahnschrift";
     text-shadow: 0 0 2px rgba(0,0,0,0.5);
     scroll-behavior: smooth;
 	--color: #dfdfdf;
@@ -14,7 +14,7 @@ body {
 /* General text */
 h1, h2, h3, b, input {
 	display: inline;
-	font-family: "Lucida Console", "Courier New", monospace
+	font-family: "bahnschrift"
 }
 
 /* These are styles for different states of components. You can make layer-specific versions with .c.locked, for example */

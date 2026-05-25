@@ -697,6 +697,25 @@ addLayer("k", {
             },
             
         },
+        14: {
+            title: "Linvala Hop",
+            cost(x) { return new Decimal(1).add(x).add(x).mul(x).pow(x).add(1) },
+            display() {return "增益色度获取。<br>需要"+format(this.cost())+"骑士团人口<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
+            canAfford() { 
+            if (isKnightDisabled()) return false;
+            return player[this.layer].points.gte(this.cost());
+            },
+            buy() {
+                player[this.layer].points = player[this.layer].points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {
+                return new Decimal(getBuyableAmount(this.layer, this.id)).add(1)
+            },
+            unlocked()
+            {return  hasUpgrade('g', 13)},
+            
+        },
         21: {
             title: "Ethelse",
             cost(x) { return new Decimal(1).mul(x).pow(x).add(1) },
@@ -752,6 +771,25 @@ addLayer("k", {
             },
             unlocked()
             {return  hasChallenge('c', 23)},
+            
+        },
+        24: {
+            title: "剑盾士混编",
+            cost(x) { return new Decimal(3).add(x).add(x).mul(x).pow(x).add(1) },
+            display() {return "增益增强器获取。<br>需要"+format(this.cost())+"骑士团人口<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
+            canAfford() { 
+            if (isKnightDisabled()) return false;
+            return player[this.layer].points.gte(this.cost());
+            },
+            buy() {
+                player[this.layer].points = player[this.layer].points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {
+                return new Decimal(getBuyableAmount(this.layer, this.id)).add(1)
+            },
+            unlocked()
+            {return  hasUpgrade('g', 13)},
             
         },
     },
@@ -1473,6 +1511,7 @@ addLayer("e", {
     gainMult() {
         let mult = new Decimal(1);
         mult = mult.times(buyableEffect('e', 12))
+        mult = mult.times(buyableEffect('k', 24))
         if (player.cr.magentachroma.gt(0)) {mult = mult.times(player.cr.magentachroma.log2().add(1))}
         return mult;
     },
@@ -1489,7 +1528,12 @@ addLayer("e", {
                 
                 return player.c.points.pow(0.5).add(1)
             },
-            effectDisplay() { return format(upgradeEffect(this.layer, this.id)) + "x"; }
+            effectDisplay() { 
+                if (hasUpgrade(this.layer, this.id)) 
+                return format(upgradeEffect(this.layer, this.id)) + "x"; 
+                else 
+                return "1.00x";
+            },// Add formatting to the effect
         },
         12: {
         title: "武器冶炼",
@@ -1530,7 +1574,12 @@ addLayer("e", {
                 
                 return (player.k.points.add(1)).log2()
             },
-            effectDisplay() { return format(upgradeEffect(this.layer, this.id)) + "x"; },
+            effectDisplay() { 
+                if (hasUpgrade(this.layer, this.id)) 
+                return format(upgradeEffect(this.layer, this.id)) + "x"; 
+                else 
+                return "1.00x";
+            },// Add formatting to the effect
             unlocked() {return hasChallenge('c', 32);}
         },
         24: {
@@ -1541,7 +1590,12 @@ addLayer("e", {
                 
                 return player.c.points.pow(0.5).add(1)
             },
-            effectDisplay() { return format(upgradeEffect(this.layer, this.id)) + "x"; },
+            effectDisplay() { 
+                if (hasUpgrade(this.layer, this.id)) 
+                return format(upgradeEffect(this.layer, this.id)) + "x"; 
+                else 
+                return "1.00x";
+            },// Add formatting to the effect
             unlocked() {return hasChallenge('c', 32);}
         },
     },
@@ -1723,6 +1777,7 @@ addLayer("cr", {
     gainMult() {
         let mult = new Decimal(1);
         if (player.cr.graychroma.gt(0)) {mult = mult.times(player.cr.graychroma.log2().add(1))}
+        mult = mult.times(buyableEffect('k', 14))
         return mult;
     },
     gainExp() { return new Decimal(1); },
@@ -1815,71 +1870,103 @@ addLayer("cr", {
         done() {return player.cr.points.gte(609)}
         },
     },
-    update(diff) {
-        if (player.c.activeChallenge !== 32){
-        if (player.cr.points.gte(1)){
-        let redchromagainPerSecond = (player.b.power.max(1).times(player.cr.points).max(1)).log2();
-        player.cr.redchromaGainRate = redchromagainPerSecond;
-        player.cr.redchroma = player.cr.redchroma.add(redchromagainPerSecond.times(diff));}
-        if (hasMilestone("cr",2)){
-        let greenchromagainPerSecond = (player.c.points.max(1).times(player.cr.points).max(1)).log2();
-        player.cr.greenchromaGainRate = greenchromagainPerSecond;
-        player.cr.greenchroma = player.cr.greenchroma.add(greenchromagainPerSecond.times(diff));}
-        if (hasMilestone("cr",5)){
-        let bluechromagainPerSecond = (player.e.points.max(1).times(player.cr.points).max(1)).log2();
-        player.cr.bluechromaGainRate = bluechromagainPerSecond;
-        player.cr.bluechroma = player.cr.bluechroma.add(bluechromagainPerSecond.times(diff));}
-        if (hasMilestone("cr",7)){
-        let graychromagainPerSecond = (player.k.milk.max(1).times(player.cr.points).max(1)).log2();
-        player.cr.graychromaGainRate = graychromagainPerSecond;
-        player.cr.graychroma = player.cr.graychroma.add(graychromagainPerSecond.times(diff));}
-        if (hasMilestone("cr",8)){
-        let yellowchromagainPerSecond = (player.cr.redchroma.max(1).times(player.cr.greenchroma).max(1)).log2();
-        player.cr.yellowchromaGainRate = yellowchromagainPerSecond;
-        player.cr.yellowchroma = player.cr.yellowchroma.add(yellowchromagainPerSecond.times(diff));}
-        if (hasMilestone("cr",9)){
-        let magentachromagainPerSecond = (player.cr.redchroma.max(1).times(player.cr.bluechroma).max(1)).log2();
-        player.cr.magentachromaGainRate = magentachromagainPerSecond;
-        player.cr.magentachroma = player.cr.magentachroma.add(magentachromagainPerSecond.times(diff));}
-        if (hasMilestone("cr",10)){
-        let cyanchromagainPerSecond = (player.cr.greenchroma.max(1).times(player.cr.bluechroma).max(1)).log2();
-        player.cr.cyanchromaGainRate = cyanchromagainPerSecond;
-        player.cr.cyanchroma = player.cr.cyanchroma.add(cyanchromagainPerSecond.times(diff));}
-        if (hasUpgrade("e",21)){
-        let blackchromagainPerSecond = (player.cr.graychroma.max(1).times(upgradeEffect('p', 23)).max(1)).log2();
-        player.cr.blackchromaGainRate = blackchromagainPerSecond;
-        player.cr.blackchroma = player.cr.blackchroma.add(blackchromagainPerSecond.times(diff));}}
-        else{if (player.cr.points.gte(1)){let redchromagainPerSecond = (player.b.power.max(1)).log2();
-        player.cr.redchromaGainRate = redchromagainPerSecond;
-        player.cr.redchroma = player.cr.redchroma.add(redchromagainPerSecond.times(diff));}
-        if (hasMilestone("cr",2)){
-        let greenchromagainPerSecond = (player.c.points.max(1)).log2();
-        player.cr.greenchromaGainRate = greenchromagainPerSecond;
-        player.cr.greenchroma = player.cr.greenchroma.add(greenchromagainPerSecond.times(diff));}
-        if (hasMilestone("cr",5)){
-        let bluechromagainPerSecond = (player.e.points.max(1)).log2();
-        player.cr.bluechromaGainRate = bluechromagainPerSecond;
-        player.cr.bluechroma = player.cr.bluechroma.add(bluechromagainPerSecond.times(diff));}
-        if (hasMilestone("cr",7)){
-        let graychromagainPerSecond = (player.k.milk.max(1)).log2();
-        player.cr.graychromaGainRate = graychromagainPerSecond;
-        player.cr.graychroma = player.cr.graychroma.add(graychromagainPerSecond.times(diff));}
-        if (hasMilestone("cr",8)){
-        let yellowchromagainPerSecond = (player.cr.redchroma.max(1).times(player.cr.greenchroma).max(1)).log2();
-        player.cr.yellowchromaGainRate = yellowchromagainPerSecond;
-        player.cr.yellowchroma = player.cr.yellowchroma.add(yellowchromagainPerSecond.times(diff));}
-        if (hasMilestone("cr",9)){
-        let magentachromagainPerSecond = (player.cr.redchroma.max(1).times(player.cr.bluechroma).max(1)).log2();
-        player.cr.magentachromaGainRate = magentachromagainPerSecond;
-        player.cr.magentachroma = player.cr.magentachroma.add(magentachromagainPerSecond.times(diff));}
-        if (hasMilestone("cr",10)){
-        let cyanchromagainPerSecond = (player.cr.greenchroma.max(1).times(player.cr.bluechroma).max(1)).log2();
-        player.cr.cyanchromaGainRate = cyanchromagainPerSecond;
-        player.cr.cyanchroma = player.cr.cyanchroma.add(cyanchromagainPerSecond.times(diff));}
-        if (hasUpgrade("e",21)){
-        let blackchromagainPerSecond = (player.cr.graychroma.max(1).times(upgradeEffect('p', 23)).max(1)).log2();
-        player.cr.blackchromaGainRate = blackchromagainPerSecond;
-        player.cr.blackchroma = player.cr.blackchroma.add(blackchromagainPerSecond.times(diff));}}
+update(diff) {
+    let phiBonus = new Decimal(1);
+    if (hasUpgrade('g', 12) && player.g.energy && player.g.energy.gt(0)) {
+        phiBonus = player.g.energy.log2().add(1);
+    }
+
+    if (player.c.activeChallenge !== 32) {
+        if (player.cr.points.gte(1)) {
+            let redBase = player.b.power.max(1).times(player.cr.points).max(1);
+            let redGain = redBase.log2().times(phiBonus);
+            player.cr.redchromaGainRate = redGain;
+            player.cr.redchroma = player.cr.redchroma.add(redGain.times(diff));
+        }
+        if (hasMilestone("cr",2)) {
+            let greenBase = player.c.points.max(1).times(player.cr.points).max(1);
+            let greenGain = greenBase.log2().times(phiBonus);
+            player.cr.greenchromaGainRate = greenGain;
+            player.cr.greenchroma = player.cr.greenchroma.add(greenGain.times(diff));
+        }
+        if (hasMilestone("cr",5)) {
+            let blueBase = player.e.points.max(1).times(player.cr.points).max(1);
+            let blueGain = blueBase.log2().times(phiBonus);
+            player.cr.bluechromaGainRate = blueGain;
+            player.cr.bluechroma = player.cr.bluechroma.add(blueGain.times(diff));
+        }
+        if (hasMilestone("cr",7)) {
+            let grayBase = player.k.milk.max(1).times(player.cr.points).max(1);
+            let grayGain = grayBase.log2().times(phiBonus);
+            player.cr.graychromaGainRate = grayGain;
+            player.cr.graychroma = player.cr.graychroma.add(grayGain.times(diff));
+        }
+        if (hasMilestone("cr",8)) {
+            let yellowBase = player.cr.redchroma.max(1).times(player.cr.greenchroma).max(1);
+            let yellowGain = yellowBase.log2().times(phiBonus);
+            player.cr.yellowchromaGainRate = yellowGain;
+            player.cr.yellowchroma = player.cr.yellowchroma.add(yellowGain.times(diff));
+        }
+        if (hasMilestone("cr",9)) {
+            let magentaBase = player.cr.redchroma.max(1).times(player.cr.bluechroma).max(1);
+            let magentaGain = magentaBase.log2().times(phiBonus);
+            player.cr.magentachromaGainRate = magentaGain;
+            player.cr.magentachroma = player.cr.magentachroma.add(magentaGain.times(diff));
+        }
+        if (hasMilestone("cr",10)) {
+            let cyanBase = player.cr.greenchroma.max(1).times(player.cr.bluechroma).max(1);
+            let cyanGain = cyanBase.log2().times(phiBonus);
+            player.cr.cyanchromaGainRate = cyanGain;
+            player.cr.cyanchroma = player.cr.cyanchroma.add(cyanGain.times(diff));
+        }
+        if (hasUpgrade("e",21)) {
+            let blackBase = player.cr.graychroma.max(1).times(upgradeEffect('p', 23)).max(1);
+            let blackGain = blackBase.log2().times(phiBonus);
+            player.cr.blackchromaGainRate = blackGain;
+            player.cr.blackchroma = player.cr.blackchroma.add(blackGain.times(diff));
+        }
+    } else {
+        if (player.cr.points.gte(1)) {
+            let redGain = player.b.power.max(1).log2().times(phiBonus);
+            player.cr.redchromaGainRate = redGain;
+            player.cr.redchroma = player.cr.redchroma.add(redGain.times(diff));
+        }
+        if (hasMilestone("cr",2)) {
+            let greenGain = player.c.points.max(1).log2().times(phiBonus);
+            player.cr.greenchromaGainRate = greenGain;
+            player.cr.greenchroma = player.cr.greenchroma.add(greenGain.times(diff));
+        }
+        if (hasMilestone("cr",5)) {
+            let blueGain = player.e.points.max(1).log2().times(phiBonus);
+            player.cr.bluechromaGainRate = blueGain;
+            player.cr.bluechroma = player.cr.bluechroma.add(blueGain.times(diff));
+        }
+        if (hasMilestone("cr",7)) {
+            let grayGain = player.k.milk.max(1).log2().times(phiBonus);
+            player.cr.graychromaGainRate = grayGain;
+            player.cr.graychroma = player.cr.graychroma.add(grayGain.times(diff));
+        }
+        if (hasMilestone("cr",8)) {
+            let yellowGain = player.cr.redchroma.max(1).times(player.cr.greenchroma).max(1).log2().times(phiBonus);
+            player.cr.yellowchromaGainRate = yellowGain;
+            player.cr.yellowchroma = player.cr.yellowchroma.add(yellowGain.times(diff));
+        }
+        if (hasMilestone("cr",9)) {
+            let magentaGain = player.cr.redchroma.max(1).times(player.cr.bluechroma).max(1).log2().times(phiBonus);
+            player.cr.magentachromaGainRate = magentaGain;
+            player.cr.magentachroma = player.cr.magentachroma.add(magentaGain.times(diff));
+        }
+        if (hasMilestone("cr",10)) {
+            let cyanGain = player.cr.greenchroma.max(1).times(player.cr.bluechroma).max(1).log2().times(phiBonus);
+            player.cr.cyanchromaGainRate = cyanGain;
+            player.cr.cyanchroma = player.cr.cyanchroma.add(cyanGain.times(diff));
+        }
+        if (hasUpgrade("e",21)) {
+            let blackGain = player.cr.graychroma.max(1).times(upgradeEffect('p', 23)).max(1).log2().times(phiBonus);
+            player.cr.blackchromaGainRate = blackGain;
+            player.cr.blackchroma = player.cr.blackchroma.add(blackGain.times(diff));
+        }
+    }
     },
     tabFormat:{
         '色彩':{
@@ -2017,8 +2104,36 @@ addLayer("g", {
     currencyLayer: "g",
     currencyDisplayName: "φ 精华",
     effect() { return getFuryBonus(player.b.power); },
-    effectDisplay() { return format(upgradeEffect(this.layer, this.id)) + "x"; }
-    }
+            effectDisplay() { 
+                if (hasUpgrade(this.layer, this.id)) 
+                return format(upgradeEffect(this.layer, this.id)) + "x"; 
+                else 
+                return "1.00x";
+            },// Add formatting to the effect
+    },
+    12: {
+    title: "色阶调和",
+    description: "φ 精华也可以增益颜色色度获取。",
+    cost: new Decimal(345600),
+    currencyInternalName: "energy",
+    currencyLayer: "g",
+    currencyDisplayName: "φ 精华",
+    effect() {let safeEnergy = player.g.energy.max(1);return safeEnergy.log2().add(1)},
+            effectDisplay() { 
+                if (hasUpgrade(this.layer, this.id)) 
+                return format(upgradeEffect(this.layer, this.id)) + "x"; 
+                else 
+                return "1.00x";
+            },// Add formatting to the effect
+    },
+    13: {
+    title: "骑士扩容",
+    description: "增加两个新的骑士可购买。",
+    cost: new Decimal(2332800),
+    currencyInternalName: "energy",
+    currencyLayer: "g",
+    currencyDisplayName: "φ 精华",
+    },
     },
         tabFormat:{
         '神祇':{
