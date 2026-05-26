@@ -12,11 +12,15 @@ let modInfo = {
 let getModID = () => modInfo.id ?? `${modInfo.name.replace(/\s+/g, '-')}-${modInfo.author.replace(/\s+/g, '-')}`;
 // Set your version in num and name
 let VERSION = {
-	num: "0.6.1",
+	num: "0.6.2",
 	name: "Literally nothing",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
+    <h3>v0.6.2 2026.5.27</h3><br>
+		- Added 3 φ Energy Upgrade.<br>
+		- Added 1 Achievement.<br>、
+		- Added 2 Knights.<br>
     <h3>v0.6.1 2026.5.24</h3><br>
 		- Added God Trigger, φ Energy and 1 φ Energy Upgrade.<br>
     <h3>v0.6 2026.5.23</h3><br>
@@ -35,6 +39,7 @@ let changelog = `<h1>Changelog:</h1><br>
     <h3>v0.5 2026.5.16</h3><br>
 		- Added 1 Achievement.<br>
 		- Added 4 Challenges.<br>
+		- Added 1 Knight.<br>		
     <h3>v0.4.2 2026.5.14</h3><br>
 		- Added the Row 4 Pretox Upgrades.<br>
 		- Added 1 Achievement.<br>

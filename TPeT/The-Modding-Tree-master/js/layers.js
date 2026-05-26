@@ -166,6 +166,21 @@ addLayer("a", {
     tooltip: "要求：获得10000亮青色度。<br>奖励：解锁第四个增强工具。",
     done() { return player.cr.cyanchroma.gte(10000); }
     },
+    31: {
+    name: "牛奶帝国",
+    tooltip: function() {
+        if (hasAchievement(this.layer, this.id)) {
+            let eff = achievementEffect(this.layer, this.id);
+            return `要求：获得1e9牛奶。<br>奖励：骑士道增益Linvala Hop和剑盾士混编的效果。<br>当前：${format(eff)}x`;
+        } else {
+            return `要求：获得1e9牛奶。<br>奖励：骑士道增益Linvala Hop和剑盾士混编的效果。<br>当前：1.00x`;
+        }
+    },
+    done() { return player.k.milk.gte(1e9); },
+    effect() {
+            return buyableEffect("k",23)
+            },
+    },
 },
     tabFormat:{
         '成就':{
@@ -198,6 +213,7 @@ addLayer("p", {
     if (hasUpgrade('p', 21)) mult = mult.times(upgradeEffect('p', 21))
     if (hasUpgrade('p', 31)) mult = mult.times(upgradeEffect('p', 31))
     if (hasUpgrade('p', 32)) mult = mult.times(upgradeEffect('p', 32))
+    if (hasAchievement('a', 12)) mult = mult.times(achievementEffect('a', 12))
     mult = mult.times(buyableEffect('k', 12))
     mult = mult.times(buyableEffect('k', 23))
     mult = mult.times(getFuryBonus(player.b.power))
@@ -775,7 +791,7 @@ addLayer("k", {
         },
         24: {
             title: "剑盾士混编",
-            cost(x) { return new Decimal(3).add(x).add(x).mul(x).pow(x).add(1) },
+            cost(x) { return new Decimal(x).add(x).add(x).mul(x).pow(x).add(1) },
             display() {return "增益增强器获取。<br>需要"+format(this.cost())+"骑士团人口<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
             canAfford() { 
             if (isKnightDisabled()) return false;
@@ -871,22 +887,38 @@ addLayer("k", {
             if (canBuyBuyable("k", 11)) buyBuyable("k", 11);
             if (canBuyBuyable("k", 12)) buyBuyable("k", 12);
             if (canBuyBuyable("k", 13)) buyBuyable("k", 13);
+            if (hasUpgrade("g",13)){if (canBuyBuyable("k", 14)) buyBuyable("k", 14);}
         }
         if (hasAchievement("a", 22)) {
         if (canBuyBuyable("k", 21)) buyBuyable("k", 21);
         if (canBuyBuyable("k", 22)) buyBuyable("k", 22);
         if (canBuyBuyable("k", 23)) buyBuyable("k", 23);
+        if (hasUpgrade("g",13)){if (canBuyBuyable("k", 24)) buyBuyable("k", 24);}
         }
     },
     update(diff) {
-    if (hasUpgrade("e",14) && player.c.activeChallenge !== 31 && player.c.activeChallenge !== 32) {
-        if(hasMilestone("cr",8)){
+    if (hasUpgrade("e",14) && player.c.activeChallenge !== 31 && player.c.activeChallenge !== 32 && player.cr.greenchroma.gt(0)) {
+        if (hasUpgrade("g", 14)){
+        let gainPerSecond = buyableEffect("k",21).times(buyableEffect("k",22)).times(buyableEffect("k",23)).times(buyableEffect("k",14)).times(buyableEffect("k",24)).times((player.cr.yellowchroma.add(1)).log2());
+        player.k.milkGainRate = gainPerSecond;
+        let gain = gainPerSecond.times(diff);
+        player.k.milk = player.k.milk.add(gain);            
+        }
+        else if(hasMilestone("cr",8)){
         let gainPerSecond = buyableEffect("k",21).times(buyableEffect("k",22)).times(buyableEffect("k",23)).times((player.cr.yellowchroma.add(1)).log2());
         player.k.milkGainRate = gainPerSecond;
         let gain = gainPerSecond.times(diff);
         player.k.milk = player.k.milk.add(gain);
         }
-        else{
+    }
+    else if (hasUpgrade("e",14) && player.c.activeChallenge !== 31 && player.c.activeChallenge !== 32) {
+        if (hasUpgrade("g", 14)){
+        let gainPerSecond = buyableEffect("k",21).times(buyableEffect("k",22)).times(buyableEffect("k",23)).times(buyableEffect("k",14)).times(buyableEffect("k",24));
+        player.k.milkGainRate = gainPerSecond;
+        let gain = gainPerSecond.times(diff);
+        player.k.milk = player.k.milk.add(gain);            
+        }
+        else {
         let gainPerSecond = buyableEffect("k",21).times(buyableEffect("k",22)).times(buyableEffect("k",23));
         player.k.milkGainRate = gainPerSecond;
         let gain = gainPerSecond.times(diff);
@@ -1513,6 +1545,7 @@ addLayer("e", {
         mult = mult.times(buyableEffect('e', 12))
         mult = mult.times(buyableEffect('k', 24))
         if (player.cr.magentachroma.gt(0)) {mult = mult.times(player.cr.magentachroma.log2().add(1))}
+        if (hasAchievement('a', 31)) mult = mult.times(achievementEffect('a', 31))
         return mult;
     },
     gainExp() { return new Decimal(1); },
@@ -1778,6 +1811,7 @@ addLayer("cr", {
         let mult = new Decimal(1);
         if (player.cr.graychroma.gt(0)) {mult = mult.times(player.cr.graychroma.log2().add(1))}
         mult = mult.times(buyableEffect('k', 14))
+        if (hasAchievement('a', 31)) mult = mult.times(achievementEffect('a', 31))
         return mult;
     },
     gainExp() { return new Decimal(1); },
@@ -1868,6 +1902,12 @@ addLayer("cr", {
         requirementDescription:"609 色度",
         effectDescription:"解锁亮青色度。",
         done() {return player.cr.points.gte(609)}
+        },
+        11:
+        {
+        requirementDescription:"999000 色度",
+        effectDescription:"解锁神圣解放。（未实现）",
+        done() {return player.cr.points.gte(999000)}
         },
     },
 update(diff) {
@@ -2089,10 +2129,19 @@ addLayer("g", {
         requirementDescription:"5 GTP",
         effectDescription:"重置时保留9e15挑战精神。",
         eff() {
-        if(hasMilestone('g',3))
+        if(hasMilestone('g',4))
         player.c.points=player.c.points.max(9e15)
         },
         done() {return player.g.points.gte(5)}
+        },
+    5: {
+        requirementDescription:"6 GTP",
+        effectDescription:"重置时保留11增强器。",
+        eff() {
+        if(hasMilestone('g',5))
+        player.e.points=player.e.points.max(11)
+        },
+        done() {return player.g.points.gte(6)}
         },
     },
     upgrades: {
@@ -2130,6 +2179,14 @@ addLayer("g", {
     title: "骑士扩容",
     description: "增加两个新的骑士可购买。",
     cost: new Decimal(2332800),
+    currencyInternalName: "energy",
+    currencyLayer: "g",
+    currencyDisplayName: "φ 精华",
+    },
+    14: {
+    title: "牛奶庄园",
+    description: "新的两个骑士可购买增益牛奶获取。",
+    cost: new Decimal(22184000),
     currencyInternalName: "energy",
     currencyLayer: "g",
     currencyDisplayName: "φ 精华",
