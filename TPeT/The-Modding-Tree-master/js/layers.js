@@ -935,35 +935,29 @@ addLayer("k", {
         if (hasUpgrade("g",13)){if (canBuyBuyable("k", 24)) buyBuyable("k", 24);}
         }
     },
-    update(diff) {
-    if (hasUpgrade("e",14) && player.c.activeChallenge !== 31 && player.c.activeChallenge !== 32 && player.cr.activeChallenge !== 11 && player.cr.activeChallenge !== 12 && player.cr.greenchroma.gt(0)) {
-        if (hasUpgrade("g", 14)){
-        let gainPerSecond = buyableEffect("k",21).times(buyableEffect("k",22)).times(buyableEffect("k",23)).times(buyableEffect("k",14)).times(buyableEffect("k",24)).times((player.cr.yellowchroma.add(1)).log2());
-        player.k.milkGainRate = gainPerSecond;
-        let gain = gainPerSecond.times(diff);
-        player.k.milk = player.k.milk.add(gain);            
-        }
-        else if(hasMilestone("cr",8)){
-        let gainPerSecond = buyableEffect("k",21).times(buyableEffect("k",22)).times(buyableEffect("k",23)).times((player.cr.yellowchroma.add(1)).log2());
-        player.k.milkGainRate = gainPerSecond;
-        let gain = gainPerSecond.times(diff);
-        player.k.milk = player.k.milk.add(gain);
-        }
+update(diff) {
+    if (!hasUpgrade("e",14)) return;
+    if (player.c.activeChallenge === 31 || player.c.activeChallenge === 32) return;
+    if (player.cr.activeChallenge === 11 || player.cr.activeChallenge === 12) return;
+
+    let eff21 = (player.k.buyables[21] ? buyableEffect("k",21) : new Decimal(1)).max(1);
+    let eff22 = (player.k.buyables[22] ? buyableEffect("k",22) : new Decimal(1)).max(1);
+    let eff23 = (player.k.buyables[23] ? buyableEffect("k",23) : new Decimal(1)).max(1);
+    let baseGain = eff21.times(eff22).times(eff23);
+    
+    if (hasUpgrade("g",14)) {
+        let eff14 = (player.k.buyables[14] ? buyableEffect("k",14) : new Decimal(1)).max(1);
+        let eff24 = (player.k.buyables[24] ? buyableEffect("k",24) : new Decimal(1)).max(1);
+        baseGain = baseGain.times(eff14).times(eff24);
     }
-    else if (hasUpgrade("e",14) && player.c.activeChallenge !== 31 && player.c.activeChallenge !== 32 && player.cr.activeChallenge !== 11 && player.cr.activeChallenge !== 12) {
-        if (hasUpgrade("g", 14)){
-        let gainPerSecond = buyableEffect("k",21).times(buyableEffect("k",22)).times(buyableEffect("k",23)).times(buyableEffect("k",14)).times(buyableEffect("k",24));
-        player.k.milkGainRate = gainPerSecond;
-        let gain = gainPerSecond.times(diff);
-        player.k.milk = player.k.milk.add(gain);            
-        }
-        else {
-        let gainPerSecond = buyableEffect("k",21).times(buyableEffect("k",22)).times(buyableEffect("k",23));
-        player.k.milkGainRate = gainPerSecond;
-        let gain = gainPerSecond.times(diff);
-        player.k.milk = player.k.milk.add(gain);
-        }
+    
+    if (hasMilestone("cr",8)) {
+        let yellowBonus = player.cr.yellowchroma.add(1).log2();
+        baseGain = baseGain.times(yellowBonus);
     }
+    
+    player.k.milkGainRate = baseGain;
+    player.k.milk = player.k.milk.add(baseGain.times(diff));
     },
     tabFormat:{
         '骑士':{
