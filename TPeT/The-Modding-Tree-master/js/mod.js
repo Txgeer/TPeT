@@ -12,14 +12,18 @@ let modInfo = {
 let getModID = () => modInfo.id ?? `${modInfo.name.replace(/\s+/g, '-')}-${modInfo.author.replace(/\s+/g, '-')}`;
 // Set your version in num and name
 let VERSION = {
-	num: "0.6.2",
+	num: "0.7",
 	name: "Literally nothing",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
+    <h3>v0.7 2026.6.1</h3><br>
+		- Added 5 φ Energy Upgrades.<br>
+		- Added 1 Achievement.<br>
+		- Added 8 Color Upgrades and 6 Color Challenges.<br>
     <h3>v0.6.2 2026.5.27</h3><br>
 		- Added 3 φ Energy Upgrade.<br>
-		- Added 1 Achievement.<br>、
+		- Added 1 Achievement.<br>
 		- Added 2 Knights.<br>
     <h3>v0.6.1 2026.5.24</h3><br>
 		- Added God Trigger, φ Energy and 1 φ Energy Upgrade.<br>
@@ -94,7 +98,8 @@ function getPointGen() {
     gain = gain.times(getFuryBonus(player.b.power))
 	gain = gain.times(player.c.points.pow(0.5).add(1))
 	if (player.cr.redchroma.gt(0)) {gain = gain.times(player.cr.redchroma.log2().add(1))}
-	if (hasAchievement('a', 12)) gain = gain.times(achievementEffect('a', 12));
+	if (hasAchievement('a', 12)) gain = gain.times(achievementEffect('a', 12))
+	if (hasUpgrade('g', 22)) gain = gain.times(upgradeEffect('g', 22))
 	return gain
 }
 
@@ -125,9 +130,18 @@ function isEndgame() {
 // Less important things beyond this point!
 
 // Style for the background, can be a function
-var backgroundStyle = {
-
-}
+var backgroundStyle = function() {
+    if (player && player.Antiteal) {
+        return {
+            background: "linear-gradient(135deg, #000000, #ffffff)",
+            transition: "background 1s ease"
+        };
+    }
+    return {
+        background: "linear-gradient(135deg, #000000, #003f3f)",
+        transition: "background 1s ease"
+    };
+};
 
 // You can change this if you have things that can be messed up by long tick lengths
 function maxTickLength() {

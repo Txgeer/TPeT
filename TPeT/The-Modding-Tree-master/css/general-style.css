@@ -1,4 +1,30 @@
 /* Global things */
+@font-face {
+    font-family: 'Bahnschrift';
+    src: url('../resources/Bahnschrift.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* 主题切换动画 */
+body.theme-transition {
+    animation: themeFlash 0.3s ease-out;
+}
+
+@keyframes themeFlash {
+    0% {
+        opacity: 1;
+    }
+    30% {
+        opacity: 0.7;
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
 body {
 	color: var(--color);
 	overflow: hidden;
@@ -8,7 +34,8 @@ body {
     scroll-behavior: smooth;
 	--color: #dfdfdf;
 	--points: #ffffff;
-	background: var(--background)
+	background: var(--background);
+    transition: background 0.5s ease-in-out;
 }
 
 body::before {
@@ -63,4 +90,13 @@ h1, h2, h3, b, input {
     text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
     font-weight: bold;
     display: inline-block;
+}
+
+.points-flash {
+    animation: flash 0.3s ease-out;
+}
+@keyframes flash {
+    0% { text-shadow: 0 0 0 var(--points); }
+    50% { text-shadow: 0 0 20px var(--points); }
+    100% { text-shadow: 0 0 0 var(--points); }
 }

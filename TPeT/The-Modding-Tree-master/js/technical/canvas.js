@@ -1,5 +1,6 @@
 var canvas;
 var ctx;
+var colors_theme;
 
 window.addEventListener("resize", (_=>resizeCanvas()));
 
@@ -25,6 +26,13 @@ function resizeCanvas() {
 var colors_theme
 
 function drawTree() {
+	if (!colors_theme || typeof colors_theme !== 'object') {
+        if (typeof changeTheme === 'function') {
+            changeTheme();
+        } else {
+            colors_theme = { 1: "#ffffff", 2: "#bfbfbf", 3: "#7f7f7f" };
+        }
+    }
 	if (!retrieveCanvasData()) return;
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	for (layer in layers){

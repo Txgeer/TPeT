@@ -205,8 +205,7 @@ function doReset(layer, force=false) {
 					if (!player[lrs[lr]].unlocked) player[lrs[lr]].unlockOrder++
 			}
 		}
-	
-	}
+    }
 
 	if (run(layers[layer].resetsNothing, layers[layer])) return
 	tmp[layer].baseAmount = decimalZero // quick fix
@@ -398,60 +397,79 @@ function hardReset(resetOptions) {
     window.location.reload();
 }
 
-var ticking = false
+var ticking = false;
 
-var interval = setInterval(function() {
-	if (!player || !tmp) return;
-	if (player===undefined||tmp===undefined) return;
-	if (ticking) return;
-	if (tmp.gameEnded&&!player.keepGoing) return;
-	ticking = true
-	let now = Date.now()
-	let diff = (now - player.time) / 1e3
-	let trueDiff = diff
-	if (player.offTime !== undefined) {
-		if (player.offTime.remain > modInfo.offlineLimit * 3600) player.offTime.remain = modInfo.offlineLimit * 3600
-		if (player.offTime.remain > 0) {
-			let offlineDiff = Math.max(player.offTime.remain / 10, diff)
-			player.offTime.remain -= offlineDiff
-			diff += offlineDiff
-		}
-		if (!options.offlineProd || player.offTime.remain <= 0) player.offTime = undefined
-	}
-	if (player.devSpeed) diff *= player.devSpeed
-	player.time = now
-	if (needCanvasUpdate){ resizeCanvas();
-		needCanvasUpdate = false;
-	}
-	tmp.scrolled = document.getElementById('treeTab') && document.getElementById('treeTab').scrollTop > 30
-	updateTemp();
-	player.tick=new Decimal(diff)
-	updateOomps(diff);
-	updateWidth()
-	updateTabFormats()
-	gameLoop(diff)
-	fixNaNs()
-	adjustPopupTime(trueDiff)
-	updateParticles(trueDiff)
-	ticking = false
-}, 50)
+// 安全获取原始 setInterval（避免被覆盖）
+var safeSetInterval = (function() {
+    return window.setInterval.bind(window);
+})();
 
-setInterval(function() {needCanvasUpdate = true}, 500)
-// ========== 拖拽批量购买升级和可购买 ==========
-window.addEventListener('load', function() {
+var interval = safeSetInterval(function() {
+    if (!player || !tmp) return;
+    if (ticking) return;
+    if (tmp.gameEnded && !player.keepGoing) return;
+    ticking = true;
+    let now = Date.now();
+    let diff = (now - player.time) / 1e3;
+    let trueDiff = diff;
+    if (player.offTime !== undefined) {
+        if (player.offTime.remain > modInfo.offlineLimit * 3600) player.offTime.remain = modInfo.offlineLimit * 3600;
+        if (player.offTime.remain > 0) {
+            let offlineDiff = Math.max(player.offTime.remain / 10, diff);
+            player.offTime.remain -= offlineDiff;
+            diff += offlineDiff;
+        }
+        if (!options.offlineProd || player.offTime.remain <= 0) player.offTime = undefined;
+    }
+    if (player.devSpeed) diff *= player.devSpeed;
+    player.time = now;
+    if (needCanvasUpdate) {
+        resizeCanvas();
+        needCanvasUpdate = false;
+    }
+    tmp.scrolled = document.getElementById('treeTab') && document.getElementById('treeTab').scrollTop > 30;
+    updateTemp();
+    player.tick = new Decimal(diff);
+    updateOomps(diff);
+    updateWidth();
+    updateTabFormats();
+    gameLoop(diff);
+    fixNaNs();
+    adjustPopupTime(trueDiff);
+    updateParticles(trueDiff);
+    ticking = false;
+}, 50);
+
+var canvasInterval = safeSetInterval(function() {
+    needCanvasUpdate = true;
+}, 500);
+// ========== 拖拽批量购买（支持触摸屏） ==========
+(function() {
     let isDragging = false;
     let lastBoughtId = null;
 
+    function getClientCoords(e) {
+        if (e.touches) {
+            return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
+        } else {
+            return { clientX: e.clientX, clientY: e.clientY };
+        }
+    }
+
     function handleDragStart(e) {
-        if (e.button !== 0) return;
+        if (e.button !== undefined && e.button !== 0) return;
+        if (e.cancelable) e.preventDefault();
         isDragging = true;
-        e.preventDefault();
     }
 
     function handleDragMove(e) {
         if (!isDragging) return;
-        const elem = document.elementFromPoint(e.clientX, e.clientY);
+        if (e.cancelable) e.preventDefault();
+
+        let coords = getClientCoords(e);
+        let elem = document.elementFromPoint(coords.clientX, coords.clientY);
         if (!elem) return;
+
         const btn = elem.closest('.upg, .buyable');
         if (!btn) return;
 
@@ -493,7 +511,11 @@ window.addEventListener('load', function() {
     document.addEventListener('mousedown', handleDragStart);
     document.addEventListener('mousemove', handleDragMove);
     document.addEventListener('mouseup', handleDragEnd);
-});
+
+    document.addEventListener('touchstart', handleDragStart, { passive: false });
+    document.addEventListener('touchmove', handleDragMove, { passive: false });
+    document.addEventListener('touchend', handleDragEnd);
+})();
 
 document.addEventListener('DOMContentLoaded', function() {
     let bgm = document.getElementById('bgm');
@@ -525,4 +547,21 @@ function toggleMusic() {
         bgm.pause();
     }
     save();
+}
+
+let lastTouch = 0;
+document.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 1) return;
+    let now = Date.now();
+    if (now - lastTouch < 300) e.preventDefault();
+    lastTouch = now;
+});
+
+function updateBackgroundStyle() {
+    if (typeof backgroundStyle === 'function') {
+        tmp.backgroundStyle = backgroundStyle();
+    } else {
+        tmp.backgroundStyle = backgroundStyle;
+    }
+    if (typeof needCanvasUpdate !== 'undefined') needCanvasUpdate = true;
 }

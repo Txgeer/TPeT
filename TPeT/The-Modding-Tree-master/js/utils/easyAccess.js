@@ -3,11 +3,21 @@ function hasUpgrade(layer, id) {
 }
 
 function hasMilestone(layer, id) {
-	return ((player[layer].milestones.includes(toNumber(id)) || player[layer].milestones.includes(id.toString())) && !tmp[layer].deactivated)
+    try {
+        if (typeof player === 'undefined' || !player) return false;
+        const layerData = player[layer];
+        if (!layerData || typeof layerData !== 'object') return false;
+        const milestones = layerData.milestones;
+        if (!milestones || typeof milestones !== 'object') return false;
+        return !!milestones[id];
+    } catch(e) {
+        return false;
+    }
 }
 
 function hasAchievement(layer, id) {
-	return ((player[layer].achievements.includes(toNumber(id)) || player[layer].achievements.includes(id.toString())) && !tmp[layer].deactivated)
+    if (!player[layer] || !player[layer].achievements) return false;
+    return (player[layer].achievements.includes(toNumber(id)) || player[layer].achievements.includes(id.toString())) && !tmp[layer].deactivated;
 }
 
 function hasChallenge(layer, id) {
