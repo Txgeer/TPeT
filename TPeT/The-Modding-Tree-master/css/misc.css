@@ -29,6 +29,7 @@
 .tabButton:hover {
 	background: var(--color);
     color: #000;
+    box-shadow: 0 0 15px var(--color);
     transform: translateY(-3px);
 }
 
@@ -36,7 +37,7 @@
     background: var(--color);
     color: #000;
     box-shadow: 0 0 15px var(--color);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
 }
 
 .tooltip { 
