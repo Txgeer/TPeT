@@ -389,7 +389,7 @@ function gameLoop(diff) {
 }
 
 function hardReset(resetOptions) {
-    if (!confirm("Are you sure you want to do this? You will lose all your progress!")) return;
+    if (!confirm("你真的想要做这个吗？ 你将会丢失你所有的进度！")) return;
     localStorage.removeItem(getModID());
     localStorage.removeItem(getModID() + "_options");
     player = null;
@@ -564,6 +564,14 @@ function toggleMusic() {
     }
     save();
 }
+
+let lastTouch = 0;
+document.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 1) return;
+    let now = Date.now();
+    if (now - lastTouch < 300) e.preventDefault();
+    lastTouch = now;
+});
 
 function updateBackgroundStyle() {
     if (typeof backgroundStyle === 'function') {
