@@ -565,14 +565,6 @@ function toggleMusic() {
     save();
 }
 
-let lastTouch = 0;
-document.addEventListener('touchstart', (e) => {
-    if (e.touches.length > 1) return;
-    let now = Date.now();
-    if (now - lastTouch < 300) e.preventDefault();
-    lastTouch = now;
-});
-
 function updateBackgroundStyle() {
     if (typeof backgroundStyle === 'function') {
         tmp.backgroundStyle = backgroundStyle();
@@ -581,3 +573,8 @@ function updateBackgroundStyle() {
     }
     if (typeof needCanvasUpdate !== 'undefined') needCanvasUpdate = true;
 }
+
+document.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 1) e.preventDefault();
+}, { passive: false });
+document.addEventListener('dblclick', (e) => e.preventDefault());

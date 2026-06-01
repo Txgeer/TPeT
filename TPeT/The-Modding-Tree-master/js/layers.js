@@ -1131,7 +1131,7 @@ addLayer("b", {
     } else if (hasUpgrade('b', 22)) {
     player.b.power = player.b.power.add(delta.times(player.b.points.pow(buyableEffect("k", 22))).times(upgradeEffect("b", 21)));
     } else if (hasMilestone('b', 2)) {
-    player.b.power = player.b.power.add(delta.timesplayer.b.points.times(buyableEffect("k", 22)).times(upgradeEffect("b", 21)));
+    player.b.power = player.b.power.add(delta.times(player.b.points.times(buyableEffect("k", 22))).times(upgradeEffect("b", 21)));
     } else if (hasUpgrade('b', 21)) {
     player.b.power = player.b.power.add(delta.times(player.b.points)).add(upgradeEffect("b", 21));
     } else {
