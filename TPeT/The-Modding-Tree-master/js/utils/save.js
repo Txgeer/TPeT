@@ -253,7 +253,7 @@ function loadOptions() {
 
 function setupModInfo() {
 	modInfo.changelog = changelog;
-	modInfo.winText = winText ? winText : `Congratulations! You have reached the end and beaten this game, but for now...`;
+	modInfo.winText = winText ? winText : `恭喜！ 你达到了终局并完成了这款游戏， 但是现在......`;
 
 }
 function fixNaNs() {
@@ -294,7 +294,7 @@ function exportSave() {
 }
 function importSave(imported = undefined, forced = false) {
     if (imported === undefined)
-        imported = prompt("Paste your save here");
+        imported = prompt("在这里粘贴你的存档");
     try {
         let decoded = b64_to_utf8(imported);
         let tempPlr = Object.assign(getStartPlayer(), JSON.parse(decoded));

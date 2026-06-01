@@ -422,7 +422,16 @@ var interval = safeSetInterval(function() {
         if (!options.offlineProd || player.offTime.remain <= 0) player.offTime = undefined;
     }
     if (player.devSpeed) diff *= player.devSpeed;
-    player.time = now;
+    if (player.m && player.m.unlocked && player.m.byte && player.m.byte.gt(0)) {
+    let speedMult = player.m.byte.max(1).log10().add(1);
+    let mult = speedMult.toNumber();
+    mult = Math.min(mult);
+    diff *= mult;
+    tmp.speedMult = mult;
+    } else {
+    tmp.speedMult = 1;
+    }
+player.time = now;
     if (needCanvasUpdate) {
         resizeCanvas();
         needCanvasUpdate = false;
@@ -448,7 +457,7 @@ var canvasInterval = safeSetInterval(function() {
     let isDragging = false;
     let lastBoughtId = null;
     let dragStartX = 0, dragStartY = 0;
-    const DRAG_THRESHOLD = 10; // 移动超过10像素才视为拖动
+    const DRAG_THRESHOLD = 10;
 
     function getClientCoords(e) {
         if (e.touches) {
@@ -462,24 +471,24 @@ var canvasInterval = safeSetInterval(function() {
         let coords = getClientCoords(e);
         dragStartX = coords.clientX;
         dragStartY = coords.clientY;
-        isDragging = false; // 先标记未拖动
+        isDragging = false;
         lastBoughtId = null;
     }
 
     function handleDragMove(e) {
-        if (!dragStartX && dragStartX !== 0) return; // 没有起点，忽略
+		if (dragStartX === 0 && dragStartY === 0) return;
+        if (!dragStartX && dragStartX !== 0) return;
         let coords = getClientCoords(e);
         let dx = Math.abs(coords.clientX - dragStartX);
         let dy = Math.abs(coords.clientY - dragStartY);
         
-        // 只有移动超过阈值，才进入拖拽模式并阻止默认行为
         if (!isDragging && (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD)) {
             isDragging = true;
         }
         
-        if (!isDragging) return; // 未进入拖拽模式，允许正常点击和滚动
+        if (!isDragging) return;
         
-        if (e.cancelable) e.preventDefault(); // 现在才开始阻止滚动
+        if (e.cancelable) e.preventDefault();
         
         let elem = document.elementFromPoint(coords.clientX, coords.clientY);
         if (!elem) return;
@@ -565,14 +574,6 @@ function toggleMusic() {
     save();
 }
 
-let lastTouch = 0;
-document.addEventListener('touchstart', (e) => {
-    if (e.touches.length > 1) return;
-    let now = Date.now();
-    if (now - lastTouch < 300) e.preventDefault();
-    lastTouch = now;
-});
-
 function updateBackgroundStyle() {
     if (typeof backgroundStyle === 'function') {
         tmp.backgroundStyle = backgroundStyle();
@@ -583,6 +584,15 @@ function updateBackgroundStyle() {
 }
 
 document.addEventListener('touchstart', (e) => {
-    if (e.touches.length > 1) e.preventDefault();
+    if (e.touches.length > 1) {
+    }
 }, { passive: false });
-document.addEventListener('dblclick', (e) => e.preventDefault());
+
+let lastTouchEnd = 0;
+document.addEventListener('touchend', (e) => {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) {
+        e.preventDefault();
+    }
+    lastTouchEnd = now;
+}, { passive: false });

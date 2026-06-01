@@ -39,13 +39,14 @@ function isKnightDisabled() {
 function getUpgradeDisplay(layer, id) {
     let eff = upgradeEffect(layer, id);
     let formatted = format(eff) + "x";
-    if (player.c.activeChallenge === 11 && player.c.activeChallenge === 12 && player.c.activeChallenge === 13 && 
-    player.c.activeChallenge === 21 && player.c.activeChallenge === 22 && player.c.activeChallenge === 23 && 
-    player.c.activeChallenge === 31 && player.c.activeChallenge === 32 && player.cr.activeChallenge === 11 && 
-    player.cr.activeChallenge === 12 && player.cr.activeChallenge === 13 && player.cr.activeChallenge === 21 && player.cr.activeChallenge === 22 && 
-    player.cr.activeChallenge === 23 && eff.gt(2)) {
+    if (player.c.activeChallenge === 11 || player.c.activeChallenge === 12 || player.c.activeChallenge === 13 || 
+    player.c.activeChallenge === 21 || player.c.activeChallenge === 22 || player.c.activeChallenge === 23 || 
+    player.c.activeChallenge === 31 || player.c.activeChallenge === 32 || player.cr.activeChallenge === 11 || 
+    player.cr.activeChallenge === 12 || player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || 
+    player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23) {
+    if (eff.gt(2)) {
         return formatted + "（受软上限限制）";
-    }
+    }}
     if (hasChallenge('c', 11) && eff.gt(100)) {
         return formatted + "（受软上限限制）";
     }
@@ -140,9 +141,9 @@ addLayer("a", {
     tooltip: function() {
         if (hasAchievement(this.layer, this.id)) {
             let eff = achievementEffect(this.layer, this.id);
-            return `要求：蛮王升级12的效果超过100倍。<br>奖励：挑战精神也可以增益蛮王等级。<br>当前：${format(eff)}x`;
+            return `要求：蛮王升级12的效果超过100倍。<br>奖励：挑战精神也可以增益蛮王等级获取。<br>当前：${format(eff)}x`;
         } else {
-            return `要求：蛮王升级12的效果超过100倍。<br>奖励：挑战精神也可以增益蛮王等级。<br>当前：1.00x`;
+            return `要求：蛮王升级12的效果超过100倍。<br>奖励：挑战精神也可以增益蛮王等级获取。<br>当前：1.00x`;
         }
     },
     done() {
@@ -839,7 +840,7 @@ addLayer("k", {
         23: {
             title: "骑士道",
             cost(x) { return new Decimal(1).add(1).add(x).mul(x).pow(x).add(1) },
-            display() {return "增益前四位骑士的效果。<br>需要"+format(this.cost())+"骑士团人口<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
+            display() {return "增益前五位骑士的效果。<br>需要"+format(this.cost())+"骑士团人口<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
             canAfford() { 
             if (isKnightDisabled()) return false;
             return player[this.layer].points.gte(this.cost());
@@ -1118,25 +1119,17 @@ addLayer("b", {
     update(diff) {
     let delta = new Decimal(diff);
     let oldPower = player.b.power;
-    if(hasUpgrade("g", 21)){
+    let base = delta.times(player.b.points);
     let safebeige = player.cr.beigechroma.max(1);
-    player.b.power = player.b.power.add(delta.times(player.b.points.pow(buyableEffect("k", 22))).times(upgradeEffect("b", 24)).times(upgradeEffect("b", 21)).times(getFuryBonus(player.b.power)).times(safebeige.log2().add(1)).times(upgradeEffect("g", 21)));
-    }if(hasUpgrade("cr", 21)){
-    let safebeige = player.cr.beigechroma.max(1);
-    player.b.power = player.b.power.add(delta.times(player.b.points.pow(buyableEffect("k", 22))).times(upgradeEffect("b", 24)).times(upgradeEffect("b", 21)).times(getFuryBonus(player.b.power)).times(safebeige.log2().add(1)).times(upgradeEffect("g", 21)));
-    }else if (hasUpgrade('g', 11)) {
-    player.b.power = player.b.power.add(delta.times(player.b.points.pow(buyableEffect("k", 22))).times(upgradeEffect("b", 24)).times(upgradeEffect("b", 21)).times(getFuryBonus(player.b.power)));
-    } else if (hasUpgrade('b', 24)) {
-    player.b.power = player.b.power.add(delta.times(player.b.points.pow(buyableEffect("k", 22))).times(upgradeEffect("b", 24)).times(upgradeEffect("b", 21)));
-    } else if (hasUpgrade('b', 22)) {
-    player.b.power = player.b.power.add(delta.times(player.b.points.pow(buyableEffect("k", 22))).times(upgradeEffect("b", 21)));
-    } else if (hasMilestone('b', 2)) {
-    player.b.power = player.b.power.add(delta.times(player.b.points.times(buyableEffect("k", 22))).times(upgradeEffect("b", 21)));
-    } else if (hasUpgrade('b', 21)) {
-    player.b.power = player.b.power.add(delta.times(player.b.points)).add(upgradeEffect("b", 21));
-    } else {
-    player.b.power = player.b.power.add(delta.times(player.b.points));
-    }
+    if (hasUpgrade('b',21)) base = base.times(upgradeEffect('b',21));
+    if (hasMilestone('b',2)) base = base.times(buyableEffect('k', 22));
+    if (hasUpgrade('b',22)) base = base.times(buyableEffect('k', 22).pow(buyableEffect('k', 22)));
+    if (hasUpgrade('b',24)) base = base.times(upgradeEffect("b", 24));
+    if (hasMilestone('c',23)) base = base.times(buyableEffect("k", 23).pow(buyableEffect('k', 23)));
+    if (hasUpgrade('g',11)) base = base.times(getFuryBonus(player.b.power));
+    if(hasUpgrade("cr", 21)) base = base.times(safebeige.log2().add(1));
+    if(hasUpgrade("g", 21)) base = base.times(upgradeEffect("g", 21));
+    player.b.power = player.b.power.add(base);
     let gain = player.b.power.sub(oldPower);
     player.b.powerGainRate = gain.div(diff);
     },
@@ -2397,7 +2390,7 @@ update(diff) {
         24: {
             title: "解放色度",
             description: "色度也可以增益自身获取。",
-            cost: new Decimal(8000000),
+            cost: new Decimal(10000000),
             effect() {
             let raw = (player.cr.points.max(1)).log2()
             return applySoftcap(raw);
@@ -2429,8 +2422,8 @@ update(diff) {
     12: {
         name: "神圣解放 II",
         challengeDescription: "在 神圣解放 I 的基础上，禁用翠绿色度。",
-        goal: new Decimal(1e16),
-        goalDescription: "1e16 蛮王等级。",
+        goal: new Decimal(1.3e16),
+        goalDescription: "1.3e16 蛮王等级。",
         rewardDescription: "解锁新的色彩升级。",
         canComplete() { return player.p.points.gte(1e16); },
         onComplete() {
@@ -2443,8 +2436,8 @@ update(diff) {
     13: {
         name: "神圣解放 III",
         challengeDescription: "在 神圣解放 II 的基础上，禁用苍蓝色度。",
-        goal: new Decimal(1e16),
-        goalDescription: "1e16 蛮王等级。",
+        goal: new Decimal(1.6e16),
+        goalDescription: "1.6e16 蛮王等级。",
         rewardDescription: "解锁新的色彩升级。",
         canComplete() { return player.p.points.gte(1e16); },
         onComplete() {
@@ -2457,8 +2450,8 @@ update(diff) {
     21: {
         name: "神圣解放 IIII",
         challengeDescription: "在 神圣解放 III 的基础上，禁用中立色度。",
-        goal: new Decimal(1e16),
-        goalDescription: "1e16 蛮王等级。",
+        goal: new Decimal(2e16),
+        goalDescription: "2e16 蛮王等级。",
         rewardDescription: "解锁新的色彩升级。",
         canComplete() { return player.p.points.gte(1e16); },
         onComplete() {
@@ -2471,8 +2464,8 @@ update(diff) {
     22: {
         name: "神圣解放 V",
         challengeDescription: "在 神圣解放 IIII 的基础上，禁用蛮王升级 41 42 43。",
-        goal: new Decimal(1e16),
-        goalDescription: "1e16 蛮王等级。",
+        goal: new Decimal(2.5e16),
+        goalDescription: "2.5e16 蛮王等级。",
         rewardDescription: "解锁新的色彩升级。",
         canComplete() { return player.p.points.gte(1e16); },
         onComplete() {
@@ -2485,8 +2478,8 @@ update(diff) {
     23: {
         name: "神圣解放 END",
         challengeDescription: "在 神圣解放 V 的基础上，GTP无法倍增φ 精华获取。",
-        goal: new Decimal(1e16),
-        goalDescription: "1e16 蛮王等级。",
+        goal: new Decimal(3.14e16),
+        goalDescription: "3.14e16 蛮王等级。",
         rewardDescription: "解锁新的色彩升级。",
         canComplete() { return player.p.points.gte(1e16); },
         onEnter() { player.g.energy = new Decimal(0); },
@@ -2694,7 +2687,7 @@ addLayer("g", {
     currencyDisplayName: "φ 精华",
     }
     },
-        tabFormat:{
+    tabFormat:{
         '神祇':{
             content:[
             //['infoboxes','main-text'],
@@ -2734,7 +2727,7 @@ addLayer("m", {
     name: "神祇",
     symbol: "M",
     position: 0,
-    startData() { return { unlocked: true,points: new Decimal(0)}; },
+    startData() { return { unlocked: true,points: new Decimal(0),byte: new Decimal(0),byteGainRate: new Decimal(0)}; },
     color: "#ffffff",
     requires: new Decimal(1e9),
     resource: "主机端口",
@@ -2751,13 +2744,55 @@ addLayer("m", {
     row: 3,
     hotkeys: [{ key: "m", description: "M: Reset for Main", onPress() { if (canReset(this.layer)) doReset(this.layer); } }],
     style: {
-        background: "linear-gradient(135deg, #000000, #00007f)",
+        background: "linear-gradient(135deg, #000000, #00003f)",
         minHeight: "100vh",
     },
     nodeStyle: {
         background: "linear-gradient(135deg, #000000, #00007f, #000000)",
         border: 'none',
         boxShadow: '0 0 0 1px rgba(0,0,0,0.1)'
+    },
+    update(diff) {
+    let delta = new Decimal(diff);
+    let oldByte = player.m.byte;
+    let base = delta.times(player.m.points);
+    player.m.byte = player.m.byte.add(base);
+    let gain = player.m.byte.sub(oldByte);
+    player.m.byteGainRate = gain.div(diff);
+    },
+    tabFormat:{
+        '主机':{
+            content:[
+            //['infoboxes','main-text'],
+            'main-display',
+            ['display-text',
+            function() {if (player.m.points.gte(1)){
+                let safeByte = player.m.byte.max(1);
+            	return `你有 <h3 style="color: #00007f; text-shadow: 10px">${format(player.m.byte)}</h3> 字节,倍增游戏全局速度 <h3 style="color: #00007f; text-shadow: 10px">${format(safeByte.log10().add(1))}</h3> 倍`
+            }}],
+            ['display-text', function() {if (player.m.points.gte(1)){
+                    return `你每秒获得 <h3 style="color: #00007f; text-shadow: 10px">${format(player.m.byteGainRate)}</h3> 字节`;
+            }}],
+            'prestige-button',
+            'upgrades'
+            ],
+        },
+        '里程碑':{
+            content:[
+            //['infoboxes','main-text'],
+            'main-display',
+            ['display-text',
+            function() {if (player.m.points.gte(1)){
+                let safeByte = player.m.byte.max(1);
+            	return `你有 <h3 style="color: #00007f; text-shadow: 10px">${format(player.m.byte)}</h3> 字节,倍增游戏全局速度 <h3 style="color: #00007f; text-shadow: 10px">${format(safeByte.log10().add(1))}</h3> 倍`
+            }}],
+            ['display-text', function() {if (player.m.points.gte(1)){
+                    return `你每秒获得 <h3 style="color: #00007f; text-shadow: 10px">${format(player.m.byteGainRate)}</h3> 字节`;
+            }}],
+            'prestige-button',
+            'milestones'
+            ],
+        },
     },
     layerShown() { return hasMilestone('cr', 12) || player.m.points.gte(1); }
 });

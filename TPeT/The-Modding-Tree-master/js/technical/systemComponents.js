@@ -113,20 +113,22 @@ var systemComponents = {
 	'overlay-head': {
 		template: `			
 		<div class="overlayThing" style="padding-bottom:7px; width: 90%; z-index: 1000; position: relative">
-		<span v-if="player.devSpeed && player.devSpeed != 1" class="overlayThing">
-			<br>Dev Speed: {{format(player.devSpeed)}}x<br>
-		</span>
-		<span v-if="player.offTime !== undefined"  class="overlayThing">
-			<br>Offline Time: {{formatTime(player.offTime.remain)}}<br>
-		</span>
-		<br>
-		<span v-if="player.points.lt('1e1000')"  class="overlayThing">你有 </span>
-		<h2  class="overlayThing" id="points">{{format(player.points)}}</h2>
-		<span v-if="player.points.lt('1e1e6')"  class="overlayThing"> {{modInfo.pointsName}}</span>
-		<br>
-		<span v-if="canGenPoints()"  class="overlayThing">({{tmp.other.oompsMag != 0 ? format(tmp.other.oomps) + " OOM" + (tmp.other.oompsMag < 0 ? "^OOM" : tmp.other.oompsMag > 1 ? "^" + tmp.other.oompsMag : "") + "s" : formatSmall(getPointGen())}}/s)</span>
-		<div v-for="thing in tmp.displayThings" class="overlayThing"><span v-if="thing" v-html="thing"></span></div>
-	</div>
+    <span v-if="player.devSpeed && player.devSpeed != 1" class="overlayThing">
+        <br>Dev Speed: {{format(player.devSpeed)}}x<br>
+    </span>
+    <span v-if="player.offTime !== undefined" class="overlayThing">
+        <br>Offline Time: {{formatTime(player.offTime.remain)}}<br>
+    </span>
+    <span v-if="tmp.speedMult && tmp.speedMult !== 1" class="overlayThing">
+        <br>游戏速度: {{format(tmp.speedMult)}}x<br>
+    </span>
+    <span v-if="player.points.lt('1e1000')" class="overlayThing">你有 </span>
+    <h2 class="overlayThing" id="points">{{format(player.points)}}</h2>
+    <span v-if="player.points.lt('1e1e6')" class="overlayThing"> {{modInfo.pointsName}}</span>
+    <br>
+    <span v-if="canGenPoints()" class="overlayThing">({{tmp.other.oompsMag != 0 ? format(tmp.other.oomps) + " OOM" + (tmp.other.oompsMag < 0 ? "^OOM" : tmp.other.oompsMag > 1 ? "^" + tmp.other.oompsMag : "") + "s" : formatSmall(getPointGen())}}/s)</span>
+    <div v-for="thing in tmp.displayThings" class="overlayThing"><span v-if="thing" v-html="thing"></span></div>
+    </div>
 	`
     },
 
