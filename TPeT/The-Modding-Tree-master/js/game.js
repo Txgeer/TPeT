@@ -447,32 +447,46 @@ var canvasInterval = safeSetInterval(function() {
 (function() {
     let isDragging = false;
     let lastBoughtId = null;
+    let dragStartX = 0, dragStartY = 0;
+    const DRAG_THRESHOLD = 10; // 移动超过10像素才视为拖动
 
     function getClientCoords(e) {
         if (e.touches) {
             return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
-        } else {
-            return { clientX: e.clientX, clientY: e.clientY };
         }
+        return { clientX: e.clientX, clientY: e.clientY };
     }
 
     function handleDragStart(e) {
         if (e.button !== undefined && e.button !== 0) return;
-        if (e.cancelable) e.preventDefault();
-        isDragging = true;
+        let coords = getClientCoords(e);
+        dragStartX = coords.clientX;
+        dragStartY = coords.clientY;
+        isDragging = false; // 先标记未拖动
+        lastBoughtId = null;
     }
 
     function handleDragMove(e) {
-        if (!isDragging) return;
-        if (e.cancelable) e.preventDefault();
-
+        if (!dragStartX && dragStartX !== 0) return; // 没有起点，忽略
         let coords = getClientCoords(e);
+        let dx = Math.abs(coords.clientX - dragStartX);
+        let dy = Math.abs(coords.clientY - dragStartY);
+        
+        // 只有移动超过阈值，才进入拖拽模式并阻止默认行为
+        if (!isDragging && (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD)) {
+            isDragging = true;
+        }
+        
+        if (!isDragging) return; // 未进入拖拽模式，允许正常点击和滚动
+        
+        if (e.cancelable) e.preventDefault(); // 现在才开始阻止滚动
+        
         let elem = document.elementFromPoint(coords.clientX, coords.clientY);
         if (!elem) return;
-
+        
         const btn = elem.closest('.upg, .buyable');
         if (!btn) return;
-
+        
         let layer, id;
         const upgMatch = btn.id.match(/upgrade-([^-]+)-(\d+)/);
         const buyMatch = btn.id.match(/buyable-([^-]+)-(\d+)/);
@@ -485,11 +499,11 @@ var canvasInterval = safeSetInterval(function() {
         } else {
             return;
         }
-
+        
         const key = `${layer}-${id}`;
         if (lastBoughtId === key) return;
         lastBoughtId = key;
-
+        
         if (upgMatch) {
             if (typeof canAffordUpgrade !== 'undefined' && canAffordUpgrade(layer, id) && !hasUpgrade(layer, id)) {
                 buyUpg(layer, id);
@@ -499,19 +513,21 @@ var canvasInterval = safeSetInterval(function() {
                 buyBuyable(layer, id);
             }
         }
-
+        
         setTimeout(() => { lastBoughtId = null; }, 50);
     }
-
+    
     function handleDragEnd() {
         isDragging = false;
+        dragStartX = 0;
+        dragStartY = 0;
         lastBoughtId = null;
     }
-
+    
     document.addEventListener('mousedown', handleDragStart);
     document.addEventListener('mousemove', handleDragMove);
     document.addEventListener('mouseup', handleDragEnd);
-
+    
     document.addEventListener('touchstart', handleDragStart, { passive: false });
     document.addEventListener('touchmove', handleDragMove, { passive: false });
     document.addEventListener('touchend', handleDragEnd);
