@@ -876,7 +876,6 @@ addLayer("k", {
             
         },
     },
-    milestonePopups: false,
     milestones:{
         1:
         {
@@ -885,7 +884,6 @@ addLayer("k", {
         done() {return player.k.points.gte(2)},
         onComplete() {
             quickUpgBuy("p", [11, 12, 13]);
-            doPopup("milestone", "2 骑士团人口", "里程碑达成", 3, "#AFAFAF");
         }
         },
         2:
@@ -895,7 +893,6 @@ addLayer("k", {
         done() {return player.k.points.gte(4)},
         onComplete() {
             quickUpgBuy("p", [21, 22, 23]);
-            doPopup("milestone", "4 骑士团人口", "里程碑达成", 3, "#AFAFAF");
         }
         },
         3:
@@ -905,7 +902,6 @@ addLayer("k", {
         done() {return player.k.points.gte(7)},
         onComplete() {
             quickUpgBuy("p", [31, 32, 33]);
-            doPopup("milestone", "7 骑士团人口", "里程碑达成", 3, "#AFAFAF");
         }
         },
         4:
@@ -917,36 +913,24 @@ addLayer("k", {
         player.p.points=player.p.points.add(buyableEffect('k', 13)).add(buyableEffect('k', 23))
         },
         done() {return player.k.points.gte(10)},
-        onComplete() {
-            doPopup("milestone", "10 骑士团人口", "里程碑达成", 3, "#AFAFAF");
-        }
         },
         5:
         {
         requirementDescription:"47 骑士团人口",
         effectDescription:"解锁第四位骑士。",
         done() {return player.k.points.gte(47)},
-        onComplete() {
-            doPopup("milestone", "47 骑士团人口", "里程碑达成", 3, "#AFAFAF");
-        }
         },
         6:
         {
         requirementDescription:"200 骑士团人口",
         effectDescription:"解锁狂战士营。",
         done() {return player.k.points.gte(200)},
-        onComplete() {
-            doPopup("milestone", "200 骑士团人口", "里程碑达成", 3, "#AFAFAF");
-        }
         },
         7:
         {
         requirementDescription:"9e15 骑士团人口",
         effectDescription:"解锁增强者。",
         done() {return player.k.points.gte(9e15)},
-        onComplete() {
-            doPopup("milestone", "9e15 骑士团人口", "里程碑达成", 3, "#AFAFAF");
-        }
         },
     },
     automate() {
@@ -1715,7 +1699,6 @@ addLayer("e", {
         }
     }
     },
-
     milestones:{
         1:
         {
@@ -1837,13 +1820,35 @@ addLayer("e", {
         },
     },
     automate() {
-        if (hasMilestone("e", 7)) {
-            if (canBuyBuyable("e", 11)) buyBuyable("e", 11);
-            if (canBuyBuyable("e", 12)) buyBuyable("e", 12);
-            if (canBuyBuyable("e", 13)) buyBuyable("e", 13);
-            if(hasAchievement("a",24)){if (canBuyBuyable("e", 14)) buyBuyable("e", 14);}
+    if (hasMilestone("e", 7)) {
+        let candidates = [];
+        let ids = [11, 12, 13];
+        if (hasAchievement("a", 24)) ids.push(14);
+        
+        for (let id of ids) {
+            if (canBuyBuyable("e", id)) {
+                let cost = tmp.e.buyables[id].cost;
+                candidates.push({ id: id, cost: cost });
+            }
         }
+        candidates.sort((a, b) => a.cost.cmp(b.cost));
+        if (candidates.length > 0) {
+            buyBuyable("e", candidates[0].id);
+        }
+    }
+    if (hasMilestone("m", 1) && !hasMilestone('m', 2)) {
+        quickUpgBuy("m", [11, 12, 13, 14]);
+        }
+    if (hasMilestone('m', 2)) {
+        const mUpgradeIds = [11, 12, 13, 14];
+        for (let id of mUpgradeIds) {
+            if (!player.m.upgrades.includes(id)) {
+                player.m.upgrades.push(id);
+            }
+        }
+    }
     },
+    
     style: {
         background: "linear-gradient(135deg, #000000, #1f003f)",
         minHeight: "100vh",
@@ -2294,7 +2299,7 @@ update(diff) {
                     return `你每秒获得 <h3 style="color: #7f00ff; text-shadow: 10px">${format(player.cr.purplechromaGainRate)}</h3> 螺紫色度`;
             }}],
             ['display-text', function() {if(hasUpgrade("cr",21)){
-            	return `你有 <h3 style="color: #ffff7f; text-shadow: 10px">${format(player.cr.beigechroma)}</h3> 米黄色度,为你的狂战士营提供 <h3 style="color: #ffff7f; text-shadow: 10px">${format(player.cr.beigechroma.log2().add(1))}</h3> 倍率的狂怒能量`
+            	return `你有 <h3 style="color: #ffff7f; text-shadow: 10px">${format(player.cr.beigechroma)}</h3> 米黄色度,为你的狂战士提供 <h3 style="color: #ffff7f; text-shadow: 10px">${format(player.cr.beigechroma.log2().add(1))}</h3> 倍率的狂怒能量`
             }}],
             ['display-text', function() {if(hasUpgrade("cr",21)){
                     return `你每秒获得 <h3 style="color: #ffff7f; text-shadow: 10px">${format(player.cr.beigechromaGainRate)}</h3> 米黄色度`;
@@ -2792,6 +2797,26 @@ addLayer("m", {
             'prestige-button',
             'milestones'
             ],
+        },
+    },
+    milestones:{
+        1:
+        {
+        requirementDescription:"2 主机端口",
+        effectDescription:"自动购买第一行增强者升级。",
+        done() {return player.m.points.gte(2)}
+        },
+        2:
+        {
+        requirementDescription:"3 主机端口",
+        effectDescription:"免费自动购买第一行增强者升级。",
+        done() {return player.m.points.gte(3)}
+        },
+        3:
+        {
+        requirementDescription:"5 主机端口",
+        effectDescription:"解锁主机升级。",
+        done() {return player.m.points.gte(5)}
         },
     },
     layerShown() { return hasMilestone('cr', 12) || player.m.points.gte(1); }

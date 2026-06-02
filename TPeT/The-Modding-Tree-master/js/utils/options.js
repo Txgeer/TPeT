@@ -13,8 +13,20 @@ function getStartOptions() {
 		showStory: true,
 		forceOneTab: false,
 		oldStyle: false,
-		musicEnabled: true
+		musicEnabled: true,
+		milestonePopup: true,
+		enableZoom: true
 	}
+}
+
+function applyZoomSetting() {
+    const viewport = document.getElementById('viewportMeta');
+    if (!viewport) return;
+    if (options.enableZoom) {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, viewport-fit=cover');
+    } else {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover');
+    }
 }
 
 function toggleOpt(name) {
@@ -76,3 +88,15 @@ function milestoneShown(layer, id) {
 	}
 	return false;
 }
+function toggleZoom() {
+    options.enableZoom = !options.enableZoom;
+    const viewport = document.getElementById('viewportMeta');
+    if (!viewport) return;
+    if (options.enableZoom) {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, viewport-fit=cover');
+    } else {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover');
+    }
+    save();
+}
+

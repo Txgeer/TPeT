@@ -256,14 +256,18 @@ function toNumber(x) {
 }
 
 function updateMilestones(layer) {
-	for (id in layers[layer].milestones) {
-		if (!(hasMilestone(layer, id)) && layers[layer].milestones[id].done()) {
-			player[layer].milestones.push(id)
-			if (layers[layer].milestones[id].onComplete) layers[layer].milestones[id].onComplete()
-			if (tmp[layer].milestonePopups || tmp[layer].milestonePopups === undefined) doPopup("milestone", tmp[layer].milestones[id].requirementDescription, "里程碑完成！", 3, tmp[layer].color);
-			player[layer].lastMilestone = id
-		}
-	}
+    for (id in layers[layer].milestones) {
+        if (!(hasMilestone(layer, id)) && layers[layer].milestones[id].done()) {
+            player[layer].milestones.push(id);
+            if (layers[layer].milestones[id].onComplete) layers[layer].milestones[id].onComplete();
+            var layerPopupEnabled = (tmp[layer].milestonePopups !== false);
+            var globalPopupEnabled = (options.milestonePopup !== false);
+            if (layerPopupEnabled && globalPopupEnabled) {
+                doPopup("milestone", tmp[layer].milestones[id].requirementDescription, "里程碑完成！", 3, tmp[layer].color);
+            }
+            player[layer].lastMilestone = id;
+        }
+    }
 }
 
 function updateAchievements(layer) {

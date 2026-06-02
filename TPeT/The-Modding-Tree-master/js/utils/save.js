@@ -233,6 +233,8 @@ function load() {
 	updateTemp();
 	updateTabFormats()
 	loadVue();
+	resizeCanvas();
+	applyZoomSetting();
 }
 
 function loadOptions() {

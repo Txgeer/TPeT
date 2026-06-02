@@ -26,40 +26,37 @@ function resizeCanvas() {
 var colors_theme
 
 function drawTree() {
-	if (!colors_theme || typeof colors_theme !== 'object') {
+    if (!colors_theme || typeof colors_theme !== 'object') {
         if (typeof changeTheme === 'function') {
             changeTheme();
         } else {
             colors_theme = { 1: "#ffffff", 2: "#bfbfbf", 3: "#7f7f7f" };
         }
     }
-	if (!retrieveCanvasData()) return;
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
-	for (layer in layers){
-		if (tmp[layer].layerShown == true && tmp[layer].branches){
-			for (branch in tmp[layer].branches)
-				{
-					drawTreeBranch(layer, tmp[layer].branches[branch])
-				}
-		}
-		drawComponentBranches(layer, tmp[layer].upgrades, "upgrade-")
-		drawComponentBranches(layer, tmp[layer].buyables, "buyable-")
-		drawComponentBranches(layer, tmp[layer].clickables, "clickable-")
-
-	}
+    if (!retrieveCanvasData()) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (layer in layers) {
+        if (!tmp[layer] || tmp[layer].layerShown === undefined) continue;
+        if (tmp[layer].layerShown == true && tmp[layer].branches) {
+            for (branch in tmp[layer].branches) {
+                drawTreeBranch(layer, tmp[layer].branches[branch]);
+            }
+        }
+        drawComponentBranches(layer, tmp[layer].upgrades, "upgrade-");
+        drawComponentBranches(layer, tmp[layer].buyables, "buyable-");
+        drawComponentBranches(layer, tmp[layer].clickables, "clickable-");
+    }
 }
 
 function drawComponentBranches(layer, data, prefix) {
-	for(id in data) {
-		if (data[id].branches) {
-			for (branch in data[id].branches)
-			{
-				drawTreeBranch(id, data[id].branches[branch], prefix + layer + "-")
-			}
-
-		}
-	}
-
+    if (!data) return;
+    for (id in data) {
+        if (data[id] && data[id].branches) {
+            for (branch in data[id].branches) {
+                drawTreeBranch(id, data[id].branches[branch], prefix + layer + "-");
+            }
+        }
+    }
 }
 
 function drawTreeBranch(num1, data, prefix) { // taken from Antimatter Dimensions & adjusted slightly
