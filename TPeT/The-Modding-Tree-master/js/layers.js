@@ -102,7 +102,12 @@ function getExtraUpgradeCount() {
 }
 function getByteSpeedMult() {
     if (!player.m || !player.m.byte) return new Decimal(1);
-    let safeByte = player.m.byte.max(1);
+    if (player.m.byte.lte(1)) return new Decimal(1);
+    if (isNaN(player.m.byte.mag) || isNaN(player.m.byte.sign)) {
+        player.m.byte = new Decimal(0);
+        return new Decimal(1);
+    }
+    let safeByte = player.m.byte;
     if (hasAchievement('a', 34)) {
         return safeByte.log2().log2().add(1);
     } else {
