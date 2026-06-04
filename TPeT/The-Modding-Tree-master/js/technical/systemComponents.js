@@ -119,9 +119,6 @@ var systemComponents = {
     <span v-if="player.offTime !== undefined" class="overlayThing">
         <br>Offline Time: {{formatTime(player.offTime.remain)}}<br>
     </span>
-    <span v-if="tmp.speedMult && tmp.speedMult !== 1" class="overlayThing">
-        <br>游戏速度: {{format(tmp.speedMult)}}x<br>
-    </span>
     <span v-if="player.points.lt('1e1000')" class="overlayThing">你有 </span>
     <h2 class="overlayThing" id="points">{{format(player.points)}}</h2>
     <span v-if="player.points.lt('1e1e6')" class="overlayThing"> {{modInfo.pointsName}}</span>
@@ -143,14 +140,14 @@ var systemComponents = {
             作者： {{modInfo.author}}	
         </span>
         <br>
-        The Modding Tree <a v-bind:href="'https://github.com/Acamaeda/The-Modding-Tree/blob/master/changelog.md'" target="_blank" class="link" v-bind:style = "{'font-size': '14px', 'display': 'inline'}" >{{TMT_VERSION.tmtNum}}</a> by Acamaeda
+        模组树 <a v-bind:href="'https://github.com/Acamaeda/The-Modding-Tree/blob/master/changelog.md'" target="_blank" class="link" v-bind:style = "{'font-size': '14px', 'display': 'inline'}" >{{TMT_VERSION.tmtNum}}</a> 作者： Acamaeda
         <br>
-        The Prestige Tree made by Jacorb and Aarex
+        声望树作者： Jacorb 和 Aarex
 		<br><br>
 		<div class="link" onclick="showTab('changelog-tab')">Changelog</div><br>
         <span v-if="modInfo.discordLink"><a class="link" v-bind:href="modInfo.discordLink" target="_blank">{{modInfo.discordName}}</a><br></span>
-        <a class="link" href="https://discord.gg/F3xveHV" target="_blank" v-bind:style="modInfo.discordLink ? {'font-size': '16px'} : {}">The Modding Tree Discord</a><br>
-        <a class="link" href="http://discord.gg/wwQfgPa" target="_blank" v-bind:style="{'font-size': '16px'}">Main Prestige Tree server</a><br>
+        <a class="link" href="https://discord.gg/F3xveHV" target="_blank" v-bind:style="modInfo.discordLink ? {'font-size': '16px'} : {}">模组树服务器</a><br>
+        <a class="link" href="http://discord.gg/wwQfgPa" target="_blank" v-bind:style="{'font-size': '16px'}">主声望树服务器</a><br>
 		<br><br>
         已游玩时间: {{ formatTime(player.timePlayed) }}<br><br>
         <h3>热键</h3><br>

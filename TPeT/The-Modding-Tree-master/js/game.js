@@ -423,7 +423,7 @@ var interval = safeSetInterval(function() {
     }
     if (player.devSpeed) diff *= player.devSpeed;
     if (player.m && player.m.unlocked && player.m.byte && player.m.byte.gt(0)) {
-    let speedMult = player.m.byte.max(1).log10().add(1);
+    let speedMult = getByteSpeedMult();
     let mult = speedMult.toNumber();
     mult = Math.min(mult);
     diff *= mult;

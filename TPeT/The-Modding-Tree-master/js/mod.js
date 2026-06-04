@@ -12,59 +12,63 @@ let modInfo = {
 let getModID = () => modInfo.id ?? `${modInfo.name.replace(/\s+/g, '-')}-${modInfo.author.replace(/\s+/g, '-')}`;
 // Set your version in num and name
 let VERSION = {
-	num: "0.7",
-	name: "Literally nothing",
+	num: "0.8",
+	name: "万物终结",
 }
 
-let changelog = `<h1>Changelog:</h1><br>
+let changelog = `<h1>更新日志:</h1><br>
+    <h3>v0.8 2026.6.4</h3><br>
+		- 添加主机，9个主机资源，8个主机升级和4个主机革新。<br>
+		- 添加2个成就。<br>
+		- 添加1个挑战。<br>
     <h3>v0.7 2026.6.1</h3><br>
-		- Added 5 φ Energy Upgrades.<br>
-		- Added 1 Achievement.<br>
-		- Added 8 Color Upgrades and 6 Color Challenges.<br>
+		- 添加4个φ 精华升级。<br>
+		- 添加1个成就。<br>
+		- 添加6个颜色色度，8个色彩升级和6个色彩挑战。<br>
     <h3>v0.6.2 2026.5.27</h3><br>
-		- Added 3 φ Energy Upgrade.<br>
-		- Added 1 Achievement.<br>
-		- Added 2 Knights.<br>
+		- 添加3个φ 精华升级。<br>
+		- 添加1个成就。<br>
+		- 添加2个骑士可购买。<br>
     <h3>v0.6.1 2026.5.24</h3><br>
-		- Added God Trigger, φ Energy and 1 φ Energy Upgrade.<br>
+		- 添加神祇，φ 精华和1个φ 精华升级。<br>
     <h3>v0.6 2026.5.23</h3><br>
-		- Added Color and 8 Chromas.<br>
-		- Added 1 Enhancer Tool.<br>
-		- Added 1 Achievement.<br>
-		- Added 1 Challenge.<br>
-		- Added 4 Enhancer Upgrades.<br>
+		- 添加色彩和8个颜色色度。<br>
+		- 添加1个增强工具。<br>
+		- 添加1个成就。<br>
+		- 添加1个挑战。<br>
+		- 添加4个增强者升级。<br>
     <h3>v0.5.2 2026.5.18</h3><br>
-		- Added 3 Enhancer Tools.<br>
-		- Added 1 Achievement.<br>
-		- Added 1 Challenge.<br>
-		- Added 4 Pretox Upgrades.<br>
+		- 添加3个增强工具。<br>
+		- 添加1个成就。<br>
+		- 添加1个挑战。<br>
+		- 添加4个蛮王升级。<br>
     <h3>v0.5.1 2026.5.17</h3><br>
-		- Added Enhancer and 4 Enhancer Upgrades.<br>
+		- 添加增强者和4个增强者升级。<br>
     <h3>v0.5 2026.5.16</h3><br>
-		- Added 1 Achievement.<br>
-		- Added 4 Challenges.<br>
-		- Added 1 Knight.<br>		
+		- 添加1个成就。<br>
+		- 添加4个挑战。<br>
+		- 添加1个骑士可购买。<br>		
     <h3>v0.4.2 2026.5.14</h3><br>
-		- Added the Row 4 Pretox Upgrades.<br>
-		- Added 1 Achievement.<br>
-		- Added 1 Challenge.<br>
+		- 添加4个蛮王升级。<br>
+		- 添加1个成就.<br>
+		- 添加1个挑战.<br>
     <h3>v0.4.1 2026.5.10</h3><br>
-		- Remastered the game.<br>
-		- Added 4 Achievements.<br>
-		- Added Competitor and 1 Challenge.<br>
+		- 重制本游戏.<br>
+		- 添加4个成就。<br>
+		- 添加挑战者和1个挑战。.<br>
     <h3>v0.4</h3><br>
-		- Added Berserker and the fifth Knight Buyable.<br>
+		- 添加狂战士。<br>
+		- 添加1个骑士可购买。<br>
     <h3>v0.3</h3><br>
-		- Added 3 Knight Buyables and the fifth Knight Milestone.<br>
+		- 添加3个骑士可购买。<br>
     <h3>v0.2</h3><br>
-		- Added Knight,Anya and 4 Knight Milestones.<br>
+		- 添加骑士和Anya。<br>
 	<h3>v0.1</h3><br>
-		- Added Pretox and 9 Pretox Upgrades.<br>
+		- 添加蛮王和9个蛮王升级.<br>
 	<h3>v0.0</h3><br>
-		- Added things.<br>
-		- Added stuff.`
+		-`
 
-let winText = `Congratulations! You have reached the end ame, but for now...`
+let winText = `恭喜！你达到了终？局，但是现在......`
 
 // If you add new functions anywhere inside of a layer, and those functions have an effect when called, add them here.
 // (The ones here are examples, all official functions are already and beaten this gtaken care of)
@@ -114,15 +118,24 @@ function closeDragHint() {
 }
 
 var displayThings = [
+		function() {
+        if (tmp.speedMult && tmp.speedMult !== 1) {
+            return `<div style="style="color: #00007f; margin-top: 5px;">⚡ 游戏速度: ${format(tmp.speedMult)}x</div>`;
+        }
+        return '';
+    },
     function() {
         if (localStorage.getItem('hideDragHint') === 'true') return '';
-        return '<div style="background: #FFD966; color: #000; padding: 4px 8px; border-radius: 8px; cursor: pointer; margin-top: 5px;" onclick="closeDragHint()">💡 提示：按住鼠标左键并拖拽可以批量购买升级和可购买！点击此处关闭提示。</div>';
-    }
+        return '<div style="background: #ffbf00; color: #000; padding: 4px 8px; border-radius: 8px; cursor: pointer; margin-top: 5px;" onclick="closeDragHint()">💡 提示：按住鼠标左键并拖拽可以批量购买升级和可购买！点击此处关闭提示。</div>';
+    },
+	function() {
+    return `<div style="color: #ffbf00; margin-top: 5px;">终？局：1e45 蛮王经验值</div>`;
+    },
 ];
 
 // Determines when the game "ends"
 function isEndgame() {
-	return player.points.gte(new Decimal("e280000000"))
+	return player.points.gte(new Decimal(1e45))
 }
 
 

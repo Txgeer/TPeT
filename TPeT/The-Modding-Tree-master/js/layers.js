@@ -5,7 +5,7 @@ function applySoftcap(value) {
         player.c.activeChallenge === 22 || player.c.activeChallenge === 23 || player.c.activeChallenge === 31 || 
         player.c.activeChallenge === 32 || player.cr.activeChallenge === 11 || player.cr.activeChallenge === 12 || 
         player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || 
-        player.cr.activeChallenge === 23) {
+        player.cr.activeChallenge === 23 || player.c.activeChallenge === 33) {
         isSoftcap = true;
         cap = new Decimal(2);
     } else if (player.c.activeChallenge === 11) {
@@ -34,7 +34,7 @@ function isKnightDisabled() {
     player.c.activeChallenge === 21 || player.c.activeChallenge === 22 || player.c.activeChallenge === 23 || 
     player.c.activeChallenge === 31 || player.c.activeChallenge === 32 || player.cr.activeChallenge === 11 || 
     player.cr.activeChallenge === 12 || player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || 
-    player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23;
+    player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23 || player.c.activeChallenge === 33;
 }
 function getUpgradeDisplay(layer, id) {
     let eff = upgradeEffect(layer, id);
@@ -43,14 +43,14 @@ function getUpgradeDisplay(layer, id) {
     player.c.activeChallenge === 21 || player.c.activeChallenge === 22 || player.c.activeChallenge === 23 || 
     player.c.activeChallenge === 31 || player.c.activeChallenge === 32 || player.cr.activeChallenge === 11 || 
     player.cr.activeChallenge === 12 || player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || 
-    player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23) {
+    player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23 || player.c.activeChallenge === 33) {
     if (eff.gt(2)) {
         return formatted + "（受软上限限制）";
     }}
-    if (hasChallenge('c', 11) && eff.gt(100)) {
+    else if (hasChallenge('c', 11) && eff.gt(100)) {
         return formatted + "（受软上限限制）";
     }
-    if (!hasChallenge('c', 11) && eff.gte(100)) {
+    else if (eff.gte(100)) {
         return formatted + "（受硬上限限制）";
     }
     return formatted;
@@ -70,7 +70,8 @@ function getCurrentThreshold() {
     let baseThreshold;
     if (player.c.activeChallenge === 23 || player.c.activeChallenge === 31 || player.c.activeChallenge === 32 || 
         player.cr.activeChallenge === 11 || player.cr.activeChallenge === 12 || player.cr.activeChallenge === 13 || 
-        player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23) {
+        player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23 || 
+        player.c.activeChallenge === 33) {
         baseThreshold = new Decimal(2);
     } else {
         baseThreshold = new Decimal(9e15);
@@ -80,6 +81,33 @@ function getCurrentThreshold() {
         baseThreshold = baseThreshold.times(milkFactor);
     }
     return baseThreshold;
+}
+function getExtraUpgradeCount() {
+    let achievementsCount = player.a ? player.a.achievements.length : 0;
+    let challengesCount = 0;
+    if (player.c && player.c.challenges) {
+        for (let id in player.c.challenges) {
+            if (player.c.challenges[id] > 0) challengesCount++;
+        }
+    }
+    if (player.cr && player.cr.challenges) {
+        for (let id in player.cr.challenges) {
+            if (player.cr.challenges[id] > 0) challengesCount++;
+        }
+    }
+    if (hasAchievement('a', 33)) {
+        return achievementsCount + challengesCount;
+    }
+    return 0;
+}
+function getByteSpeedMult() {
+    if (!player.m || !player.m.byte) return new Decimal(1);
+    let safeByte = player.m.byte.max(1);
+    if (hasAchievement('a', 34)) {
+        return safeByte.log2().log2().add(1);
+    } else {
+        return safeByte.ln().ln().add(1);
+    }
 }
 addLayer("a", {
     name: "成就", // This is optional, only used in a few places, If absent it just uses the layer id.
@@ -199,6 +227,31 @@ addLayer("a", {
     done() { return player.g.energy.gte(1e11); },
     effect() {let safeEnergy = player.g.energy.max(1);return safeEnergy.log2().add(1)}
     },
+    33: {
+    name: "游戏要加速了......",
+    tooltip: function() {
+        if (hasAchievement(this.layer, this.id)) {
+            let eff = achievementEffect(this.layer, this.id);
+            return `要求：游戏速度达到5.6x。<br>奖励：每一个完成的成就和挑战均视作一个蛮王升级。<br>当前：${format(eff)}x`;
+        } else {
+            return `要求：游戏速度达到5.6x。<br>奖励：每一个完成的成就和挑战均视作一个蛮王升级。<br>当前：1.00x`;
+        }
+    },
+    done() {
+        if (!player.m || !player.m.byte) return false;
+        return getByteSpeedMult().gte(5.6);
+    },
+    effect() {
+        return getExtraUpgradeCount();
+    }
+    },
+    34: {
+    name: "万物终结",
+    tooltip: "要求：蛮王升级31的效果超过109倍。<br>奖励：优化字节的公式。",
+    done() {
+        return upgradeEffect('p', 31).gt(109);
+    }
+    }
 },
     tabFormat:{
         '成就':{
@@ -254,7 +307,7 @@ addLayer("p", {
     },
     row: 0, // Row the layer is in on the tree (0 is the first row)
     hotkeys: [
-        {key: "p", description: "P: Reset for Pretox", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
+        {key: "p", description: "P: 进行一次蛮王重置", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
     upgrades: {        
         11: {    
@@ -274,7 +327,8 @@ addLayer("p", {
             if (player.c.activeChallenge === 13 || player.c.activeChallenge === 21 || player.c.activeChallenge === 22 || 
                 player.c.activeChallenge === 23 || player.c.activeChallenge === 31 || player.c.activeChallenge === 32 || 
                 player.cr.activeChallenge === 11 || player.cr.activeChallenge === 12 || player.cr.activeChallenge === 13 || 
-                player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23) return false;
+                player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23 || 
+                player.c.activeChallenge === 33) return false;
             return true;
             }
         },
@@ -330,7 +384,7 @@ addLayer("p", {
             return "1.00x";
             },// Add formatting to the effect
             unlocked() {
-            if (player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23) return false;
+            if (player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23 || player.c.activeChallenge === 33) return false;
             return hasChallenge('c', 31);
             },
 
@@ -370,30 +424,37 @@ addLayer("p", {
             }// Add formatting to the effect
 
         },
-        23: {    
-            title: "源远流长",
-            description: "基于蛮王升级的数量增益蛮王经验值获取。",
-            cost: new Decimal(31),
-            effect() {
-            let exponent = hasChallenge('c', 21) ? 0.5 : 0.2;
-            let raw = new Decimal(player.p.upgrades.length).add(buyableEffect("e",14)).add(1).pow(exponent);
-            return applySoftcap(raw);
-            },
-            effectDisplay() { 
-            if (hasUpgrade(this.layer, this.id)) 
+    23: {    
+    title: "源远流长",
+    description: "基于蛮王升级的数量增益蛮王经验值获取。",
+    cost: new Decimal(31),
+    effect() {
+        let exponent = hasChallenge('c', 21) ? 0.5 : 0.2;
+        let opt = buyableEffect("e", 14);
+        let baseUpgradeCount;
+        if (hasChallenge('c', 33)) {
+            baseUpgradeCount = new Decimal(player.p.upgrades.length).mul(opt).mul(buyableEffect("k", 24));
+        } else {
+            baseUpgradeCount = new Decimal(player.p.upgrades.length).add(opt).mul(buyableEffect("k", 24));
+        }
+        let extraCount = getExtraUpgradeCount();
+        let raw = baseUpgradeCount.add(extraCount).add(1).pow(exponent);
+        return applySoftcap(raw);
+    },
+    effectDisplay() { 
+        if (hasUpgrade(this.layer, this.id)) 
             return getUpgradeDisplay(this.layer, this.id);
-            else 
+        else 
             return "1.00x";
-            },// Add formatting to the effect
-            unlocked() {
-            if (player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || player.c.activeChallenge === 23 || 
-                player.c.activeChallenge === 31 || player.c.activeChallenge === 32 || player.cr.activeChallenge === 11 || 
-                player.cr.activeChallenge === 12 || player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || 
-                player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23) return false;
-            return hasAchievement('a',11);
-            }
-
-        },
+    },
+    unlocked() {
+        if (player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || player.c.activeChallenge === 23 || 
+            player.c.activeChallenge === 31 || player.c.activeChallenge === 32 || player.cr.activeChallenge === 11 || 
+            player.cr.activeChallenge === 12 || player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || 
+            player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23 || player.c.activeChallenge === 33) return false;
+        return hasAchievement('a',11);
+    }
+    },
         24: {    
             title: "饮品之力",
             description: "基于牛奶增益蛮王经验值获取。",
@@ -409,34 +470,42 @@ addLayer("p", {
             return "1.00x";
             },// Add formatting to the effect
             unlocked() {
-            if (player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23) return false;
+            if (player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23 || player.c.activeChallenge === 33) return false;
             return hasChallenge('c', 31);
             },
 
         },
-        31: {    
-            title: "博大精深",
-            description: "基于蛮王升级的数量增益蛮王等级获取。",
-            cost: new Decimal(63),
-            effect() {
-            let exponent = hasChallenge('c', 21) ? 0.4 : 0.15;
-            let raw = new Decimal(player.p.upgrades.length).add(buyableEffect("e",14)).add(1).pow(exponent);
-            return applySoftcap(raw);
-            },
-            effectDisplay() { 
-            if (hasUpgrade(this.layer, this.id)) 
+    31: {    
+    title: "博大精深",
+    description: "基于蛮王升级的数量增益蛮王等级获取。",
+    cost: new Decimal(63),
+    effect() {
+        let exponent = hasChallenge('c', 21) ? 0.4 : 0.15;
+        let opt = buyableEffect("e", 14);
+        let baseUpgradeCount;
+        if (hasChallenge('c', 33)) {
+            baseUpgradeCount = new Decimal(player.p.upgrades.length).mul(opt).mul(buyableEffect("k", 24));
+        } else {
+            baseUpgradeCount = new Decimal(player.p.upgrades.length).add(opt).mul(buyableEffect("k", 24));
+        }
+        let extraCount = getExtraUpgradeCount();
+        let raw = baseUpgradeCount.add(extraCount).add(1).pow(exponent);
+        return applySoftcap(raw);
+    },
+    effectDisplay() { 
+        if (hasUpgrade(this.layer, this.id)) 
             return getUpgradeDisplay(this.layer, this.id);
-            else 
+        else 
             return "1.00x";
-            },// Add formatting to the effect
-            unlocked() {
-            if (player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || player.c.activeChallenge === 23 || 
-                player.c.activeChallenge === 31 || player.c.activeChallenge === 32 || player.cr.activeChallenge === 11 || 
-                player.cr.activeChallenge === 12 || player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || 
-                player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23) return false;
-            return hasAchievement('a',11);
-            }
-        },
+    },
+    unlocked() {
+        if (player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || player.c.activeChallenge === 23 || 
+            player.c.activeChallenge === 31 || player.c.activeChallenge === 32 || player.cr.activeChallenge === 11 || 
+            player.cr.activeChallenge === 12 || player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || 
+            player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23 || player.c.activeChallenge === 33) return false;
+        return hasAchievement('a',11);
+    }
+    },
         32: {    
             title: "团结一心",
             description: "基于本次蛮王重置的时间增益蛮王等级获取。",
@@ -444,7 +513,7 @@ addLayer("p", {
             effect() {
             let exponent = hasChallenge('c', 22) ? 0.4 : 0.15;
             let base= hasChallenge('c', 22) ? player.a.resetTime : player.p.resetTime;
-            let raw = new Decimal(base).add(1).mul(buyableEffect("e",11)).pow(exponent);
+            let raw = new Decimal(base).add(1).mul(buyableEffect("e", 11)).mul(buyableEffect("k", 24)).pow(exponent);
             if (player.cr.blackchroma.gt(0)) {raw = raw.mul(player.cr.blackchroma.log2().add(1))}
             return applySoftcap(raw);
             },
@@ -458,7 +527,7 @@ addLayer("p", {
             if (player.c.activeChallenge === 22 || player.c.activeChallenge === 23 || player.c.activeChallenge === 31 || 
                 player.c.activeChallenge === 32 || player.cr.activeChallenge === 11 || player.cr.activeChallenge === 12 || 
                 player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || 
-                player.cr.activeChallenge === 23) return false;
+                player.cr.activeChallenge === 23 || player.c.activeChallenge === 33) return false;
             return hasAchievement('a',11);
             }
         },
@@ -469,7 +538,7 @@ addLayer("p", {
             effect() {
             let exponent = hasChallenge('c', 22) ? 0.5 : 0.2;
             let base= hasChallenge('c', 22) ? player.a.resetTime : player.p.resetTime;
-            let raw = new Decimal(base).add(1).mul(buyableEffect("e",11)).pow(exponent);
+            let raw = new Decimal(base).add(1).mul(buyableEffect("e", 11)).mul(buyableEffect("k", 24)).pow(exponent);
             if (player.cr.blackchroma.gt(0)) {raw = raw.mul(player.cr.blackchroma.log2().add(1))}
             return applySoftcap(raw);
             },
@@ -483,7 +552,7 @@ addLayer("p", {
             if (player.c.activeChallenge === 22 || player.c.activeChallenge === 23 || player.c.activeChallenge === 31 || 
                 player.c.activeChallenge === 32 || player.cr.activeChallenge === 11 || player.cr.activeChallenge === 12 || 
                 player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || 
-                player.cr.activeChallenge === 23) return false;
+                player.cr.activeChallenge === 23 || player.c.activeChallenge === 33) return false;
             return hasAchievement('a',11);
             },
 
@@ -503,7 +572,7 @@ addLayer("p", {
             return "1.00x";
             },// Add formatting to the effect
             unlocked() {
-            if (player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23) return false;
+            if (player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23 || player.c.activeChallenge === 33) return false;
             return hasChallenge('c', 31);
             },
 
@@ -527,7 +596,7 @@ addLayer("p", {
             if (player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || player.c.activeChallenge === 23 || 
                 player.c.activeChallenge === 31 || player.c.activeChallenge === 32 || player.cr.activeChallenge === 11 || 
                 player.cr.activeChallenge === 12 || player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || 
-                player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23) return false;
+                player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23 || player.c.activeChallenge === 33) return false;
             return hasChallenge('c', 12);
             }
         },
@@ -550,7 +619,8 @@ addLayer("p", {
             if (player.c.activeChallenge === 13 || player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || 
                 player.c.activeChallenge === 23 || player.c.activeChallenge === 31 || player.c.activeChallenge === 32 || 
                 player.cr.activeChallenge === 11 || player.cr.activeChallenge === 12 || player.cr.activeChallenge === 13 || 
-                player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23) return false;
+                player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23 || 
+                player.c.activeChallenge === 33) return false;
             return hasChallenge('c', 12);
             },
 
@@ -571,11 +641,11 @@ addLayer("p", {
             return "1.00x";
             },// Add formatting to the effect
             unlocked() {
-            if (player.c.activeChallenge === 13 || 
-                player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || player.c.activeChallenge === 23  || 
-                player.c.activeChallenge === 31 || player.c.activeChallenge === 32 || player.cr.activeChallenge === 11 || 
-                player.cr.activeChallenge === 12 || player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || 
-                player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23) return false;
+            if (player.c.activeChallenge === 13 || player.c.activeChallenge === 21 || player.c.activeChallenge == 22 || 
+                player.c.activeChallenge === 23  || player.c.activeChallenge === 31 || player.c.activeChallenge === 32 || 
+                player.cr.activeChallenge === 11 || player.cr.activeChallenge === 12 || player.cr.activeChallenge === 13 || 
+                player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23 || 
+                player.c.activeChallenge === 33) return false;
             return hasChallenge('c', 12);
             },
 
@@ -647,7 +717,20 @@ addLayer("p", {
         }
         }
         if (layers[resettingLayer].row>=3) {
+        if(!hasMilestone('g', 7)){
         player.g.energy = new Decimal(0);
+        }
+        if (!hasMilestone("m", 5)){
+        player.m.byte = new Decimal(0);
+        player.m.hdd = new Decimal(0);
+        player.m.ssd = new Decimal(0);
+        player.m.pagefile = new Decimal(0);
+        player.m.ram = new Decimal(0);
+        player.m.l3Cache = new Decimal(0);
+        player.m.l2Cache = new Decimal(0);
+        player.m.l1Cache = new Decimal(0);
+        player.m.register = new Decimal(0);
+        }
         if(hasMilestone('g', 4)){
         player.c.points = new Decimal(9e15);
         }
@@ -728,7 +811,7 @@ addLayer("k", {
     },
     row: 1, // Row the layer is in on the tree (0 is the first row)
     hotkeys: [
-        {key: "k", description: "K: Reset for Knight", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
+        {key: "k", description: "K: 进行一次骑士重置", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
         ],
     buyables: {
         11: {
@@ -859,7 +942,7 @@ addLayer("k", {
         24: {
             title: "剑盾士混编",
             cost(x) { return new Decimal(x).add(x).add(x).mul(x).pow(x).add(1) },
-            display() {return "增益增强器获取。<br>需要"+format(this.cost())+"骑士团人口<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
+            display() {return "增益增强工具效果。<br>需要"+format(this.cost())+"骑士团人口<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
             canAfford() { 
             if (isKnightDisabled()) return false;
             return player[this.layer].points.gte(this.cost());
@@ -948,10 +1031,9 @@ addLayer("k", {
         }
     },
 update(diff) {
-    if (!hasUpgrade("e", 14)) return;
-    if (player.c.activeChallenge === 31 || player.c.activeChallenge === 32 || player.cr.activeChallenge === 11 || 
+    if (!hasUpgrade("e", 14) || player.c.activeChallenge === 31 || player.c.activeChallenge === 32 || player.cr.activeChallenge === 11 || 
         player.cr.activeChallenge === 12 || player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || 
-        player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23) return;
+        player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23 || player.c.activeChallenge === 33) return;
 
     let eff21 = (player.k.buyables[21] ? buyableEffect("k",21) : new Decimal(1)).max(1);
     let eff22 = (player.k.buyables[22] ? buyableEffect("k",22) : new Decimal(1)).max(1);
@@ -973,6 +1055,8 @@ update(diff) {
         let godBonus = upgradeEffect("g", 23);
         baseGain = baseGain.times(godBonus);
     }
+    
+    baseGain = baseGain.times(buyableEffect("m", 13))
     
     player.k.milkGainRate = baseGain;
     player.k.milk = player.k.milk.add(baseGain.times(diff));
@@ -1078,7 +1162,7 @@ addLayer("b", {
     },
     row: 1, // Row the layer is in on the tree (0 is the first row)
     hotkeys: [
-        {key: "b", description: "B: Reset for Berserker", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
+        {key: "b", description: "B: 进行一次狂战士重置", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
         ],
     milestones:{
         1:
@@ -1109,13 +1193,13 @@ addLayer("b", {
     if (hasMilestone('b',2)) base = base.times(buyableEffect('k', 22));
     if (hasUpgrade('b',22)) base = base.times(buyableEffect('k', 22).pow(buyableEffect('k', 22)));
     if (hasUpgrade('b',24)) base = base.times(upgradeEffect("b", 24));
-    if (hasMilestone('c',23)) base = base.times(buyableEffect("k", 23).pow(buyableEffect('k', 23)));
+    if (hasChallenge('c',23)) base = base.times(buyableEffect("k", 23).pow(buyableEffect('k', 23)));
     if (hasUpgrade('g',11)) base = base.times(getFuryBonus(player.b.power));
     if(hasUpgrade("cr", 21)) base = base.times(safebeige.log2().add(1));
     if(hasUpgrade("g", 21)) base = base.times(upgradeEffect("g", 21));
     player.b.power = player.b.power.add(base);
     let gain = player.b.power.sub(oldPower);
-    player.b.powerGainRate = gain.div(diff);
+    player.b.powerGainRate = diff > 0 ? gain.div(diff) : new Decimal(0);
     },
     upgrades:{
      11: {    
@@ -1324,6 +1408,7 @@ addLayer("c", {
         mult = mult.times(buyableEffect('e', 13))
         if (player.cr.cyanchroma.gt(0)) {mult = mult.times(player.cr.cyanchroma.log2().add(1))}
         if (hasUpgrade('e', 24)) mult = mult.times(upgradeEffect('e', 24))
+        mult = mult.times(buyableEffect('k', 24))
         let threshold = getCurrentThreshold();
         if (player.c.points.gte(threshold)) {
         let logPoints = player.c.points.log10();
@@ -1341,7 +1426,7 @@ addLayer("c", {
     },
     row: 2, // Row the layer is in on the tree (0 is the first row)
     hotkeys: [
-        {key: "c", description: "C: Reset for Competitor", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
+        {key: "c", description: "C: 进行一次挑战者重置", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
         ],
     milestones:{
         1:
@@ -1404,6 +1489,12 @@ addLayer("c", {
         effectDescription:"解锁神祇。",
         done() {return player.c.points.gte(9e15)}
         },
+        11:
+        {
+        requirementDescription:"1.8e31 挑战精神",
+        effectDescription:"解锁第九个挑战。",
+        done() {return player.c.points.gte(1.8e31)}
+        },
     },
     challenges: {
         11: {
@@ -1419,7 +1510,7 @@ addLayer("c", {
             doPopup("challenge", "Tchef 挑战完成！", "挑战完成", 3, "#7fff7f");
         },
         unlocked() {
-            return hasMilestone('c',2)
+            return hasMilestone('c', 2)
         }
         },
         12: {
@@ -1435,7 +1526,7 @@ addLayer("c", {
             doPopup("challenge", "Gunaar 挑战完成！", "挑战完成", 3, "#7fff7f");
         },
         unlocked() {
-            return hasMilestone('c',3)
+            return hasMilestone('c', 3)
         }
         },
         13: {
@@ -1449,7 +1540,7 @@ addLayer("c", {
             doPopup("challenge", "Lightadapt 挑战完成！", "挑战完成", 3, "#7fff7f");
         },
         unlocked() {
-            return hasMilestone('c',4)
+            return hasMilestone('c', 4)
         }
         },
         21: {
@@ -1463,7 +1554,7 @@ addLayer("c", {
             doPopup("challenge", "Ayabehaori & Jaxinator", "挑战完成", 3, "#7fff7f");
         },
         unlocked() {
-            return hasMilestone('c',5)
+            return hasMilestone('c', 5)
         }
         },
         22: {
@@ -1477,7 +1568,7 @@ addLayer("c", {
             doPopup("challenge", "Sangyu & Bitdotdo", "挑战完成", 3, "#7fff7f");
         },
         unlocked() {
-            return hasMilestone('c',6)
+            return hasMilestone('c', 6)
         }
         },
         23: {
@@ -1491,7 +1582,7 @@ addLayer("c", {
         doPopup("challenge", "Drewdrinks 挑战完成！", "挑战完成", 3, "#7fff7f");
         },
         unlocked() {
-            return hasMilestone('c',7)
+            return hasMilestone('c', 7)
         }
         },
         31: {
@@ -1505,7 +1596,7 @@ addLayer("c", {
         doPopup("challenge", "Zfd 挑战完成！", "挑战完成", 3, "#7fff7f");
         },
         unlocked() {
-            return hasMilestone('c',8)
+            return hasMilestone('c', 8)
         }
         },
         32: {
@@ -1519,7 +1610,23 @@ addLayer("c", {
         doPopup("challenge", "K4SHM1R 挑战完成！", "挑战完成", 3, "#7fff7f");
         },
         unlocked() {
-            return hasMilestone('c',9)
+            return hasMilestone('c', 9)
+        }
+        },
+        33: {
+        name: "Fen",
+        challengeDescription: "在 神圣解放 END 的基础上，禁用φ 精华。",
+        goal: new Decimal(1e19),
+        goalDescription: "1e19 蛮王等级。",
+        rewardDescription: "优化优化器的公式。",
+        canComplete() { return player.p.points.gte(1e19); },
+        onEnter() { player.g.energy = new Decimal(0); },
+        onExit() { player.g.energy = new Decimal(0); },
+        onComplete() {
+        doPopup("challenge", "Fen 挑战完成！", "挑战完成", 3, "#7fff7f");
+        },
+        unlocked() {
+            return hasMilestone('c', 11)
         }
         }
     },
@@ -1581,7 +1688,7 @@ addLayer("e", {
     name: "增强者",
     symbol: "E",
     position: 0,
-    startData() { return { unlocked: true, points: new Decimal(0) }; },
+    startData() { return { unlocked: true, points: new Decimal(0),fastBuy: false }; },
     color: "#bf00ff",
     requires: new Decimal(9e15),
     resource: "增强器",
@@ -1600,7 +1707,7 @@ addLayer("e", {
     },
     gainExp() { return new Decimal(1); },
     row: 2,
-    hotkeys: [{ key: "e", description: "E: Reset for Enhancer", onPress() { if (canReset(this.layer)) doReset(this.layer); } }],
+    hotkeys: [{ key: "e", description: "E: 进行一次增强者重置", onPress() { if (canReset(this.layer)) doReset(this.layer); } }],
     
     upgrades: {
         11: {
@@ -1624,7 +1731,7 @@ addLayer("e", {
         },
         13: {
         title: "营地扩建",
-        description: "狂怒能量的效果提高。",
+        description: "优化狂怒能量的公式。",
         cost: new Decimal(7)
         },
         14: {
@@ -1653,7 +1760,7 @@ addLayer("e", {
             description: "骑士团人口可以增益自身获取。<br>",
             cost: new Decimal(4000),
             effect() {
-            let raw = (player.k.points.max(1)).log2()
+            let raw = player.k.points.pow(0.1).add(1)
             return applySoftcap(raw);
             },
             effectDisplay() { 
@@ -1692,12 +1799,13 @@ addLayer("e", {
         content: [
             'main-display',
             'prestige-button',
-            'buyables',
+            ['row', [['display-text', '快速购买：'], ['toggle', ['e', 'fastBuy']]]],
+            'buyables'
         ],
         unlocked() {
             return player.e.hasAchieved23 === true;
         }
-    }
+        }
     },
     milestones:{
         1:
@@ -1753,8 +1861,7 @@ addLayer("e", {
             title: "加速器",
             cost(x) { return new Decimal(1).add(x).mul(x).add(1) },
             display() {return "增益时间倍率。<br>需要"+format(this.cost())+"增强器<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
-            canAfford() { 
-            if (isKnightDisabled()) return false;
+            canAfford() {
             return player[this.layer].points.gte(this.cost());
             },
             buy() {
@@ -1770,8 +1877,7 @@ addLayer("e", {
             title: "助推器",
             cost(x) { return new Decimal(3).add(x).mul(x).add(1) },
             display() {return "增益增强器获取。<br>需要"+format(this.cost())+"增强器<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
-            canAfford() { 
-            if (isKnightDisabled()) return false;
+            canAfford() {
             return player[this.layer].points.gte(this.cost());
             },
             buy() {
@@ -1787,8 +1893,7 @@ addLayer("e", {
             title: "生成器",
             cost(x) { return new Decimal(7).add(x).mul(x).add(1) },
             display() {return "增益挑战精神获取。<br>需要"+format(this.cost())+"增强器<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
-            canAfford() { 
-            if (isKnightDisabled()) return false;
+            canAfford() {
             return player[this.layer].points.gte(this.cost());
             },
             buy() {
@@ -1804,8 +1909,7 @@ addLayer("e", {
             title: "优化器",
             cost(x) { return new Decimal(15).add(x).mul(x).add(1) },
             display() {return "视作蛮王升级。<br>需要"+format(this.cost())+"增强器<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
-            canAfford() { 
-            if (isKnightDisabled()) return false;
+            canAfford() {
             return player[this.layer].points.gte(this.cost());
             },
             buy() {
@@ -1821,33 +1925,39 @@ addLayer("e", {
     },
     automate() {
     if (hasMilestone("e", 7)) {
-        let candidates = [];
-        let ids = [11, 12, 13];
-        if (hasAchievement("a", 24)) ids.push(14);
-        
-        for (let id of ids) {
-            if (canBuyBuyable("e", id)) {
-                let cost = tmp.e.buyables[id].cost;
-                candidates.push({ id: id, cost: cost });
+        if (player.e.fastBuy) {
+            if (canBuyBuyable("e", 11)) buyBuyable("e", 11);
+            if (canBuyBuyable("e", 12)) buyBuyable("e", 12);
+            if (canBuyBuyable("e", 13)) buyBuyable("e", 13);
+            if (hasAchievement("a", 24)) { if (canBuyBuyable("e", 14)) buyBuyable("e", 14); }
+        } else {
+            let candidates = [];
+            let ids = [11, 12, 13];
+            if (hasAchievement("a", 24)) ids.push(14);
+            for (let id of ids) {
+                if (canBuyBuyable("e", id)) {
+                    let cost = tmp.e.buyables[id].cost;
+                    candidates.push({ id: id, cost: cost });
+                }
             }
-        }
-        candidates.sort((a, b) => a.cost.cmp(b.cost));
-        if (candidates.length > 0) {
-            buyBuyable("e", candidates[0].id);
+            candidates.sort((a, b) => a.cost.cmp(b.cost));
+            if (candidates.length > 0) {
+                buyBuyable("e", candidates[0].id);
+            }
         }
     }
     if (hasMilestone("m", 1) && !hasMilestone('m', 2)) {
         quickUpgBuy("m", [11, 12, 13, 14]);
-        }
+    }
     if (hasMilestone('m', 2)) {
-        const mUpgradeIds = [11, 12, 13, 14];
-        for (let id of mUpgradeIds) {
-            if (!player.m.upgrades.includes(id)) {
-                player.m.upgrades.push(id);
+        const eUpgradeIds = [11, 12, 13, 14];
+        for (let id of eUpgradeIds) {
+            if (!player.e.upgrades.includes(id)) {
+                player.e.upgrades.push(id);
             }
         }
     }
-    },
+},
     
     style: {
         background: "linear-gradient(135deg, #000000, #1f003f)",
@@ -1892,7 +2002,7 @@ addLayer("cr", {
     },
     gainExp() { return new Decimal(1); },
     row: 2,
-    hotkeys: [{ key: "s", description: "S: Reset for Color", onPress() { if (canReset(this.layer)) doReset(this.layer); } }],
+    hotkeys: [{ key: "s", description: "S: 进行一次色彩重置", onPress() { if (canReset(this.layer)) doReset(this.layer); } }],
     style: {
         background: "linear-gradient(135deg, #3f0000, #3f1f00, #3f3f00, #1f3f00, #003f00, #003f1f, #003f3f, #001f3f, #00003f, #1f003f, #3f003f, #3f001f)",
         minHeight: "100vh",
@@ -2013,9 +2123,10 @@ update(diff) {
     }
     if (player.c.activeChallenge == 32 || player.cr.activeChallenge === 11 || player.cr.activeChallenge === 12 || 
         player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || 
-        player.cr.activeChallenge === 23) {
+        player.cr.activeChallenge === 23 || player.c.activeChallenge === 33) {
         if (player.cr.activeChallenge == 11 || player.cr.activeChallenge === 12 || player.cr.activeChallenge === 13 || 
-            player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23)
+            player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23 || 
+            player.c.activeChallenge === 33)
             {player.cr.redchroma = new Decimal(0);player.cr.redchromaGainRate = new Decimal(0)}
         else if (player.cr.points.gte(1)) {
             let redBase = player.b.power.max(1);
@@ -2024,7 +2135,7 @@ update(diff) {
             player.cr.redchroma = player.cr.redchroma.add(redGain.times(diff));
         }
         if (player.cr.activeChallenge === 12 || player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || 
-            player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23)
+            player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23 || player.c.activeChallenge === 33)
             {player.cr.greenchroma = new Decimal(0);player.cr.greenchromaGainRate = new Decimal(0)}
         else if (hasMilestone("cr",2)) {
             let greenBase = player.c.points.max(1).max(1);
@@ -2032,7 +2143,8 @@ update(diff) {
             player.cr.greenchromaGainRate = greenGain;
             player.cr.greenchroma = player.cr.greenchroma.add(greenGain.times(diff));
         }
-        if (player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23)
+        if (player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || 
+            player.cr.activeChallenge === 23 || player.c.activeChallenge === 33)
             {player.cr.bluechroma = new Decimal(0);player.cr.bluechromaGainRate = new Decimal(0)}
         else if (hasMilestone("cr",5)) {
             let blueBase = player.e.points.max(1);
@@ -2040,16 +2152,17 @@ update(diff) {
             player.cr.bluechromaGainRate = blueGain;
             player.cr.bluechroma = player.cr.bluechroma.add(blueGain.times(diff));
         }
-        if (player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23)
+        if (player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23 || 
+            player.c.activeChallenge === 33)
             {player.cr.graychroma = new Decimal(0);player.cr.graychromaGainRate = new Decimal(0)}
         if (hasMilestone("cr",7)) {
             let grayBase = player.k.milk.max(1);
-            let grayGain = grayBase.log2().times(phiBonus).times(tealBonus);
+            let grayGain = grayBase.log2().times(phiBonus).times(tealBonus).times(buyableEffect("m", 11));
             player.cr.graychromaGainRate = grayGain;
             player.cr.graychroma = player.cr.graychroma.add(grayGain.times(diff));
         }
         if (player.cr.activeChallenge === 12 || player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || 
-            player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23)
+            player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23 || player.c.activeChallenge === 33)
             {player.cr.yellowchroma = new Decimal(0);player.cr.yellowchromaGainRate = new Decimal(0)}
         else if (hasMilestone("cr",8)) {
             let yellowBase = player.cr.redchroma.max(1).times(player.cr.greenchroma).max(1);
@@ -2058,7 +2171,7 @@ update(diff) {
             player.cr.yellowchroma = player.cr.yellowchroma.add(yellowGain.times(diff));
         }
         if (player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || 
-            player.cr.activeChallenge === 23)
+            player.cr.activeChallenge === 23 || player.c.activeChallenge === 33)
             {player.cr.magentachroma = new Decimal(0);player.cr.magentachromaGainRate = new Decimal(0)}
         else if (hasMilestone("cr",9)) {
             let magentaBase = player.cr.redchroma.max(1).times(player.cr.bluechroma).max(1);
@@ -2067,7 +2180,7 @@ update(diff) {
             player.cr.magentachroma = player.cr.magentachroma.add(magentaGain.times(diff));
         }
         if (player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || 
-            player.cr.activeChallenge === 23)
+            player.cr.activeChallenge === 23 || player.c.activeChallenge === 33)
             {player.cr.cyanchroma = new Decimal(0);player.cr.cyanchromaGainRate = new Decimal(0)}
         else if (hasMilestone("cr",10)) {
             let cyanBase = player.cr.greenchroma.max(1).times(player.cr.bluechroma).max(1);
@@ -2075,7 +2188,8 @@ update(diff) {
             player.cr.cyanchromaGainRate = cyanGain;
             player.cr.cyanchroma = player.cr.cyanchroma.add(cyanGain.times(diff));
         }
-        if (player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23)
+        if (player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23 || 
+            player.c.activeChallenge === 33)
             {player.cr.blackchroma = new Decimal(0);player.cr.blackchromaGainRate = new Decimal(0)}
         else if (hasUpgrade("e",21)) {
             let blackBase = player.cr.graychroma.max(1).times(upgradeEffect('p', 23)).max(1);
@@ -2084,7 +2198,8 @@ update(diff) {
             player.cr.blackchroma = player.cr.blackchroma.add(blackGain.times(diff));
         }
         if (player.cr.activeChallenge == 11 || player.cr.activeChallenge === 12 || player.cr.activeChallenge === 13 || 
-            player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23)
+            player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23 || 
+            player.c.activeChallenge === 33)
             {player.cr.orangechroma = new Decimal(0);player.cr.orangechromaGainRate = new Decimal(0)}
         else if (hasUpgrade("cr",11)) {
             let orangeBase = player.cr.redchroma.max(1).times(player.g.points).max(1);
@@ -2093,7 +2208,7 @@ update(diff) {
             player.cr.orangechroma = player.cr.orangechroma.add(orangeGain.times(diff));
         }
         if (player.cr.activeChallenge === 12 || player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || 
-            player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23)
+            player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23 || player.c.activeChallenge === 33)
             {player.cr.brownchroma = new Decimal(0);player.cr.brownchromaGainRate = new Decimal(0)}
         else if (hasUpgrade("cr",12)) {
             let brownBase = player.cr.greenchroma.max(1).times(player.g.points).max(1);
@@ -2102,7 +2217,7 @@ update(diff) {
             player.cr.brownchroma = player.cr.brownchroma.add(brownGain.times(diff));
         }
         if (player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || 
-            player.cr.activeChallenge === 23)
+            player.cr.activeChallenge === 23 || player.c.activeChallenge === 33)
             {player.cr.purplechroma = new Decimal(0);player.cr.purplechromaGainRate = new Decimal(0)}
         else if (hasUpgrade("cr",13)) {
             let purpleBase = player.cr.bluechroma.max(1).times(player.g.points).max(1);
@@ -2111,7 +2226,7 @@ update(diff) {
             player.cr.purplechroma = player.cr.purplechroma.add(purpleGain.times(diff));
         }
         if (player.cr.activeChallenge === 12 || player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || 
-            player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23)
+            player.cr.activeChallenge === 22 || player.cr.activeChallenge === 23 || player.c.activeChallenge === 33)
             {player.cr.beigechroma = new Decimal(0);player.cr.beigechromaGainRate = new Decimal(0)}
         else if (hasUpgrade("cr",21)) {
             let beigeBase = player.cr.yellowchroma.max(1).times(player.g.points).max(1);
@@ -2120,7 +2235,7 @@ update(diff) {
             player.cr.beigechroma = player.cr.beigechroma.add(beigeGain.times(diff));
         }
         if (player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || 
-            player.cr.activeChallenge === 23)
+            player.cr.activeChallenge === 23 || player.c.activeChallenge === 33)
             {player.cr.pinkchroma = new Decimal(0);player.cr.pinkchromaGainRate = new Decimal(0)}
         else if (hasUpgrade("cr",22)) {
             let pinkBase = player.cr.magentachroma.max(1).times(player.g.points).max(1);
@@ -2129,7 +2244,7 @@ update(diff) {
             player.cr.pinkchroma = player.cr.pinkchroma.add(pinkGain.times(diff));
         }
         if (player.cr.activeChallenge === 13 || player.cr.activeChallenge === 21 || player.cr.activeChallenge === 22 || 
-            player.cr.activeChallenge === 23)
+            player.cr.activeChallenge === 23 || player.c.activeChallenge === 33)
             {player.cr.tealchroma = new Decimal(0);player.cr.tealchromaGainRate = new Decimal(0)}
         else if (hasUpgrade("cr",23)) {
             let tealBase = player.cr.cyanchroma.max(1).times(player.g.points).max(1);
@@ -2158,7 +2273,7 @@ update(diff) {
         }
         if (hasMilestone("cr",7)) {
             let grayBase = player.k.milk.max(1).times(player.cr.points).max(1);
-            let grayGain = grayBase.log2().times(phiBonus).times(tealBonus);
+            let grayGain = grayBase.log2().times(phiBonus).times(tealBonus).times(buyableEffect("m", 11));
             player.cr.graychromaGainRate = grayGain;
             player.cr.graychroma = player.cr.graychroma.add(grayGain.times(diff));
         }
@@ -2224,12 +2339,10 @@ update(diff) {
         }
     }
     },
-    tabFormat:{
-        '色彩':{
-            content:[
-            //['infoboxes','main-text'],
-            'main-display',
-            ['display-text',
+    microtabs: {
+        chromaGroup: {
+            "颜色色度": {
+                content: [['display-text',
             function() {if (player.cr.points.gte(1)){
             	return `你有 <h3 style="color: #ff0000; text-shadow: 10px">${format(player.cr.redchroma)}</h3> 殷红色度,为你的蛮王提供 <h3 style="color: #ff0000; text-shadow: 10px">${format(player.cr.redchroma.log2().add(1))}</h3> 倍率的经验值`
             }}],
@@ -2278,8 +2391,10 @@ update(diff) {
             }}],
             ['display-text', function() {if(hasUpgrade("e",21)){
                     return `你每秒获得 <h3 style="color: #000000; text-shadow: 10px">${format(player.cr.blackchromaGainRate)}</h3> 黝黑色度`;
-            }}],
-            'prestige-button',
+            }}]]
+            },
+            "颜色色度 II": {
+                content: [
             ['display-text', function() {if(hasUpgrade("cr",11)){
             	return `你有 <h3 style="color: #ff7f00; text-shadow: 10px">${format(player.cr.orangechroma)}</h3> 大橙色度,为你的色彩提供 <h3 style="color: #ff7f00; text-shadow: 10px">${format(player.cr.orangechroma.log2().add(1))}</h3> 倍率的殷红色度`
             }}],
@@ -2315,7 +2430,18 @@ update(diff) {
             }}],
             ['display-text', function() {if(hasUpgrade("cr",23)){
                     return `你每秒获得 <h3 style="color: #007777; text-shadow: 10px">${format(player.cr.tealchromaGainRate)}</h3> 深青色度`;
-            }}],
+            }}]],
+                unlocked() { return hasMilestone('cr', 11) }
+            }
+        }
+    },
+    tabFormat:{
+        '色彩':{
+            content:[
+            //['infoboxes','main-text'],
+            'main-display',
+            'prestige-button',
+            ['microtabs', 'chromaGroup']
             ],
         },
         '里程碑':{
@@ -2430,7 +2556,7 @@ update(diff) {
         goal: new Decimal(1.3e16),
         goalDescription: "1.3e16 蛮王等级。",
         rewardDescription: "解锁新的色彩升级。",
-        canComplete() { return player.p.points.gte(1e16); },
+        canComplete() { return player.p.points.gte(1.3e16); },
         onComplete() {
         doPopup("challenge", "神圣解放 II 挑战完成！", "挑战完成", 3, "linear-gradient(135deg, #ff0000, #ff7f00, #ffff00, #7fff00, #00ff00, #00ff7f, #00ffff, #007fff, #0000ff, #7f00ff, #ff00ff, #ff007f)");
         },
@@ -2444,7 +2570,7 @@ update(diff) {
         goal: new Decimal(1.6e16),
         goalDescription: "1.6e16 蛮王等级。",
         rewardDescription: "解锁新的色彩升级。",
-        canComplete() { return player.p.points.gte(1e16); },
+        canComplete() { return player.p.points.gte(1.6e16); },
         onComplete() {
         doPopup("challenge", "神圣解放 III 挑战完成！", "挑战完成", 3, "linear-gradient(135deg, #ff0000, #ff7f00, #ffff00, #7fff00, #00ff00, #00ff7f, #00ffff, #007fff, #0000ff, #7f00ff, #ff00ff, #ff007f)");
         },
@@ -2458,7 +2584,7 @@ update(diff) {
         goal: new Decimal(2e16),
         goalDescription: "2e16 蛮王等级。",
         rewardDescription: "解锁新的色彩升级。",
-        canComplete() { return player.p.points.gte(1e16); },
+        canComplete() { return player.p.points.gte(2e16); },
         onComplete() {
         doPopup("challenge", "神圣解放 IIII 挑战完成！", "挑战完成", 3, "linear-gradient(135deg, #ff0000, #ff7f00, #ffff00, #7fff00, #00ff00, #00ff7f, #00ffff, #007fff, #0000ff, #7f00ff, #ff00ff, #ff007f)");
         },
@@ -2472,7 +2598,7 @@ update(diff) {
         goal: new Decimal(2.5e16),
         goalDescription: "2.5e16 蛮王等级。",
         rewardDescription: "解锁新的色彩升级。",
-        canComplete() { return player.p.points.gte(1e16); },
+        canComplete() { return player.p.points.gte(2.5e16); },
         onComplete() {
         doPopup("challenge", "神圣解放 V 挑战完成！", "挑战完成", 3, "linear-gradient(135deg, #ff0000, #ff7f00, #ffff00, #7fff00, #00ff00, #00ff7f, #00ffff, #007fff, #0000ff, #7f00ff, #ff00ff, #ff007f)");
         },
@@ -2486,7 +2612,7 @@ update(diff) {
         goal: new Decimal(3.14e16),
         goalDescription: "3.14e16 蛮王等级。",
         rewardDescription: "解锁新的色彩升级。",
-        canComplete() { return player.p.points.gte(1e16); },
+        canComplete() { return player.p.points.gte(3.14e16); },
         onEnter() { player.g.energy = new Decimal(0); },
         onExit() { player.g.energy = new Decimal(0); },
         onComplete() {
@@ -2518,7 +2644,7 @@ addLayer("g", {
     },
     gainExp() { return new Decimal(1); },
     row: 3,
-    hotkeys: [{ key: "g", description: "G: Reset for God Trigger", onPress() { if (canReset(this.layer)) doReset(this.layer); } }],
+    hotkeys: [{ key: "g", description: "G: 进行一次神祇重置", onPress() { if (canReset(this.layer)) doReset(this.layer); } }],
     style: {
         background: "linear-gradient(135deg, #000000, #3f1f00, #3f3f00)",
         minHeight: "100vh",
@@ -2529,29 +2655,30 @@ addLayer("g", {
         boxShadow: '0 0 0 1px rgba(0,0,0,0.1)'
     },
     update(diff) {
-    if(player.cr.activeChallenge === 23){
+    if (player.c.activeChallenge === 33){player.g.energy = new Decimal(0);player.g.energyGainRate = new Decimal(0)}
+    else if (player.cr.activeChallenge === 23){
     if (hasAchievement("a", 32)){
     let safepink = player.cr.pinkchroma.max(1);
-    let energygainPerSecond = safepink.log2().add(1).times(achievementEffect("a", 32));
+    let energygainPerSecond = safepink.log2().add(1).times(achievementEffect("a", 32)).times(buyableEffect("m", 12));
     player.g.energyGainRate = energygainPerSecond;
     player.g.energy = player.g.energy.add(energygainPerSecond.times(diff));}
     else {
     let safepink = player.cr.pinkchroma.max(1);
-    let energygainPerSecond = safepink.log2().add(1);
+    let energygainPerSecond = safepink.log2().add(1).times(buyableEffect("m", 12));
     player.g.energyGainRate = energygainPerSecond;
     player.g.energy = player.g.energy.add(energygainPerSecond.times(diff));}}
     else if (hasAchievement("a", 32)){
     let safepink = player.cr.pinkchroma.max(1);
-    let energygainPerSecond = player.g.points.pow(player.g.points).times(safepink.log2().add(1)).times(achievementEffect("a", 32));
+    let energygainPerSecond = player.g.points.pow(player.g.points).times(safepink.log2().add(1)).times(achievementEffect("a", 32)).times(buyableEffect("m", 12));
     player.g.energyGainRate = energygainPerSecond;
     player.g.energy = player.g.energy.add(energygainPerSecond.times(diff));}
     else if(hasUpgrade("cr", 21)){
     let safepink = player.cr.pinkchroma.max(1);
-    let energygainPerSecond = player.g.points.pow(player.g.points).times(safepink.log2().add(1));
+    let energygainPerSecond = player.g.points.pow(player.g.points).times(safepink.log2().add(1)).times(buyableEffect("m", 12));
     player.g.energyGainRate = energygainPerSecond;
     player.g.energy = player.g.energy.add(energygainPerSecond.times(diff));}
     else if (player.g.points.gt(0)) {
-    let energygainPerSecond = player.g.points.pow(player.g.points);
+    let energygainPerSecond = player.g.points.pow(player.g.points).times(buyableEffect("m", 12));
     player.g.energyGainRate = energygainPerSecond;
     player.g.energy = player.g.energy.add(energygainPerSecond.times(diff));}
     },
@@ -2590,6 +2717,11 @@ addLayer("g", {
         effectDescription:"重置时保留609色度。",
         done() {return player.g.points.gte(7)}
     },
+    7: {
+        requirementDescription:"8 GTP",
+        effectDescription:"φ 精华不再重置。",
+        done() {return player.g.points.gte(8)}
+    }
     },
     upgrades: {
     11: {
@@ -2729,10 +2861,19 @@ addLayer("g", {
     layerShown() { return hasMilestone('c', 10) || player.g.points.gte(1); }
 });
 addLayer("m", {
-    name: "神祇",
+    name: "主机",
     symbol: "M",
     position: 0,
-    startData() { return { unlocked: true,points: new Decimal(0),byte: new Decimal(0),byteGainRate: new Decimal(0)}; },
+    startData() { return { unlocked: true,points: new Decimal(0),
+    byte: new Decimal(0),byteGainRate: new Decimal(0),
+    hdd: new Decimal(0),hddGainRate: new Decimal(0),
+    ssd: new Decimal(0),ssdGainRate: new Decimal(0),
+    pagefile: new Decimal(0),pagefileGainRate: new Decimal(0),
+    ram: new Decimal(0),ramGainRate: new Decimal(0),
+    l3Cache: new Decimal(0),l3CacheGainRate: new Decimal(0),
+    l2Cache: new Decimal(0),l2CacheGainRate: new Decimal(0),
+    l1Cache: new Decimal(0),l1CacheGainRate: new Decimal(0),
+    register: new Decimal(0),registerGainRate: new Decimal(0),}; },
     color: "#ffffff",
     requires: new Decimal(1e9),
     resource: "主机端口",
@@ -2743,11 +2884,12 @@ addLayer("m", {
     branches: ["cr"],
     gainMult() {
         let mult = new Decimal(1);
+        mult = mult.times(buyableEffect('m', 14));
         return mult;
     },
     gainExp() { return new Decimal(1); },
     row: 3,
-    hotkeys: [{ key: "m", description: "M: Reset for Main", onPress() { if (canReset(this.layer)) doReset(this.layer); } }],
+    hotkeys: [{ key: "m", description: "M: 进行一次主机重置", onPress() { if (canReset(this.layer)) doReset(this.layer); } }],
     style: {
         background: "linear-gradient(135deg, #000000, #00003f)",
         minHeight: "100vh",
@@ -2758,27 +2900,167 @@ addLayer("m", {
         boxShadow: '0 0 0 1px rgba(0,0,0,0.1)'
     },
     update(diff) {
-    let delta = new Decimal(diff);
-    let oldByte = player.m.byte;
-    let base = delta.times(player.m.points);
-    player.m.byte = player.m.byte.add(base);
-    let gain = player.m.byte.sub(oldByte);
-    player.m.byteGainRate = gain.div(diff);
+    if (player.m.points.gte(1)) {
+            let byteBase = player.m.points
+            let byteGain = byteBase.times(player.m.hdd.add(1))
+            player.m.byteGainRate = byteGain;
+            player.m.byte = player.m.byte.add(byteGain.times(diff));
+    }
+    if (hasUpgrade("m",11)) {
+            let hddBase = player.m.points
+            let hddGain = hddBase.times(player.m.ssd.add(1))
+            player.m.hddGainRate = hddGain;
+            player.m.hdd = player.m.hdd.add(hddGain.times(diff));
+    }
+    if (hasUpgrade("m",12)) {
+            let ssdBase = player.m.points
+            let ssdGain = ssdBase.times(player.m.pagefile.add(1))
+            player.m.ssdGainRate = ssdGain;
+            player.m.ssd = player.m.ssd.add(ssdGain.times(diff));
+    }
+    if (hasUpgrade("m",13)) {
+            let pagefileBase = player.m.points
+            let pagefileGain = pagefileBase.times(player.m.ram.add(1))
+            player.m.pagefileGainRate = pagefileGain;
+            player.m.pagefile = player.m.pagefile.add(pagefileGain.times(diff));
+    }
+    if (hasUpgrade("m",14)) {
+            let ramBase = player.m.points
+            let ramGain = ramBase.times(player.m.l3Cache.add(1))
+            player.m.ramGainRate = ramGain;
+            player.m.ram = player.m.ram.add(ramGain.times(diff));
+    }
+    if (hasUpgrade("m",21)) {
+            let l3CacheBase = player.m.points
+            let l3CacheGain = l3CacheBase.times(player.m.l2Cache.add(1))
+            player.m.l3CacheGainRate = l3CacheGain;
+            player.m.l3Cache = player.m.l3Cache.add(l3CacheGain.times(diff));
+    }
+    if (hasUpgrade("m",22)) {
+            let l2CacheBase = player.m.points
+            let l2CacheGain = l2CacheBase.times(player.m.l1Cache.add(1))
+            player.m.l2CacheGainRate = l2CacheGain;
+            player.m.l2Cache = player.m.l2Cache.add(l2CacheGain.times(diff));
+    }
+    if (hasUpgrade("m",23)) {
+            let l1CacheBase = player.m.points
+            let l1CacheGain = l1CacheBase.times(player.m.register.add(1))
+            player.m.l1CacheGainRate = l1CacheGain;
+            player.m.l1Cache = player.m.l1Cache.add(l1CacheGain.times(diff));
+    }
+    if (hasUpgrade("m",24)) {
+            let registerBase = player.m.points
+            let registerGain = registerBase
+            player.m.registerGainRate = registerGain;
+            player.m.register = player.m.register.add(registerGain.times(diff));
+    }
+    },
+    microtabs: {
+    mainGroup: {
+        "主机资源": {
+            content: [
+                ['display-text', function() {
+                    if (player.m.points.gte(1)) {
+                        let safeByte = player.m.byte.max(1);
+                        return `你有 <h3 style="color: #00007f; text-shadow: 10px">${format(player.m.byte)}</h3> 字节,倍增游戏全局速度 <h3 style="color: #00007f; text-shadow: 10px">${format(getByteSpeedMult())}</h3> 倍`;
+                    }
+                }],
+                ['display-text', function() {
+                    if (player.m.points.gte(1)) {
+                        return `你每秒获得 <h3 style="color: #00007f; text-shadow: 10px">${format(player.m.byteGainRate)}</h3> 字节`;
+                    }
+                }],
+                ['display-text', function() {
+                    if (hasUpgrade("m", 11)) {
+                        return `你有 <h3 style="color: #0f0f8f; text-shadow: 10px">${format(player.m.hdd)}</h3> HDD，每秒可以生产等量字节`;
+                    }
+                }],
+                ['display-text', function() {
+                    if (hasUpgrade("m", 11)) {
+                        return `你每秒获得 <h3 style="color: #0f0f8f; text-shadow: 10px">${format(player.m.hddGainRate)}</h3> HDD`;
+                    }
+                }],
+                ['display-text', function() {
+                    if (hasUpgrade("m", 12)) {
+                        return `你有 <h3 style="color: #1f1f9f; text-shadow: 10px">${format(player.m.ssd)}</h3> SSD，每秒可以生产等量 HDD`;
+                    }
+                }],
+                ['display-text', function() {
+                    if (hasUpgrade("m", 12)) {
+                        return `你每秒获得 <h3 style="color: #1f1f9f; text-shadow: 10px">${format(player.m.ssdGainRate)}</h3> SSD`;
+                    }
+                }],
+                ['display-text', function() {
+                    if (hasUpgrade("m", 13)) {
+                        return `你有 <h3 style="color: #2f2faf; text-shadow: 10px">${format(player.m.pagefile)}</h3> 虚拟内存，每秒可以生产等量 SSD`;
+                    }
+                }],
+                ['display-text', function() {
+                    if (hasUpgrade("m", 13)) {
+                        return `你每秒获得 <h3 style="color: #2f2faf; text-shadow: 10px">${format(player.m.pagefileGainRate)}</h3> 虚拟内存`;
+                    }
+                }],
+                ['display-text', function() {
+                    if (hasUpgrade("m", 14)) {
+                        return `你有 <h3 style="color: #3f3fbf; text-shadow: 10px">${format(player.m.ram)}</h3> RAM，每秒可以生产等量 虚拟内存`;
+                    }
+                }],
+                ['display-text', function() {
+                    if (hasUpgrade("m", 14)) {
+                        return `你每秒获得 <h3 style="color: #3f3fbf; text-shadow: 10px">${format(player.m.ramGainRate)}</h3> RAM`;
+                    }
+                }],
+                ['display-text', function() {
+                    if (hasUpgrade("m", 21)) {
+                        return `你有 <h3 style="color: #4f4fcf; text-shadow: 10px">${format(player.m.l3Cache)}</h3> L3缓存，每秒可以生产等量 RAM`;
+                    }
+                }],
+                ['display-text', function() {
+                    if (hasUpgrade("m", 21)) {
+                        return `你每秒获得 <h3 style="color: #4f4fcf; text-shadow: 10px">${format(player.m.l3CacheGainRate)}</h3> L3缓存`;
+                    }
+                }],
+                ['display-text', function() {
+                    if (hasUpgrade("m", 22)) {
+                        return `你有 <h3 style="color: #5f5fdf; text-shadow: 10px">${format(player.m.l2Cache)}</h3> L2缓存，每秒可以生产等量 L3缓存`;
+                    }
+                }],
+                ['display-text', function() {
+                    if (hasUpgrade("m", 22)) {
+                        return `你每秒获得 <h3 style="color: #5f5fdf; text-shadow: 10px">${format(player.m.l2CacheGainRate)}</h3> L2缓存`;
+                    }
+                }],
+                ['display-text', function() {
+                    if (hasUpgrade("m", 23)) {
+                        return `你有 <h3 style="color: #6f6fef; text-shadow: 10px">${format(player.m.l1Cache)}</h3> L1缓存，每秒可以生产等量 L2缓存`;
+                    }
+                }],
+                ['display-text', function() {
+                    if (hasUpgrade("m", 23)) {
+                        return `你每秒获得 <h3 style="color: #6f6fef; text-shadow: 10px">${format(player.m.l1CacheGainRate)}</h3> L1缓存`;
+                    }
+                }],
+                ['display-text', function() {
+                    if (hasUpgrade("m", 23)) {
+                        return `你有 <h3 style="color: #7f7fff; text-shadow: 10px">${format(player.m.register)}</h3> 寄存器，每秒可以生产等量 L1缓存`;
+                    }
+                }],
+                ['display-text', function() {
+                    if (hasUpgrade("m", 23)) {
+                        return `你每秒获得 <h3 style="color: #7f7fff; text-shadow: 10px">${format(player.m.registerGainRate)}</h3> 寄存器`;
+                    }
+                }]
+            ]
+        }
+    }
     },
     tabFormat:{
         '主机':{
             content:[
             //['infoboxes','main-text'],
             'main-display',
-            ['display-text',
-            function() {if (player.m.points.gte(1)){
-                let safeByte = player.m.byte.max(1);
-            	return `你有 <h3 style="color: #00007f; text-shadow: 10px">${format(player.m.byte)}</h3> 字节,倍增游戏全局速度 <h3 style="color: #00007f; text-shadow: 10px">${format(safeByte.log10().add(1))}</h3> 倍`
-            }}],
-            ['display-text', function() {if (player.m.points.gte(1)){
-                    return `你每秒获得 <h3 style="color: #00007f; text-shadow: 10px">${format(player.m.byteGainRate)}</h3> 字节`;
-            }}],
             'prestige-button',
+            ['microtabs', 'mainGroup'],
             'upgrades'
             ],
         },
@@ -2786,18 +3068,20 @@ addLayer("m", {
             content:[
             //['infoboxes','main-text'],
             'main-display',
-            ['display-text',
-            function() {if (player.m.points.gte(1)){
-                let safeByte = player.m.byte.max(1);
-            	return `你有 <h3 style="color: #00007f; text-shadow: 10px">${format(player.m.byte)}</h3> 字节,倍增游戏全局速度 <h3 style="color: #00007f; text-shadow: 10px">${format(safeByte.log10().add(1))}</h3> 倍`
-            }}],
-            ['display-text', function() {if (player.m.points.gte(1)){
-                    return `你每秒获得 <h3 style="color: #00007f; text-shadow: 10px">${format(player.m.byteGainRate)}</h3> 字节`;
-            }}],
             'prestige-button',
             'milestones'
             ],
         },
+        "主机革新": {
+        content: [
+            'main-display',
+            'prestige-button',
+            'buyables'
+        ],
+        unlocked() {
+            return hasMilestone("m", 4)
+        }
+        }
     },
     milestones:{
         1:
@@ -2817,6 +3101,151 @@ addLayer("m", {
         requirementDescription:"5 主机端口",
         effectDescription:"解锁主机升级。",
         done() {return player.m.points.gte(5)}
+        },
+        4:
+        {
+        requirementDescription:"游戏速度达到5.68x。",
+        effectDescription:"解锁主机革新。",
+        done() {
+        if (!player.m || !player.m.byte) return false;
+        return getByteSpeedMult().gte(5.68);
+        }
+        },
+        5:
+        {
+        requirementDescription:"10 主机端口",
+        effectDescription:"主机资源不再重置。",
+        done() {return player.m.points.gte(10)}
+        }
+    },
+    upgrades:{
+        11: {
+            title: "机械存储",
+            description: "解锁 HDD。",
+            cost: new Decimal(1),
+        },
+        12: {
+            title: "固态存储",
+            description: "解锁 SSD。",
+            cost: new Decimal(1),
+            unlocked() {
+            return (hasUpgrade("m", 11))
+            }
+        },
+        13: {
+            title: "虚拟存储",
+            description: "解锁虚拟内存。",
+            cost: new Decimal(1),
+            unlocked() {
+            return (hasUpgrade("m", 12))
+            }
+        },
+        14: {
+            title: "高效存储",
+            description: "解锁 RAM。",
+            cost: new Decimal(1),
+            unlocked() {
+            return (hasUpgrade("m", 13))
+            }
+        },
+        21: {
+            title: "缓存存储 I",
+            description: "解锁 L3缓存。",
+            cost: new Decimal(1),
+            unlocked() {
+            return (hasUpgrade("m", 14))
+            }
+        },
+        22: {
+            title: "缓存存储 II",
+            description: "解锁 L2缓存。",
+            cost: new Decimal(1),
+            unlocked() {
+            return (hasUpgrade("m", 21))
+            }
+        },
+        23: {
+            title: "缓存存储 III",
+            description: "解锁 L1缓存。",
+            cost: new Decimal(1),
+            unlocked() {
+            return (hasUpgrade("m", 22))
+            }
+        },
+        24: {
+            title: "缓存存储 END",
+            description: "解锁寄存器。",
+            cost: new Decimal(1),
+            unlocked() {
+            return (hasUpgrade("m", 23))
+            }
+        }
+    },
+    buyables:{
+        11: {
+            title: "高刷屏幕革新",
+            cost(x) { return new Decimal(x).add(x) },
+            display() {return "增益中立色度获取。<br>需要"+format(this.cost())+"主机端口<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
+            canAfford() {
+            return player[this.layer].points.gte(this.cost());
+            },
+            buy() {
+                player[this.layer].points = player[this.layer].points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {
+                return new Decimal(getBuyableAmount(this.layer, this.id)).add(1)
+            },
+            
+        },
+        12: {
+            title: "GDDR 革新",
+            cost(x) { return new Decimal(2).pow(x) },
+            display() {return "增益φ 精华获取。<br>需要"+format(this.cost())+"主机端口<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
+            canAfford() {
+            return player[this.layer].points.gte(this.cost());
+            },
+            buy() {
+                player[this.layer].points = player[this.layer].points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {
+                return new Decimal(getBuyableAmount(this.layer, this.id)).add(1)
+            },
+            
+        },
+        13: {
+            title: "DDR 革新",
+            cost(x) { return new Decimal(3).pow(x) },
+            display() {return "增益牛奶获取。<br>需要"+format(this.cost())+"主机端口<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
+            canAfford() {
+            return player[this.layer].points.gte(this.cost());
+            },
+            buy() {
+                player[this.layer].points = player[this.layer].points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {
+                return new Decimal(getBuyableAmount(this.layer, this.id)).add(1)
+            },
+            
+        },
+        14: {
+            title: "CPU 架构革新",
+            cost(x) { return new Decimal(4).pow(x) },
+            display() {return "增益主机端口获取。<br>需要"+format(this.cost())+"主机端口<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
+            canAfford() {
+            return player[this.layer].points.gte(this.cost());
+            },
+            buy() {
+                player[this.layer].points = player[this.layer].points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            effect() {
+                return new Decimal(getBuyableAmount(this.layer, this.id)).add(1)
+            },
+            unlocked()
+            {return hasAchievement('a', 24)},          
         },
     },
     layerShown() { return hasMilestone('cr', 12) || player.m.points.gte(1); }
