@@ -120,13 +120,13 @@ function closeDragHint() {
 var displayThings = [
 		function() {
         if (tmp.speedMult && tmp.speedMult !== 1) {
-            return `<div style="style="color: #00007f; margin-top: 5px;">⚡ 游戏速度: ${format(tmp.speedMult)}x</div>`;
+            return `<div style="color: #00007f; margin-top: 5px;">⚡ 游戏速度: ${format(tmp.speedMult)}x</div>`;
         }
         return '';
     },
     function() {
         if (localStorage.getItem('hideDragHint') === 'true') return '';
-        return '<div style="background: #ffbf00; color: #000; padding: 4px 8px; border-radius: 8px; cursor: pointer; margin-top: 5px;" onclick="closeDragHint()">💡 提示：按住鼠标左键并拖拽可以批量购买升级和可购买！点击此处关闭提示。</div>';
+        return '<div style="background: #ffbf00; color: #000000; padding: 4px 8px; border-radius: 8px; cursor: pointer; margin-top: 5px;" onclick="closeDragHint()">💡 提示：按住鼠标左键并拖拽可以批量购买升级和可购买！点击此处关闭提示。</div>';
     },
 	function() {
     return `<div style="color: #ffbf00; margin-top: 5px;">终？局：1e45 蛮王经验值</div>`;
