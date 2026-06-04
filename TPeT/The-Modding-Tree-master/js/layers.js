@@ -3127,7 +3127,7 @@ addLayer("m", {
         11: {
             title: "机械存储",
             description: "解锁 HDD。",
-            cost: new Decimal(1),
+            cost: new Decimal(5),
         },
         12: {
             title: "固态存储",
