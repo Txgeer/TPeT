@@ -15,7 +15,8 @@ function getStartOptions() {
 		oldStyle: false,
 		musicEnabled: true,
 		milestonePopup: true,
-		enableZoom: true
+		enableZoom: true,
+		textSelect: true
 	}
 }
 
@@ -88,6 +89,7 @@ function milestoneShown(layer, id) {
 	}
 	return false;
 }
+
 function toggleZoom() {
     options.enableZoom = !options.enableZoom;
     const viewport = document.getElementById('viewportMeta');
@@ -98,5 +100,19 @@ function toggleZoom() {
         viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover');
     }
     save();
+}
+
+function toggleTextSelect() {
+    options.textSelect = !options.textSelect;
+    applyTextSelectSetting();
+    save();
+}
+
+function applyTextSelectSetting() {
+    if (options.textSelect) {
+        document.body.classList.remove('disable-text-select');
+    } else {
+        document.body.classList.add('disable-text-select');
+    }
 }
 

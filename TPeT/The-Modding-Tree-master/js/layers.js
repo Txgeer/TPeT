@@ -108,11 +108,13 @@ function getByteSpeedMult() {
         return new Decimal(1);
     }
     let safeByte = player.m.byte;
+    let result;
     if (hasAchievement('a', 34)) {
-        return safeByte.log2().log2().add(1);
+        result = safeByte.log2().log2().add(1);
     } else {
-        return safeByte.ln().ln().add(1);
+        result = safeByte.ln().ln().add(1);
     }
+    return result.max(1);
 }
 addLayer("a", {
     name: "成就", // This is optional, only used in a few places, If absent it just uses the layer id.
@@ -3128,6 +3130,9 @@ addLayer("m", {
             title: "机械存储",
             description: "解锁 HDD。",
             cost: new Decimal(5),
+            unlocked() {
+            return (hasMilestone("m", 3))
+            }
         },
         12: {
             title: "固态存储",

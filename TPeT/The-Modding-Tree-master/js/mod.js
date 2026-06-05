@@ -12,11 +12,13 @@ let modInfo = {
 let getModID = () => modInfo.id ?? `${modInfo.name.replace(/\s+/g, '-')}-${modInfo.author.replace(/\s+/g, '-')}`;
 // Set your version in num and name
 let VERSION = {
-	num: "0.8",
-	name: "万物终结",
+	num: "0.8.1",
+	name: "万物终？结",
 }
 
 let changelog = `<h1>更新日志:</h1><br>
+    <h3>v0.8.1 2026.6.5</h3><br>
+		- 完全汉化游戏。<br>
     <h3>v0.8 2026.6.4</h3><br>
 		- 添加主机，9个主机资源，8个主机升级和4个主机革新。<br>
 		- 添加2个成就。<br>

@@ -235,6 +235,7 @@ function load() {
 	loadVue();
 	resizeCanvas();
 	applyZoomSetting();
+	applyTextSelectSetting();
 }
 
 function loadOptions() {

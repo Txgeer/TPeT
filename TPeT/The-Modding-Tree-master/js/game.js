@@ -421,11 +421,11 @@ var interval = safeSetInterval(function() {
         }
         if (!options.offlineProd || player.offTime.remain <= 0) player.offTime = undefined;
     }
-    if (player.devSpeed) diff *= player.devSpeed;
     if (player.m && player.m.unlocked && player.m.byte && player.m.byte.gt(0)) {
     let speedMult = getByteSpeedMult();
     let mult = speedMult.toNumber();
     mult = Math.min(mult);
+    if (mult < 0) mult = 1;
     diff *= mult;
     tmp.speedMult = mult;
     } else {

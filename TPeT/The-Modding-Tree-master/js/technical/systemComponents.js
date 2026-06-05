@@ -181,7 +181,7 @@ var systemComponents = {
 			<tr>
                 <td><button class="opt" onclick="toggleOpt('milestonePopup')">里程碑弹窗: {{ options.milestonePopup ? "开" : "关" }}</button></td>
                 <td><button class="opt" onclick="toggleZoom()">放大: {{ options.enableZoom ? "开" : "关" }}</button></td>
-                <td></td>
+                <td><button class="opt" onclick="toggleTextSelect()">文本选择: {{ options.textSelect ? "开" : "关" }}</button></td>
             </tr>
         </table>`
     },
