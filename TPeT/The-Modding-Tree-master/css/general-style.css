@@ -96,8 +96,15 @@ h1, h2, h3, b, input {
 .points-flash {
     animation: flash 0.3s ease-out;
 }
+
 @keyframes flash {
     0% { text-shadow: 0 0 0 var(--points); }
     50% { text-shadow: 0 0 20px var(--points); }
     100% { text-shadow: 0 0 0 var(--points); }
+}
+.disable-text-select {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
