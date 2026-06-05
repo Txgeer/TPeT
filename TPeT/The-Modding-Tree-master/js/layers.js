@@ -1964,8 +1964,7 @@ addLayer("e", {
             }
         }
     }
-},
-    
+    },
     style: {
         background: "linear-gradient(135deg, #000000, #1f003f)",
         minHeight: "100vh",
@@ -2825,7 +2824,7 @@ addLayer("g", {
     24: {
     title: "你已触发神怒",
     description: "解锁新的色彩升级。",
-    cost: new Decimal(8e10),
+    cost: new Decimal(8.14e10),
     currencyInternalName: "energy",
     currencyLayer: "g",
     currencyDisplayName: "φ 精华",
@@ -3194,7 +3193,7 @@ addLayer("m", {
     buyables:{
         11: {
             title: "高刷屏幕革新",
-            cost(x) { return new Decimal(x).add(x) },
+            cost(x) { return new Decimal(x).add(x).add(1) },
             display() {return "增益中立色度获取。<br>需要"+format(this.cost())+"主机端口<br>当前:倍增"+format(buyableEffect(this.layer, this.id))},
             canAfford() {
             return player[this.layer].points.gte(this.cost());
