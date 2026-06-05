@@ -3111,7 +3111,7 @@ addLayer("m", {
         },
         4:
         {
-        requirementDescription:"游戏速度达到5.68x。",
+        requirementDescription:"游戏速度达到5.68x",
         effectDescription:"解锁主机革新。",
         done() {
         if (!player.m || !player.m.byte) return false;
