@@ -574,38 +574,25 @@ function initMusic() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    initBgm();
-    initMusic();
+    const bgm = document.getElementById('bgm');
+    if (bgm) 
+		bgm.load();
+        console.log("音乐资源已加载，等待用户交互。");
+    }
 });
 
 function toggleMusic() {
-    let bgm = getBgm();
-	if (isTogglingMusic) return;
-    isTogglingMusic = true;
-    if (!bgm) {
-        alert("未找到音频元素");
-        return;
+    const bgm = document.getElementById('bgm');
+    if (!bgm) return;
+
+    if (bgm.paused) {
+        bgm.play().catch(e => {
+            console.error('音乐播放失败:', e);
+            alert('音乐播放需要浏览器交互，请点击页面任意位置后，再次点击此按钮。');
+        });
+    } else {
+        bgm.pause();
     }
-    
-    if (bgm.readyState === 0) {
-        bgm.load();
-        setTimeout(() => {
-            bgm.play().then(() => {
-                window.options.musicEnabled = true;
-                save();
-            }).catch(e => {
-                alert("音乐播放失败，请检查 resources/bgm.mp3 文件");
-            });
-        }, 50);
-        return;
-    }
-    
-    bgm.play().then(() => {
-        window.options.musicEnabled = true;
-        save();
-    }).catch(e => {
-        alert("请点击页面空白区域后再次点击音乐按钮，或检查音乐文件");
-    });
 }
 
 function updateBackgroundStyle() {
