@@ -1,9 +1,59 @@
 // Load files
+const modFiles = modInfo.modFiles;
+let loadedCount = 0;
 
-for (file in modInfo.modFiles) {
-    let script = document.createElement("script");
-    script.setAttribute("src", "js/" + modInfo.modFiles[file]);
-    script.setAttribute("async", "false");
-    document.head.insertBefore(script, document.getElementById("temp"));
+function startLoadingModFiles() {
+    for (let i = 0; i < modFiles.length; i++) {
+        const script = document.createElement('script');
+        script.src = 'js/' + modFiles[i];
+        script.async = false;
+        script.onload = function() {
+            loadedCount++;
+            tryStartGame();
+        };
+        script.onerror = function() {
+            console.error(`Failed to load ${modFiles[i]}`);
+            loadedCount++;
+            tryStartGame();
+        };
+        document.head.appendChild(script);
+    }
+
+    setTimeout(() => {
+        if (loadedCount < modFiles.length) {
+            console.warn('Forcing game start after timeout');
+            tryStartGame();
+        }
+    }, 5000);
 }
 
+function tryStartGame() {
+    if (loadedCount === modFiles.length) {
+        function checkAndLoad() {
+            if (typeof Vue !== 'undefined' && typeof load === 'function') {
+                load();
+            } else {
+                console.warn('Vue or load() not ready, retrying...');
+                setTimeout(checkAndLoad, 50);
+            }
+        }
+        checkAndLoad();
+    }
+}
+
+if (typeof Vue === 'undefined') {
+    var vueScript = document.createElement('script');
+    vueScript.src = 'js/vue.global.js';
+    vueScript.async = false;
+    document.head.appendChild(vueScript);
+    vueScript.onload = function() {
+        console.log('Vue loaded successfully');
+        startLoadingModFiles();
+    };
+    vueScript.onerror = function() {
+        console.error('Failed to load local Vue. Please check the file path js/vue.global.js');
+        startLoadingModFiles();
+    };
+} else {
+    startLoadingModFiles();
+}

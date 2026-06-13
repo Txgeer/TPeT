@@ -2,7 +2,24 @@ let modInfo = {
 	name: "蛮王树",
 	author: "Txgeer",
 	pointsName: "蛮王经验值",
-	modFiles: ["layers.js", "tree.js"],
+	modFiles: [
+        "technical/layerSupport.js",
+        "utils/NumberFormating.js",
+        "utils/options.js",
+        "utils/themes.js",
+        "utils/save.js",
+        "utils/easyAccess.js",
+        "technical/temp.js",
+        "technical/displays.js",
+        "utils.js",
+        "game.js",
+        "technical/systemComponents.js",
+        "technical/canvas.js",
+        "technical/particleSystem.js",
+        "components.js",
+        "layers.js",
+        "tree.js"
+	],
 
 	discordName: "",
 	discordLink: "",
@@ -12,11 +29,13 @@ let modInfo = {
 let getModID = () => modInfo.id ?? `${modInfo.name.replace(/\s+/g, '-')}-${modInfo.author.replace(/\s+/g, '-')}`;
 // Set your version in num and name
 let VERSION = {
-	num: "0.8.1",
+	num: "0.9",
 	name: "万物终？结",
 }
 
 let changelog = `<h1>更新日志:</h1><br>
+    <h3>v0.9 2026.6.14</h3><br>
+		- 完全重构游戏。<br>
     <h3>v0.8.1 2026.6.5</h3><br>
 		- 完全汉化游戏。<br>
     <h3>v0.8 2026.6.4</h3><br>
@@ -110,7 +129,7 @@ function getPointGen() {
 }
 
 // You can add non-layer related variables that should to into "player" and be saved here, along with default values
-function addedPlayerData() { return {
+function addePlayerData() { return {
 	hasAchieved23: false
 }}
 

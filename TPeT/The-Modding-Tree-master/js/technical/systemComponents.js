@@ -12,7 +12,7 @@ var systemComponents = {
                         active: player.subtabs[layer][name] === tab   // 新增高亮条件
                     }"
                     v-bind:style="[{'border-color': tmp[layer].color}, (subtabShouldNotify(layer, name, tab) ? {'box-shadow': 'var(--hqProperty2a), 0 0 20px '  + (data[tab].glowColor || defaultGlow)} : {}), tmp[layer].componentStyles['tab-button'], data[tab].buttonStyle]"
-                    v-on:click="function(){player.subtabs[layer][name] = tab; updateTabFormats(); needCanvasUpdate = true;}">
+                    v-on:click="() => {player.subtabs[layer][name] = tab; updateTabFormats(); needCanvasUpdate = true;}">
                     {{tab}}
                 </button>
             </div>
@@ -25,7 +25,7 @@ var systemComponents = {
 		template: `
 		<button v-if="nodeShown(layer)"
 			v-bind:id="layer"
-			v-on:click="function() {
+			v-on:click="() => {
 				if (shiftDown) player[layer].forceTooltip = !player[layer].forceTooltip
 				else if(tmp[layer].isLayer) {
 					if (tmp[layer].leftTab) {
@@ -66,49 +66,50 @@ var systemComponents = {
 				tmp[layer].canClick ? (tmp[layer].tooltip ? tmp[layer].tooltip : 'I am a button!')
 				: (tmp[layer].tooltipLocked ? tmp[layer].tooltipLocked : 'I am a button!')
 			)"></tooltip>
-			<node-mark :layer='layer' :data='tmp[layer].marked'></node-mark></span>
+			<node-mark :layer='layer' :data='tmp[layer].marked'></node-mark>
 		</button>
 		`
 	},
 
 	
 	'layer-tab': {
-		props: ['layer', 'back', 'spacing', 'embedded'],
-		template: `<div v-bind:style="[tmp[layer].style ? tmp[layer].style : {}, (tmp[layer].tabFormat && !Array.isArray(tmp[layer].tabFormat)) ? tmp[layer].tabFormat[player.subtabs[layer].mainTabs].style : {}]" class="noBackground">
-		<div v-if="back"><button v-bind:class="back == 'big' ? 'other-back' : 'back'" v-on:click="goBack(layer)">←</button></div>
-		<div v-if="!tmp[layer].tabFormat">
-			<div v-if="spacing" v-bind:style="{'height': spacing}" :key="this.$vnode.key + '-spacing'"></div>
-			<infobox v-if="tmp[layer].infoboxes" :layer="layer" :data="Object.keys(tmp[layer].infoboxes)[0]":key="this.$vnode.key + '-info'"></infobox>
-			<main-display v-bind:style="tmp[layer].componentStyles['main-display']" :layer="layer"></main-display>
-			<div v-if="tmp[layer].type !== 'none'">
-				<prestige-button v-bind:style="tmp[layer].componentStyles['prestige-button']" :layer="layer"></prestige-button>
-			</div>
-			<resource-display v-bind:style="tmp[layer].componentStyles['resource-display']" :layer="layer"></resource-display>
-			<milestones v-bind:style="tmp[layer].componentStyles.milestones" :layer="layer"></milestones>
-			<div v-if="Array.isArray(tmp[layer].midsection)">
-				<column :layer="layer" :data="tmp[layer].midsection" :key="this.$vnode.key + '-mid'"></column>
-			</div>
-			<clickables v-bind:style="tmp[layer].componentStyles['clickables']" :layer="layer"></clickables>
-			<buyables v-bind:style="tmp[layer].componentStyles.buyables" :layer="layer"></buyables>
-			<upgrades v-bind:style="tmp[layer].componentStyles['upgrades']" :layer="layer"></upgrades>
-			<challenges v-bind:style="tmp[layer].componentStyles['challenges']" :layer="layer"></challenges>
-			<achievements v-bind:style="tmp[layer].componentStyles.achievements" :layer="layer"></achievements>
-			<br><br>
-		</div>
-		<div v-if="tmp[layer].tabFormat">
-			<div v-if="Array.isArray(tmp[layer].tabFormat)"><div v-if="spacing" v-bind:style="{'height': spacing}"></div>
-				<column :layer="layer" :data="tmp[layer].tabFormat" :key="this.$vnode.key + '-col'"></column>
-			</div>
-			<div v-else>
-				<div class="upgTable" v-bind:style="{'padding-top': (embedded ? '0' : '25px'), 'margin-top': (embedded ? '-10px' : '0'), 'margin-bottom': '24px'}">
-					<tab-buttons v-bind:style="tmp[layer].componentStyles['tab-buttons']" :layer="layer" :data="tmp[layer].tabFormat" :name="'mainTabs'"></tab-buttons>
-				</div>
-				<layer-tab v-if="tmp[layer].tabFormat[player.subtabs[layer].mainTabs].embedLayer" :layer="tmp[layer].tabFormat[player.subtabs[layer].mainTabs].embedLayer" :embedded="true" :key="this.$vnode.key + '-' + layer"></layer-tab>
-				<column v-else :layer="layer" :data="tmp[layer].tabFormat[player.subtabs[layer].mainTabs].content" :key="this.$vnode.key + '-col'"></column>
-			</div>
-		</div></div>
-			`
-	},
+    props: ['layer', 'back', 'spacing', 'embedded'],
+    template: `<div v-if="tmp[layer]" v-bind:style="[tmp[layer].style ? tmp[layer].style : {}, (tmp[layer].tabFormat && !Array.isArray(tmp[layer].tabFormat)) ? tmp[layer].tabFormat[player.subtabs[layer].mainTabs].style : {}]" class="noBackground">
+        <div v-if="back"><button v-bind:class="back == 'big' ? 'other-back' : 'back'" v-on:click="goBack(layer)">←</button></div>
+        <div v-if="!tmp[layer].tabFormat">
+            <div v-if="spacing" v-bind:style="{'height': spacing}"></div>
+            <infobox v-if="tmp[layer].infoboxes" :layer="layer" :data="Object.keys(tmp[layer].infoboxes)[0]"></infobox>
+            <main-display v-bind:style="tmp[layer].componentStyles['main-display']" :layer="layer"></main-display>
+            <div v-if="tmp[layer].type !== 'none'">
+                <prestige-button v-bind:style="tmp[layer].componentStyles['prestige-button']" :layer="layer"></prestige-button>
+            </div>
+            <resource-display v-bind:style="tmp[layer].componentStyles['resource-display']" :layer="layer"></resource-display>
+            <milestones v-bind:style="tmp[layer].componentStyles.milestones" :layer="layer"></milestones>
+            <div v-if="Array.isArray(tmp[layer].midsection)">
+                <column :layer="layer" :data="tmp[layer].midsection"></column>
+            </div>
+            <clickables v-bind:style="tmp[layer].componentStyles['clickables']" :layer="layer"></clickables>
+            <buyables v-bind:style="tmp[layer].componentStyles.buyables" :layer="layer"></buyables>
+            <upgrades v-bind:style="tmp[layer].componentStyles['upgrades']" :layer="layer"></upgrades>
+            <challenges v-bind:style="tmp[layer].componentStyles['challenges']" :layer="layer"></challenges>
+            <achievements v-bind:style="tmp[layer].componentStyles.achievements" :layer="layer"></achievements>
+            <br><br>
+        </div>
+        <div v-if="tmp[layer].tabFormat">
+            <div v-if="Array.isArray(tmp[layer].tabFormat)">
+                <div v-if="spacing" v-bind:style="{'height': spacing}"></div>
+                <column :layer="layer" :data="tmp[layer].tabFormat"></column>
+            </div>
+            <div v-else>
+                <div class="upgTable" v-bind:style="{'padding-top': (embedded ? '0' : '25px'), 'margin-top': (embedded ? '-10px' : '0'), 'margin-bottom': '24px'}">
+                    <tab-buttons v-bind:style="tmp[layer].componentStyles['tab-buttons']" :layer="layer" :data="tmp[layer].tabFormat" :name="'mainTabs'"></tab-buttons>
+                </div>
+                <layer-tab v-if="tmp[layer].tabFormat[player.subtabs[layer].mainTabs].embedLayer" :layer="tmp[layer].tabFormat[player.subtabs[layer].mainTabs].embedLayer" :embedded="true"></layer-tab>
+                <column v-else :layer="layer" :data="tmp[layer].tabFormat[player.subtabs[layer].mainTabs].content"></column>
+            </div>
+        </div>
+    </div>`
+    },
 
 	'overlay-head': {
 		template: `			
@@ -151,40 +152,50 @@ var systemComponents = {
 		<br><br>
         已游玩时间: {{ formatTime(player.timePlayed) }}<br><br>
         <h3>热键</h3><br>
-        <span v-for="key in hotkeys" v-if="player[key.layer].unlocked && tmp[key.layer].hotkeys[key.id].unlocked"><br>{{key.description}}</span></div>
+        <template v-for="key in hotkeys" :key="key.description">
+        <span v-if="player[key.layer].unlocked && tmp[key.layer].hotkeys[key.id].unlocked">
+        <br>{{key.description}}
+        </span>
+        </template>
+        </div>
     `
     },
 
     'options-tab': {
-        template: `
-        <table>
-            <tr>
-                <td><button class="opt" onclick="save()">保存</button></td>
-                <td><button class="opt" onclick="toggleOpt('autosave')">自动保存: {{ options.autosave?"开":"关" }}</button></td>
-                <td><button class="opt" onclick="hardReset()">硬复位</button></td>
-            </tr>
-            <tr>
-                <td><button class="opt" onclick="exportSave()">导出到剪切板</button></td>
-                <td><button class="opt" onclick="importSave()">导入</button></td>
-                <td><button class="opt" onclick="toggleOpt('offlineProd')">离线进度: {{ options.offlineProd?"开":"关" }}</button></td>
-            </tr>
-            <tr>
-                <td><button class="opt" onclick="switchTheme()">主题: {{ getThemeName() }}</button></td>
-                <td><button class="opt" onclick="adjustMSDisp()">显示里程碑: {{ MS_DISPLAYS[MS_SETTINGS.indexOf(options.msDisplay)]}}</button></td>
-                <td><button class="opt" onclick="toggleOpt('hqTree')">高质量树贴图: {{ options.hqTree?"开":"关" }}</button></td>
-            </tr>
-            <tr>
-                <td><button class="opt" onclick="toggleOpt('hideChallenges')">已完成的挑战: {{ options.hideChallenges?"隐藏":"显示" }}</button></td>
-                <td><button class="opt" onclick="toggleOpt('forceOneTab'); needsCanvasUpdate = true">单标签页模式: {{ options.forceOneTab?"总是":"自动" }}</button></td>
-				<td><button class="opt" onclick="toggleMusic()">音乐: {{ options.musicEnabled ? "开" : "关" }}</button></td>
-			</tr>
-			<tr>
-                <td><button class="opt" onclick="toggleOpt('milestonePopup')">里程碑弹窗: {{ options.milestonePopup ? "开" : "关" }}</button></td>
-                <td><button class="opt" onclick="toggleZoom()">放大: {{ options.enableZoom ? "开" : "关" }}</button></td>
-                <td><button class="opt" onclick="toggleTextSelect()">文本选择: {{ options.textSelect ? "开" : "关" }}</button></td>
-            </tr>
-        </table>`
-    },
+    template: `
+        <div>
+            <table class="options-table">
+                <tbody>
+                    <tr>
+                        <td><button class="opt" @click="() => save()">保存</button></td>
+                        <td><button class="opt" @click="() => toggleOpt('autosave')">自动保存: {{ options.autosave ? "开" : "关" }}</button></td>
+                        <td><button class="opt" @click="() => hardReset()">硬复位</button></td>
+                    </tr>
+                    <tr>
+                        <td><button class="opt" @click="() => exportSave()">导出到剪切板</button></td>
+                        <td><button class="opt" @click="() => importSave()">导入</button></td>
+                        <td><button class="opt" @click="() => toggleOpt('offlineProd')">离线进度: {{ options.offlineProd ? "开" : "关" }}</button></td>
+                    </tr>
+                    <tr>
+                        <td><button class="opt" @click="() => switchTheme()">主题: {{ getThemeName() }}</button></td>
+                        <td><button class="opt" @click="() => adjustMSDisp()">显示里程碑: {{ MS_DISPLAYS[MS_SETTINGS.indexOf(options.msDisplay)] }}</button></td>
+                        <td><button class="opt" @click="() => toggleOpt('hqTree')">高质量树贴图: {{ options.hqTree ? "开" : "关" }}</button></td>
+                    </tr>
+                    <tr>
+                        <td><button class="opt" @click="() => toggleOpt('hideChallenges')">已完成的挑战: {{ options.hideChallenges ? "隐藏" : "显示" }}</button></td>
+                        <td><button class="opt" @click="() => { toggleOpt('forceOneTab'); needCanvasUpdate = true; }">单标签页模式: {{ options.forceOneTab ? "总是" : "自动" }}</button></td>
+                        <td><button class="opt" @click="() => toggleMusic()">音乐: {{ options.musicEnabled ? "开" : "关" }}</button></td>
+                    </tr>
+                    <tr>
+                        <td><button class="opt" @click="() => toggleOpt('milestonePopup')">里程碑弹窗: {{ options.milestonePopup ? "开" : "关" }}</button></td>
+                        <td><button class="opt" @click="() => toggleZoom()">放大: {{ options.enableZoom ? "开" : "关" }}</button></td>
+                        <td><button class="opt" @click="() => toggleTextSelect()">文本选择: {{ options.textSelect ? "开" : "关" }}</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    `
+},
 
     'back-button': {
         template: `
@@ -201,11 +212,12 @@ var systemComponents = {
 
 	'node-mark': {
 		props: {'layer': {}, data: {}, offset: {default: 0}, scale: {default: 1}},
-		template: `<div v-if='data'>
-			<div v-if='data === true' class='star' v-bind:style='{position: "absolute", left: (offset-10) + "px", top: (offset-10) + "px", transform: "scale( " + scale||1 + ", " + scale||1 + ")"}'></div>
-			<img v-else class='mark' v-bind:style='{position: "absolute", left: (offset-22) + "px", top: (offset-15) + "px", transform: "scale( " + scale||1 + ", " + scale||1 + ")"}' v-bind:src="data"></div>
-		</div>
-		`
+		template: `
+            <div v-if='data'>
+            <div v-if='data === true' class='star' v-bind:style='{position: "absolute", left: (offset-10) + "px", top: (offset-10) + "px", transform: "scale( " + scale||1 + ", " + scale||1 + ")"}'></div>
+            <img v-else class='mark' v-bind:style='{position: "absolute", left: (offset-22) + "px", top: (offset-15) + "px", transform: "scale( " + scale||1 + ", " + scale||1 + ")"}' v-bind:src="data">
+            </div>
+            `
 	},
 
 	'particle': {
@@ -226,7 +238,6 @@ var systemComponents = {
 		props: ['layer'],
 		template: `<div class ="bg" v-bind:style="[tmp[layer].style ? tmp[layer].style : {}, (tmp[layer].tabFormat && !Array.isArray(tmp[layer].tabFormat)) ? tmp[layer].tabFormat[player.subtabs[layer].mainTabs].style : {}]"></div>
 		`
-	}
-
+	},
 }
 

@@ -41,10 +41,10 @@ var doNotCallTheseFunctionsEveryTick = ["doReset", "buy", "onPurchase", "blowUpE
 
 - getPointGen(): 计算每秒获得的点数，影响这个数值的升级应该在这里修改结果。
 
-- addedPlayerData(): 返回所有非 layer 数据，用于保存你想要的这样的数据。
+- addePlayerData(): 返回所有非 layer 数据，用于保存你想要的这样的数据。
 
 ```js
-function addedPlayerData() { return {
+function addePlayerData() { return {
 	weather: "Yes",
 	happiness: new Decimal(72),
 }}

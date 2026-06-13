@@ -41,7 +41,7 @@ function updateLayers(){
     TREE_LAYERS = {}
     OTHER_LAYERS = {}
     for (layer in layers){
-        setupLayer(layer)
+        setuplayer(layer)
     }
     for (row in OTHER_LAYERS) {
         OTHER_LAYERS[row].sort((a, b) => (a.position > b.position) ? 1 : -1)
@@ -61,7 +61,7 @@ function updateLayers(){
     updateHotkeys()
 }
 
-function setupLayer(layer){
+function setuplayer(layer){
     layers[layer].layer = layer
     if (layers[layer].upgrades){
         setRowCol(layers[layer].upgrades)

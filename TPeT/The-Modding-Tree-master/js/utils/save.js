@@ -6,8 +6,19 @@ function utf8_to_b64(str) {
 }
 
 function b64_to_utf8(str) {
-    return decodeURIComponent(escape(atob(str)));
+    try {
+        const cleaned = str.replace(/\s/g, '');
+        const binary = atob(cleaned);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        return new TextDecoder('utf-8').decode(bytes);
+    } catch (e) {
+        throw new Error('无效的存档代码：不是有效的 Base64 字符串');
+    }
 }
+
 function save(force) {
 	if (!player) return;
     NaNcheck(player);
@@ -16,11 +27,11 @@ function save(force) {
     let encoded = utf8_to_b64(saveStr);
     localStorage.setItem(getModID(), encoded);
     
-    let optStr = JSON.stringify(options);
+    let optStr = JSON.stringify(window.options);
     let encodedOpt = utf8_to_b64(optStr);
     localStorage.setItem(getModID() + "_options", encodedOpt);
 }
-function startPlayerBase() {
+function startplayerBase() {
 	return {
 		tab: layoutInfo.startTab,
 		navTab: (layoutInfo.showTree ? layoutInfo.startNavTab : "none"),
@@ -38,11 +49,11 @@ function startPlayerBase() {
 		lastSafeTab: (readData(layoutInfo.showTree) ? "none" : layoutInfo.startTab)
 	};
 }
-function getStartPlayer() {
-	playerdata = startPlayerBase();
+function getStartplayer() {
+	playerdata = startplayerBase();
 
-	if (addedPlayerData) {
-		extradata = addedPlayerData();
+	if (addePlayerData) {
+		extradata = addePlayerData();
 		for (thing in extradata)
 			playerdata[thing] = extradata[thing];
 	}
@@ -144,7 +155,7 @@ function getStartGrid(layer) {
 }
 
 function fixSave() {
-	defaultData = getStartPlayer();
+	defaultData = getStartplayer();
 	fixData(defaultData, player);
 
 	for (layer in layers) {
@@ -189,6 +200,9 @@ function fixData(defaultData, newData) {
     }
 }
 function load() {
+	if (typeof window.options === 'undefined') {
+        window.options = getStartOptions();
+    }
     let get;
     try {
         get = localStorage.getItem(getModID());
@@ -198,7 +212,7 @@ function load() {
     }
 
     if (get === null || get === undefined) {
-        player = getStartPlayer();
+        player = getStartplayer();
         options = getStartOptions();
     } else {
         try {
@@ -206,14 +220,15 @@ function load() {
             player = JSON.parse(decoded);
         } catch(e) {
             console.error("Save decode failed, resetting save", e);
-            player = getStartPlayer();
+            player = getStartplayer();
         }
-        if (!player) player = getStartPlayer();
+        if (!player) player = getStartplayer();
         fixSave();
         loadOptions();
+		options = window.options; 
     }
 
-    if (!player) player = getStartPlayer();
+    if (!player) player = getStartplayer();
     if (!options) options = getStartOptions();
 
 	if (player.offlineProd) {
@@ -239,19 +254,22 @@ function load() {
 }
 
 function loadOptions() {
+    if (typeof window.options === 'undefined') {
+        window.options = getStartOptions();
+    }
     let get2 = localStorage.getItem(getModID() + "_options");
     if (get2) {
         try {
             let decoded = b64_to_utf8(get2);
-            options = Object.assign(getStartOptions(), JSON.parse(decoded));
+            let savedOpts = JSON.parse(decoded);
+            for (let key in savedOpts) {
+                window.options[key] = savedOpts[key];
+            }
         } catch(e) {
             console.error("Options decode failed, using defaults", e);
-            options = getStartOptions();
         }
-    } else {
-        options = getStartOptions();
     }
-    if (themes.indexOf(options.theme) < 0) options.theme = "default";
+    if (themes.indexOf(window.options.theme) < 0) window.options.theme = "default";
 }
 
 function setupModInfo() {
@@ -296,23 +314,35 @@ function exportSave() {
     document.body.removeChild(el);
 }
 function importSave(imported = undefined, forced = false) {
-    if (imported === undefined)
+    if (imported === undefined) {
         imported = prompt("在这里粘贴你的存档");
+    }
+    if (imported === null || imported === undefined) {
+        return;
+    }
+    imported = String(imported);
+    if (imported.trim() === "") {
+        alert("你没有输入任何内容！");
+        return;
+    }
     try {
-        let decoded = b64_to_utf8(imported);
-        let tempPlr = Object.assign(getStartPlayer(), JSON.parse(decoded));
-        if (tempPlr.versionType != modInfo.id && !forced && !confirm("This save appears to be for a different mod! Are you sure you want to import?"))
+        const cleaned = imported.replace(/\s/g, '');
+        const decoded = b64_to_utf8(cleaned);
+        const tempPlr = Object.assign(getStartplayer(), JSON.parse(decoded));
+        if (tempPlr.versionType != modInfo.id && !forced && !confirm("这个存档似乎来自其他模组！确定要导入吗？")) {
             return;
-        player = tempPlr;
+        }
+        window.player = tempPlr;
+        player = window.player;
         player.versionType = modInfo.id;
         fixSave();
         versionCheck();
-        NaNcheck(save);
+        NaNcheck(player); 
         save();
         window.location.reload();
     } catch (e) {
-        console.error("Import failed", e);
-        alert("无效的存档代码！");
+        console.error("导入失败", e);
+        alert("无效的存档代码！请确保你复制了完整的存档文本，且没有多余的空格或换行。");
         return;
     }
 }
@@ -330,7 +360,7 @@ function versionCheck() {
 			if (fixOldSave)
 				fixOldSave(player.version);
 		}
-		player.versionType = getStartPlayer().versionType;
+		player.versionType = getStartplayer().versionType;
 		player.version = VERSION.num;
 		player.beta = VERSION.beta;
 	}
@@ -341,12 +371,12 @@ var saveInterval = setInterval(function () {
 		return;
 	if (tmp.gameEnded && !player.keepGoing)
 		return;
-	if (options.autosave)
+	if (window.options.autosave)
 		save();
 }, 5000);
 
 window.onbeforeunload = () => {
-    if (player.autosave) {
+    if (window.options.autosave) {
         save();
     }
 };

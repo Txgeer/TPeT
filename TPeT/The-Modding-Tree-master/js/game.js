@@ -1,5 +1,5 @@
-var player;
 var needCanvasUpdate = true;
+var isTogglingMusic = false;
 
 // Don't change this
 const TMT_VERSION = {
@@ -129,7 +129,7 @@ function canReset(layer)
 function rowReset(row, layer) {
 	for (lr in ROW_LAYERS[row]){
 		if(layers[lr].doReset) {
-			if (!isNaN(row)) Vue.set(player[lr], "activeChallenge", null) // Exit challenges on any row reset on an equal or higher row
+			if (!isNaN(row)) player[lr].activeChallenge = null; // Exit challenges on any row reset on an equal or higher row
 			run(layers[lr].doReset, layers[lr], layer)
 		}
 		else
@@ -145,10 +145,10 @@ function layerDataReset(layer, keep = []) {
 			storedData[keep[thing]] = player[layer][keep[thing]]
 	}
 
-	Vue.set(player[layer], "buyables", getStartBuyables(layer))
-	Vue.set(player[layer], "clickables", getStartClickables(layer))
-	Vue.set(player[layer], "challenges", getStartChallenges(layer))
-	Vue.set(player[layer], "grid", getStartGrid(layer))
+	player[layer].buyables = getStartBuyables(layer);
+    player[layer].clickables = getStartClickables(layer);
+    player[layer].challenges = getStartChallenges(layer);
+    player[layer].grid = getStartGrid(layer);
 
 	layOver(player[layer], getStartLayerData(layer))
 	player[layer].upgrades = []
@@ -252,7 +252,7 @@ function startChallenge(layer, x) {
 		// This needs to be embedded due to how 'enter' works
 		if(canExitChallenge(layer, x)){
 			completeChallenge(layer, x)
-			Vue.set(player[layer], "activeChallenge", null)
+			player[layer].activeChallenge = null;
 		}
 	}
 	else {
@@ -260,7 +260,7 @@ function startChallenge(layer, x) {
 	}
 	if(enter || canExitChallenge(layer, x)) doReset(layer, true)
 	if(enter) {
-		Vue.set(player[layer], "activeChallenge", x)
+		player[layer].activeChallenge = x;
 		run(layers[layer].challenges[x].onEnter, layers[layer].challenges[x])
 	}
 	updateChallengeTemp(layer)
@@ -297,7 +297,7 @@ function completeChallenge(layer, x) {
 	
 	let completions = canCompleteChallenge(layer, x)
 	if (!completions){
-		Vue.set(player[layer], "activeChallenge", null)
+		player[layer].activeChallenge = null;
 		run(layers[layer].challenges[x].onExit, layers[layer].challenges[x])
 		return
 	}
@@ -307,7 +307,7 @@ function completeChallenge(layer, x) {
 		player[layer].challenges[x] = Math.min(player[layer].challenges[x], tmp[layer].challenges[x].completionLimit)
 		if (layers[layer].challenges[x].onComplete) run(layers[layer].challenges[x].onComplete, layers[layer].challenges[x])
 	}
-	Vue.set(player[layer], "activeChallenge", null)
+	player[layer].activeChallenge = null;
 	run(layers[layer].challenges[x].onExit, layers[layer].challenges[x])
 	updateChallengeTemp(layer)
 }
@@ -330,7 +330,7 @@ function gameLoop(diff) {
 	}
 
 	if (isNaN(diff) || diff < 0) diff = 0
-	if (tmp.gameEnded && !player.keepGoing) {
+	if (window.tmp.gameEnded && !window.player.keepGoing) {
 		diff = 0
 		//player.tab = "tmp.gameEnded"
 		clearParticles()
@@ -392,8 +392,8 @@ function hardReset(resetOptions) {
     if (!confirm("你真的想要做这个吗？ 你将会丢失你所有的进度！")) return;
     localStorage.removeItem(getModID());
     localStorage.removeItem(getModID() + "_options");
-    player = null;
-    tmp = null;
+    window.player = null;
+    window.tmp = null;
     window.location.reload();
 }
 
@@ -405,7 +405,7 @@ var safeSetInterval = (function() {
 })();
 
 var interval = safeSetInterval(function() {
-    if (!player || !tmp) return;
+    if (typeof player === 'undefined' || player === null || typeof tmp === 'undefined' || tmp === null) return;
     if (ticking) return;
     if (tmp.gameEnded && !player.keepGoing) return;
     ticking = true;
@@ -467,6 +467,7 @@ var canvasInterval = safeSetInterval(function() {
     }
 
     function handleDragStart(e) {
+		if (e.target.closest('.opt')) return;
         if (e.button !== undefined && e.button !== 0) return;
         let coords = getClientCoords(e);
         dragStartX = coords.clientX;
@@ -542,36 +543,69 @@ var canvasInterval = safeSetInterval(function() {
     document.addEventListener('touchend', handleDragEnd);
 })();
 
-document.addEventListener('DOMContentLoaded', function() {
+function getBgm() {
     let bgm = document.getElementById('bgm');
-    if (!bgm) return;
-    bgm.src = 'resources/bgm.mp3';
-    bgm.load();
-    bgm.preload = 'auto';
-    
-    let musicStarted = false;
-    function tryPlay() {
-        if (!options.musicEnabled || musicStarted) return;
-        bgm.play().then(() => {
-            musicStarted = true;
-        }).catch(e => console.log("播放失败", e));
+    if (!bgm) {
+        bgm = document.createElement('audio');
+        bgm.id = 'bgm';
+        bgm.loop = true;
+        bgm.preload = 'auto';
+        bgm.style.display = 'none';
+        document.body.appendChild(bgm);
     }
-    
-    document.body.addEventListener('click', tryPlay, { once: true });
+    return bgm;
+}
+
+function initBgm() {
+    let bgm = getBgm();
+    if (!bgm.src || bgm.src === '') {
+        bgm.src = './resources/bgm.mp3';
+        bgm.load();
+        bgm.oncanplaythrough = () => console.log("音频已就绪");
+    }
+}
+
+function initMusic() {
+    let bgm = getBgm();
+    musicPlaying = !bgm.paused;
+    bgm.addEventListener('play', () => { musicPlaying = true; });
+    bgm.addEventListener('pause', () => { musicPlaying = false; });
+    bgm.addEventListener('ended', () => { musicPlaying = false; });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    initBgm();
+    initMusic();
 });
 
 function toggleMusic() {
-    options.musicEnabled = !options.musicEnabled;
-    let bgm = document.getElementById('bgm');
-    if (!bgm) return;
-    if (options.musicEnabled) {
-        if (bgm.paused) {
-            bgm.play().catch(e => console.log("播放失败", e));
-        }
-    } else {
-        bgm.pause();
+    let bgm = getBgm();
+	if (isTogglingMusic) return;
+    isTogglingMusic = true;
+    if (!bgm) {
+        alert("未找到音频元素");
+        return;
     }
-    save();
+    
+    if (bgm.readyState === 0) {
+        bgm.load();
+        setTimeout(() => {
+            bgm.play().then(() => {
+                window.options.musicEnabled = true;
+                save();
+            }).catch(e => {
+                alert("音乐播放失败，请检查 resources/bgm.mp3 文件");
+            });
+        }, 50);
+        return;
+    }
+    
+    bgm.play().then(() => {
+        window.options.musicEnabled = true;
+        save();
+    }).catch(e => {
+        alert("请点击页面空白区域后再次点击音乐按钮，或检查音乐文件");
+    });
 }
 
 function updateBackgroundStyle() {
