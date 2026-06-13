@@ -560,6 +560,7 @@ function initBgm() {
     let bgm = getBgm();
     if (!bgm.src || bgm.src === '') {
         bgm.src = './resources/bgm.mp3';
+        bgm.preload = 'auto';
         bgm.load();
         bgm.oncanplaythrough = () => console.log("音频已就绪");
     }
@@ -571,27 +572,69 @@ function initMusic() {
     bgm.addEventListener('play', () => { musicPlaying = true; });
     bgm.addEventListener('pause', () => { musicPlaying = false; });
     bgm.addEventListener('ended', () => { musicPlaying = false; });
+
+    let firstInteractionDone = false;
+    const events = ['click', 'touchstart', 'keydown'];
+    const tryAutoPlay = () => {
+        if (firstInteractionDone) return;
+        firstInteractionDone = true;
+        events.forEach(ev => document.removeEventListener(ev, tryAutoPlay));
+        if (bgm.paused) {
+            bgm.play().catch(e => console.warn("自动播放失败:", e));
+        }
+    };
+    events.forEach(ev => document.addEventListener(ev, tryAutoPlay));
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    const bgm = document.getElementById('bgm');
-    if (bgm) 
-		bgm.load();
-        console.log("音乐资源已加载，等待用户交互。");
-    }
+    initBgm();
+    initMusic();
 });
 
-function toggleMusic() {
-    const bgm = document.getElementById('bgm');
-    if (!bgm) return;
+let musicLoading = false;
 
-    if (bgm.paused) {
-        bgm.play().catch(e => {
-            console.error('音乐播放失败:', e);
-            alert('音乐播放需要浏览器交互，请点击页面任意位置后，再次点击此按钮。');
+function toggleMusic() {
+    let bgm = getBgm();
+    if (musicLoading) {
+        console.log("音乐正在加载，请稍后再试");
+        return;
+    }
+
+    if (!bgm.src || bgm.src === '') {
+        bgm.src = './resources/bgm.mp3';
+        bgm.load();
+    }
+
+    const isPlaying = !bgm.paused;
+
+    if (isPlaying) {
+        bgm.pause();
+        window.options.musicEnabled = false;
+        save();
+        return;
+    }
+
+    musicLoading = true;
+
+    const playPromise = bgm.play();
+    if (playPromise !== undefined) {
+        playPromise.then(() => {
+            window.options.musicEnabled = true;
+            save();
+            musicLoading = false;
+        }).catch((e) => {
+            console.error("播放失败:", e);
+            if (e.name === 'NotAllowedError') {
+                alert("浏览器不允许自动播放，请点击页面任意位置后再尝试开启音乐。");
+            } else {
+                alert("音乐文件可能不存在或格式不支持，请检查 resources/bgm.mp3");
+            }
+            musicLoading = false;
         });
     } else {
-        bgm.pause();
+        window.options.musicEnabled = true;
+        save();
+        musicLoading = false;
     }
 }
 
