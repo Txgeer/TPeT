@@ -20,9 +20,8 @@ function loadVue() {
         }
         window.player = Vue.reactive(player);
         window.tmp = Vue.reactive(tmp);
-        
         options = window.options;
-        
+        window.activePopups = Vue.reactive(activePopups);
         window.__reactiveProxies = true;
     }
 
@@ -39,7 +38,8 @@ function loadVue() {
         computed: {
             player() { return window.player; },
             tmp() { return window.tmp; },
-            options() { return window.options; }
+            options() { return window.options; },
+            activePopups() { return window.activePopups; }
         }
     });
 

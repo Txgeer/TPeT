@@ -14,7 +14,7 @@ let modInfo = {
         "utils.js",
         "technical/systemComponents.js",
         "technical/canvas.js",
-        "technical/particleSystem.js",
+		"technical/particleSystem.js",
         "components.js",
 		"game.js",
         "layers.js",

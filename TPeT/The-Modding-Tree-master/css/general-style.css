@@ -184,3 +184,56 @@ h1, h2, h3, b, input {
     font-size: 0.8rem;
     opacity: 0.7;
 }
+
+/* ========== 自定义滚动条 ========== */
+/* WebKit 浏览器 */
+::-webkit-scrollbar {
+    width: 15px;
+    height: 15px;
+    background-color: transparent;
+}
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 0 !important;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--color);
+    border-radius: 0 !important;
+    border: none;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--points);
+}
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* Firefox 浏览器 */
+* {
+    scrollbar-width: auto;      /* auto 比 thin 更粗 */
+    scrollbar-color: var(--color) rgba(0, 0, 0, 0.3);
+}
+
+.bg2 {
+    background: linear-gradient(125deg, #000000, #001f3f, #003f3f, #000000);
+    background-size: 200% 200%;
+    animation: subtleShift 25s ease infinite;
+    opacity: 0.9;
+}
+
+@keyframes subtleShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* 隐藏原生滚动条，但保留滚动功能 */
+#treeTab, #treeOverlay {
+    overflow-y: auto;
+    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;  /* IE/Edge */
+}
+#treeTab::-webkit-scrollbar,
+#treeOverlay::-webkit-scrollbar {
+    display: none;  /* Chrome/Safari */
+}

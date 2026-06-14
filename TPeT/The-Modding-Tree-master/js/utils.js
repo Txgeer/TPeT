@@ -385,7 +385,7 @@ function doPopup(type = "none", text = "This is a test popup.", title = "", time
 	popupMessage = text;
 	popupTimer = timer;
 
-	activePopups.push({ "time": popupTimer, "type": popupType, "title": popupTitle, "message": (popupMessage + "\n"), "id": popupID, "color": color })
+	window.activePopups.push({ "time": popupTimer, "type": popupType, "title": popupTitle, "message": (popupMessage + "\n"), "id": popupID, "color": color });
 	popupID++;
 
 	if (type === "achievement") {
@@ -405,12 +405,13 @@ function doPopup(type = "none", text = "This is a test popup.", title = "", time
 
 //Function to reduce time on active popups
 function adjustPopupTime(diff) {
-	for (popup in activePopups) {
-		activePopups[popup].time -= diff;
-		if (activePopups[popup]["time"] < 0) {
-			activePopups.splice(popup, 1); // Remove popup when time hits 0
-		}
-	}
+    if (!window.activePopups) return;
+    for (let popup in window.activePopups) {
+        window.activePopups[popup].time -= diff;
+        if (window.activePopups[popup]["time"] < 0) {
+            window.activePopups.splice(popup, 1);
+        }
+    }
 }
 
 function run(func, target, args = null) {

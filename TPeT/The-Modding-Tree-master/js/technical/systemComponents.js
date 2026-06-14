@@ -170,7 +170,7 @@ var systemComponents = {
                     <tr>
                         <td><button class="opt" @click="() => save()">保存</button></td>
                         <td><button class="opt" @click="() => toggleOpt('autosave')">自动保存: {{ options.autosave ? "开" : "关" }}</button></td>
-                        <td><button class="opt" @click="() => hardReset()">硬复位</button></td>
+                        <td><button class="hard-reset-btn" @click="() => hardReset()">硬复位</button></td>
                     </tr>
                     <tr>
                         <td><button class="opt" @click="() => exportSave()">导出到剪切板</button></td>
@@ -196,7 +196,7 @@ var systemComponents = {
             </table>
         </div>
     `
-},
+    },
 
     'back-button': {
         template: `
