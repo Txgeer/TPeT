@@ -289,7 +289,6 @@ function NaNcheck(data) {
 		}
 		else if (data[item] !== data[item] || checkDecimalNaN(data[item])) {
 			if (!NaNalert) {
-				clearInterval(interval);
 				NaNalert = true;
 				alert("Invalid value found in player, named '" + item + "'. Please let the creator of this mod know! You can refresh the page, and you will be un-NaNed.")
 				return
@@ -365,15 +364,18 @@ function versionCheck() {
 		player.beta = VERSION.beta;
 	}
 }
-var saveInterval = setInterval(function () {
-	if (!player || !tmp) return;
-	if (player === undefined)
-		return;
-	if (tmp.gameEnded && !player.keepGoing)
-		return;
-	if (window.options.autosave)
-		save();
-}, 5000);
+
+var saveInterval = null;
+
+function startSaveInterval() {
+    if (saveInterval) clearInterval(saveInterval);
+    saveInterval = setInterval(function () {
+        if (!player || !tmp) return;
+        if (player === undefined) return;
+        if (tmp.gameEnded && !player.keepGoing) return;
+        if (window.options.autosave) save();
+    }, 5000);
+}
 
 window.onbeforeunload = () => {
     if (window.options.autosave) {

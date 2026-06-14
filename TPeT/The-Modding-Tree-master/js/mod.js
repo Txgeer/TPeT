@@ -12,11 +12,11 @@ let modInfo = {
         "technical/temp.js",
         "technical/displays.js",
         "utils.js",
-        "game.js",
         "technical/systemComponents.js",
         "technical/canvas.js",
         "technical/particleSystem.js",
         "components.js",
+		"game.js",
         "layers.js",
         "tree.js"
 	],
@@ -29,11 +29,13 @@ let modInfo = {
 let getModID = () => modInfo.id ?? `${modInfo.name.replace(/\s+/g, '-')}-${modInfo.author.replace(/\s+/g, '-')}`;
 // Set your version in num and name
 let VERSION = {
-	num: "0.9",
-	name: "万物终？结",
+	num: "0.9.1",
+	name: "万物终？结"
 }
 
 let changelog = `<h1>更新日志:</h1><br>
+    <h3>v0.9.1 2026.6.14</h3><br>
+		- 添加开始界面。<br>
     <h3>v0.9 2026.6.14</h3><br>
 		- 完全重构游戏。<br>
     <h3>v0.8.1 2026.6.5</h3><br>

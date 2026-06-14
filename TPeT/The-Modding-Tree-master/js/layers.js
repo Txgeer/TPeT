@@ -121,8 +121,8 @@ addLayer("a", {
     symbol: "A", // This appears on the layer's node. Default is the id with the first letter capitalized
     position: 0, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
     startData() { return {
-        unlocked: true,
-		points: new Decimal(0),
+        unlocked: true, 
+		points: new Decimal(0), 
     }},
     color: "#ffff3f",
     requires: new Decimal(25), // Can be a function that takes requirement increases into account
@@ -275,8 +275,8 @@ addLayer("p", {
     symbol: "P", // This appears on the layer's node. Default is the id with the first letter capitalized
     position: 0, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
     startData() { return {
-        unlocked: true,
-		points: new Decimal(0),
+        unlocked: true, 
+		points: new Decimal(0), 
     }},
     color: "#7f7f7f",
     requires: new Decimal(10), // Can be a function that takes requirement increases into account
@@ -780,10 +780,10 @@ addLayer("k", {
     symbol: "K", // This appears on the layer's node. Default is the id with the first letter capitalized
     position: 0, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
     startData() { return {
-        unlocked: true,
-		points: new Decimal(0),
-        milk: new Decimal(0),
-        milkGainRate: new Decimal(0),
+        unlocked: true, 
+		points: new Decimal(0), 
+        milk: new Decimal(0), 
+        milkGainRate: new Decimal(0), 
     }},
     color: "#bfbfbf",
     requires: new Decimal(200), // Can be a function that takes requirement increases into account
@@ -1147,10 +1147,10 @@ addLayer("b", {
     symbol: "B", // This appears on the layer's node. Default is the id with the first letter capitalized
     position: 1, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
     startData() { return {
-        unlocked: true,
-		points: new Decimal(0),
-        power: new Decimal(0),
-        powerGainRate: new Decimal(0),
+        unlocked: true, 
+		points: new Decimal(0),  
+        power: new Decimal(0), 
+        powerGainRate: new Decimal(0), 
     }},
     color: "#af0000",
     requires: new Decimal(200000), // Can be a function that takes requirement increases into account
@@ -1399,8 +1399,8 @@ addLayer("c", {
     symbol: "C", // This appears on the layer's node. Default is the id with the first letter capitalized
     position: 2, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
     startData() { return {
-        unlocked: true,
-		points: new Decimal(0),
+        unlocked: true, 
+		points: new Decimal(0), 
     }},
     color: "#7fff7f",
     requires: new Decimal(36), // Can be a function that takes requirement increases into account
@@ -1695,7 +1695,9 @@ addLayer("e", {
     name: "增强者",
     symbol: "E",
     position: 0,
-    startData() { return { unlocked: true, points: new Decimal(0),fastBuy: false }; },
+    startData() { return { unlocked: true,  
+        points: new Decimal(0), 
+        fastBuy: false }; }, 
     color: "#bf00ff",
     requires: new Decimal(9e15),
     resource: "增强器",
@@ -1975,21 +1977,21 @@ addLayer("cr", {
     name: "色彩",
     symbol: "CR",
     position: 1,
-    startData() { return { unlocked: true,points: new Decimal(0),
-    redchroma: new Decimal(0),redchromaGainRate: new Decimal(0),
-    greenchroma: new Decimal(0),greenchromaGainRate: new Decimal(0),
-    bluechroma: new Decimal(0),bluechromaGainRate: new Decimal(0),
-    graychroma: new Decimal(0),graychromaGainRate: new Decimal(0),
-    yellowchroma: new Decimal(0),yellowchromaGainRate: new Decimal(0),
-    magentachroma: new Decimal(0),magentachromaGainRate: new Decimal(0),
-    cyanchroma: new Decimal(0),cyanchromaGainRate: new Decimal(0),
-    blackchroma: new Decimal(0),blackchromaGainRate: new Decimal(0),
-    orangechroma: new Decimal(0),orangechromaGainRate: new Decimal(0),
-    brownchroma: new Decimal(0),brownchromaGainRate: new Decimal(0),
-    purplechroma: new Decimal(0),purplechromaGainRate: new Decimal(0),
-    beigechroma: new Decimal(0),beigechromaGainRate: new Decimal(0),
-    pinkchroma: new Decimal(0),pinkchromaGainRate: new Decimal(0),
-    tealchroma: new Decimal(0),tealchromaGainRate: new Decimal(0),};},
+    startData() { return { unlocked: true, points: new Decimal(0), 
+    redchroma: new Decimal(0), redchromaGainRate: new Decimal(0), 
+    greenchroma: new Decimal(0), greenchromaGainRate: new Decimal(0), 
+    bluechroma: new Decimal(0), bluechromaGainRate: new Decimal(0), 
+    graychroma: new Decimal(0), graychromaGainRate: new Decimal(0), 
+    yellowchroma: new Decimal(0), yellowchromaGainRate: new Decimal(0), 
+    magentachroma: new Decimal(0), magentachromaGainRate: new Decimal(0), 
+    cyanchroma: new Decimal(0), cyanchromaGainRate: new Decimal(0), 
+    blackchroma: new Decimal(0), blackchromaGainRate: new Decimal(0), 
+    orangechroma: new Decimal(0), orangechromaGainRate: new Decimal(0), 
+    brownchroma: new Decimal(0), brownchromaGainRate: new Decimal(0), 
+    purplechroma: new Decimal(0), purplechromaGainRate: new Decimal(0), 
+    beigechroma: new Decimal(0), beigechromaGainRate: new Decimal(0), 
+    pinkchroma: new Decimal(0), pinkchromaGainRate: new Decimal(0), 
+    tealchroma: new Decimal(0), tealchromaGainRate: new Decimal(0), }; },
     color: "#ffffff",
     requires: new Decimal(5e25),
     resource: "色度",
@@ -2870,16 +2872,17 @@ addLayer("m", {
     name: "主机",
     symbol: "M",
     position: 0,
-    startData() { return { unlocked: true,points: new Decimal(0),
-    byte: new Decimal(0),byteGainRate: new Decimal(0),
-    hdd: new Decimal(0),hddGainRate: new Decimal(0),
-    ssd: new Decimal(0),ssdGainRate: new Decimal(0),
-    pagefile: new Decimal(0),pagefileGainRate: new Decimal(0),
-    ram: new Decimal(0),ramGainRate: new Decimal(0),
-    l3Cache: new Decimal(0),l3CacheGainRate: new Decimal(0),
-    l2Cache: new Decimal(0),l2CacheGainRate: new Decimal(0),
-    l1Cache: new Decimal(0),l1CacheGainRate: new Decimal(0),
-    register: new Decimal(0),registerGainRate: new Decimal(0),}; },
+    startData() { return { unlocked: true, 
+        points: new Decimal(0), 
+    byte: new Decimal(0), byteGainRate: new Decimal(0), 
+    hdd: new Decimal(0), hddGainRate: new Decimal(0), 
+    ssd: new Decimal(0), ssdGainRate: new Decimal(0), 
+    pagefile: new Decimal(0), pagefileGainRate: new Decimal(0), 
+    ram: new Decimal(0), ramGainRate: new Decimal(0), 
+    l3Cache: new Decimal(0), l3CacheGainRate: new Decimal(0), 
+    l2Cache: new Decimal(0), l2CacheGainRate: new Decimal(0), 
+    l1Cache: new Decimal(0), l1CacheGainRate: new Decimal(0), 
+    register: new Decimal(0), registerGainRate: new Decimal(0), }; },
     color: "#ffffff",
     requires: new Decimal(1e9),
     resource: "主机端口",

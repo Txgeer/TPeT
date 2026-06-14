@@ -25,7 +25,8 @@ var colors = {
 };
 
 function changeTheme() {
-    let colors_theme = colors[options.theme || "default"];
+    if (!options && !window.options) return;
+    let colors_theme = colors[(options || window.options).theme || "default"];
     window.colors_theme = colors_theme;
     document.body.style.setProperty('--background', colors_theme["background"]);
     document.body.style.setProperty('--background_tooltip', colors_theme["background_tooltip"]);

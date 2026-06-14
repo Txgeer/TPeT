@@ -307,32 +307,37 @@ function addTime(diff, layer) {
 shiftDown = false
 ctrlDown = false
 
-document.onkeydown = function (e) {
-	if (player === undefined) return;
-	shiftDown = e.shiftKey
-	ctrlDown = e.ctrlKey
-	if (tmp.gameEnded && !player.keepGoing) return;
-	let key = e.key
-	if (ctrlDown) key = "ctrl+" + key
-	if (onFocused) return
-	if (ctrlDown && hotkeys[key]) e.preventDefault()
-	if (hotkeys[key]) {
-		let k = hotkeys[key]
-		if (player[k.layer].unlocked && tmp[k.layer].hotkeys[k.id].unlocked)
-			k.onPress()
-	}
+function initUtils() {
+    window.shiftDown = false;
+    window.ctrlDown = false;
+
+    document.onkeydown = function (e) {
+        if (typeof player === 'undefined' || player === null) return;
+        window.shiftDown = e.shiftKey;
+        window.ctrlDown = e.ctrlKey;
+        if (tmp && tmp.gameEnded && !player.keepGoing) return;
+        let key = e.key;
+        if (window.ctrlDown) key = "ctrl+" + key;
+        if (window.onFocused) return;
+        if (window.ctrlDown && hotkeys && hotkeys[key]) e.preventDefault();
+        if (hotkeys && hotkeys[key]) {
+            let k = hotkeys[key];
+            if (player[k.layer] && player[k.layer].unlocked && tmp[k.layer].hotkeys[k.id].unlocked)
+                k.onPress();
+        }
+    };
+
+    document.onkeyup = function (e) {
+        window.shiftDown = e.shiftKey;
+        window.ctrlDown = e.ctrlKey;
+    };
+
+    window.onFocused = false;
 }
 
-document.onkeyup = function (e) {
-	shiftDown = e.shiftKey
-	ctrlDown = e.ctrlKey
-}
-
-var onFocused = false
-function focused(x) {
-	onFocused = x
-}
-
+window.focused = function(x) {
+    window.onFocused = x;
+};
 
 function isFunction(obj) {
 	return !!(obj && obj.constructor && obj.call && obj.apply);

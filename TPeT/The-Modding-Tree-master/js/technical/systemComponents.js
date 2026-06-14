@@ -23,8 +23,8 @@ var systemComponents = {
 	'tree-node': {
 		props: ['layer', 'abb', 'size', 'prev'],
 		template: `
-		<button v-if="nodeShown(layer)"
-			v-bind:id="layer"
+		<button v-if="tmp[layer] && tmp[layer].symbol !== undefined && nodeShown(layer)"
+        v-bind:id="layer"
 			v-on:click="() => {
 				if (shiftDown) player[layer].forceTooltip = !player[layer].forceTooltip
 				else if(tmp[layer].isLayer) {
@@ -40,24 +40,25 @@ var systemComponents = {
 
 
 			v-bind:class="{
-				treeNode: tmp[layer].isLayer,
-				treeButton: !tmp[layer].isLayer,
-				smallNode: size == 'small',
-				[layer]: true,
-				tooltipBox: true,
-				forceTooltip: player[layer].forceTooltip,
-				ghost: tmp[layer].layerShown == 'ghost',
-				hidden: !tmp[layer].layerShown,
-				locked: tmp[layer].isLayer ? !(player[layer].unlocked || tmp[layer].canReset) : !(tmp[layer].canClick),
-				notify: tmp[layer].notify && player[layer].unlocked,
-				resetNotify: tmp[layer].prestigeNotify,
-				can: ((player[layer].unlocked || tmp[layer].canReset) && tmp[layer].isLayer) || (!tmp[layer].isLayer && tmp[layer].canClick),
-				front: !tmp.scrolled,
-			}"
-			v-bind:style="constructNodeStyle(layer)">
-			<span v-html="(abb !== '' && tmp[layer].image === undefined) ? abb : '&nbsp;'"></span>
+        treeNode: tmp[layer].isLayer,
+        treeButton: !tmp[layer].isLayer,
+        smallNode: size == 'small',
+        [layer]: true,
+        tooltipBox: true,
+        forceTooltip: player[layer].forceTooltip,
+        ghost: tmp[layer].layerShown == 'ghost',
+        hidden: !tmp[layer].layerShown,
+        locked: tmp[layer].isLayer ? !(player[layer].unlocked || tmp[layer].canReset) : !(tmp[layer].canClick),
+        notify: tmp[layer].notify && player[layer].unlocked,
+        resetNotify: tmp[layer].prestigeNotify,
+        can: ((player[layer].unlocked || tmp[layer].canReset) && tmp[layer].isLayer) || (!tmp[layer].isLayer && tmp[layer].canClick),
+        front: !tmp.scrolled,
+        'just-unlocked': player[layer].justUnlocked
+        }"
+        v-bind:style="constructNodeStyle(layer)">
+			<span v-html="(tmp[layer] && tmp[layer].image === undefined && abb && abb !== '') ? abb : '&nbsp;'"></span>
 			<tooltip
-      v-if="tmp[layer].tooltip != ''"
+        v-if="tmp[layer].tooltip != ''"
 			:text="(tmp[layer].isLayer) ? (
 				player[layer].unlocked ? (tmp[layer].tooltip ? tmp[layer].tooltip : formatWhole(player[layer].points) + ' ' + tmp[layer].resource)
 				: (tmp[layer].tooltipLocked ? tmp[layer].tooltipLocked : 'Reach ' + formatWhole(tmp[layer].requires) + ' ' + tmp[layer].baseResource + ' to unlock (你有 ' + formatWhole(tmp[layer].baseAmount) + ' ' + tmp[layer].baseResource + ')')

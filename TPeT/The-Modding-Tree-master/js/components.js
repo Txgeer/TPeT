@@ -26,6 +26,9 @@ function loadVue() {
         window.__reactiveProxies = true;
     }
 
+    if (window.__vueMounted) return;
+    window.__vueMounted = true;
+
     const app = Vue.createApp({
         mounted() {
             window.__vueRoot = this;
@@ -532,7 +535,7 @@ function loadVue() {
         <div>
             <div class="upgRow" v-for="(row, r) in data" :key="r">
                 <span v-for="(node, id) in row" :key="id" style="width: 0px;">
-                    <tree-node :layer="node" :prev="layer" :abb="tmp[node].symbol"></tree-node>
+                    <tree-node v-if="tmp[node]" :layer="node" :prev="layer" :abb="tmp[node].symbol || ''"></tree-node>
                 </span>
                 <div style="display: inline-block;">
                     <button class="treeNode hidden"></button>

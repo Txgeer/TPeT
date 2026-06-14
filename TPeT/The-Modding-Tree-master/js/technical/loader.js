@@ -29,15 +29,6 @@ function startLoadingModFiles() {
 
 function tryStartGame() {
     if (loadedCount === modFiles.length) {
-        function checkAndLoad() {
-            if (typeof Vue !== 'undefined' && typeof load === 'function') {
-                load();
-            } else {
-                console.warn('Vue or load() not ready, retrying...');
-                setTimeout(checkAndLoad, 50);
-            }
-        }
-        checkAndLoad();
     }
 }
 

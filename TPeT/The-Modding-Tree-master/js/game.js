@@ -195,16 +195,23 @@ function doReset(layer, force=false) {
 		updateMilestones(layer)
 		updateAchievements(layer)
 
-		if (!player[layer].unlocked) {
-			player[layer].unlocked = true;
-			needCanvasUpdate = true;
+		// game.js - doReset 函数片段
 
-			if (tmp[layer].increaseUnlockOrder){
-				lrs = tmp[layer].increaseUnlockOrder
-				for (lr in lrs)
-					if (!player[lrs[lr]].unlocked) player[lrs[lr]].unlockOrder++
-			}
-		}
+    if (!player[layer].unlocked) {
+    player[layer].unlocked = true;
+    needCanvasUpdate = true;
+
+    player[layer].justUnlocked = true;
+    setTimeout(() => {
+        if (player[layer]) player[layer].justUnlocked = false;
+    }, 2000);
+
+    if (tmp[layer].increaseUnlockOrder){
+        lrs = tmp[layer].increaseUnlockOrder
+        for (lr in lrs)
+            if (!player[lrs[lr]].unlocked) player[lrs[lr]].unlockOrder++
+    }
+    }
     }
 
 	if (run(layers[layer].resetsNothing, layers[layer])) return
@@ -398,60 +405,6 @@ function hardReset(resetOptions) {
 }
 
 var ticking = false;
-
-// 安全获取原始 setInterval（避免被覆盖）
-var safeSetInterval = (function() {
-    return window.setInterval.bind(window);
-})();
-
-var interval = safeSetInterval(function() {
-    if (typeof player === 'undefined' || player === null || typeof tmp === 'undefined' || tmp === null) return;
-    if (ticking) return;
-    if (tmp.gameEnded && !player.keepGoing) return;
-    ticking = true;
-    let now = Date.now();
-    let diff = (now - player.time) / 1e3;
-    let trueDiff = diff;
-    if (player.offTime !== undefined) {
-        if (player.offTime.remain > modInfo.offlineLimit * 3600) player.offTime.remain = modInfo.offlineLimit * 3600;
-        if (player.offTime.remain > 0) {
-            let offlineDiff = Math.max(player.offTime.remain / 10, diff);
-            player.offTime.remain -= offlineDiff;
-            diff += offlineDiff;
-        }
-        if (!options.offlineProd || player.offTime.remain <= 0) player.offTime = undefined;
-    }
-    if (player.m && player.m.unlocked && player.m.byte && player.m.byte.gt(0)) {
-    let speedMult = getByteSpeedMult();
-    let mult = speedMult.toNumber();
-    mult = Math.min(mult);
-    if (mult < 0) mult = 1;
-    diff *= mult;
-    tmp.speedMult = mult;
-    } else {
-    tmp.speedMult = 1;
-    }
-player.time = now;
-    if (needCanvasUpdate) {
-        resizeCanvas();
-        needCanvasUpdate = false;
-    }
-    tmp.scrolled = document.getElementById('treeTab') && document.getElementById('treeTab').scrollTop > 30;
-    updateTemp();
-    player.tick = new Decimal(diff);
-    updateOomps(diff);
-    updateWidth();
-    updateTabFormats();
-    gameLoop(diff);
-    fixNaNs();
-    adjustPopupTime(trueDiff);
-    updateParticles(trueDiff);
-    ticking = false;
-}, 50);
-
-var canvasInterval = safeSetInterval(function() {
-    needCanvasUpdate = true;
-}, 500);
 // ========== 拖拽批量购买（支持触摸屏） ==========
 (function() {
     let isDragging = false;
@@ -562,7 +515,6 @@ function initBgm() {
         bgm.src = './resources/bgm.mp3';
         bgm.preload = 'auto';
         bgm.load();
-        bgm.oncanplaythrough = () => console.log("音频已就绪");
     }
 }
 
@@ -572,18 +524,6 @@ function initMusic() {
     bgm.addEventListener('play', () => { musicPlaying = true; });
     bgm.addEventListener('pause', () => { musicPlaying = false; });
     bgm.addEventListener('ended', () => { musicPlaying = false; });
-
-    let firstInteractionDone = false;
-    const events = ['click', 'touchstart', 'keydown'];
-    const tryAutoPlay = () => {
-        if (firstInteractionDone) return;
-        firstInteractionDone = true;
-        events.forEach(ev => document.removeEventListener(ev, tryAutoPlay));
-        if (bgm.paused) {
-            bgm.play().catch(e => console.warn("自动播放失败:", e));
-        }
-    };
-    events.forEach(ev => document.addEventListener(ev, tryAutoPlay));
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -596,7 +536,6 @@ let musicLoading = false;
 function toggleMusic() {
     let bgm = getBgm();
     if (musicLoading) {
-        console.log("音乐正在加载，请稍后再试");
         return;
     }
 
@@ -646,3 +585,193 @@ function updateBackgroundStyle() {
     }
     if (typeof needCanvasUpdate !== 'undefined') needCanvasUpdate = true;
 }
+// ========== 开始界面和延迟启动 ==========
+let gameStarted = false;
+let gameIntervals = [];
+
+function startIntervals() {
+    if (gameIntervals.length) {
+        gameIntervals.forEach(clearInterval);
+        gameIntervals = [];
+    }
+    
+    gameIntervals.push(setInterval(function() {
+        if (!player || !tmp || !gameStarted) return;
+        if (ticking) return;
+        if (tmp.gameEnded && !player.keepGoing) return;
+        ticking = true;
+        let now = Date.now();
+        let diff = (now - player.time) / 1e3;
+        let trueDiff = diff;
+        if (player.offTime !== undefined) {
+            if (player.offTime.remain > modInfo.offlineLimit * 3600) player.offTime.remain = modInfo.offlineLimit * 3600;
+            if (player.offTime.remain > 0) {
+                let offlineDiff = Math.max(player.offTime.remain / 10, diff);
+                player.offTime.remain -= offlineDiff;
+                diff += offlineDiff;
+            }
+            if (!options.offlineProd || player.offTime.remain <= 0) player.offTime = undefined;
+        }
+        if (player.m && player.m.unlocked && player.m.byte && player.m.byte.gt(0)) {
+            let speedMult = getByteSpeedMult();
+            let mult = speedMult.toNumber();
+            mult = Math.min(mult);
+            if (mult < 0) mult = 1;
+            diff *= mult;
+            tmp.speedMult = mult;
+        } else {
+            tmp.speedMult = 1;
+        }
+        player.time = now;
+        if (needCanvasUpdate) {
+            resizeCanvas();
+            needCanvasUpdate = false;
+        }
+        tmp.scrolled = document.getElementById('treeTab') && document.getElementById('treeTab').scrollTop > 30;
+        updateTemp();
+        player.tick = new Decimal(diff);
+        updateOomps(diff);
+        updateWidth();
+        updateTabFormats();
+        gameLoop(diff);
+        fixNaNs();
+        adjustPopupTime(trueDiff);
+        updateParticles(trueDiff);
+        ticking = false;
+    }, 50));
+    
+    gameIntervals.push(setInterval(function() {
+        needCanvasUpdate = true;
+    }, 500));
+}
+
+function startGameEngine() {
+    if (gameStarted) return;
+    gameStarted = true;
+    player.time = Date.now();
+    
+    updateTemp();
+    updateTemp();
+    
+    if (typeof initUtils === 'function') initUtils();
+    loadVue();
+    startIntervals();
+    if (typeof startSaveInterval === 'function') startSaveInterval();
+    
+    let bgm = getBgm();
+    if (window.options.musicEnabled && bgm.paused) {
+        bgm.play().catch(e => console.warn("音乐播放失败", e));
+    }
+}
+
+function resetToNewGame() {
+    localStorage.removeItem(getModID());
+    localStorage.removeItem(getModID() + "_options");
+    player = getStartplayer();
+    window.options = getStartOptions();
+    options = window.options;
+    fixSave();
+    updateLayers();
+    setupTemp();
+    updateTemp();
+    setupModInfo();
+    changeTheme();
+    applyZoomSetting();
+    applyTextSelectSetting();
+}
+
+function loadGameDataOnly() {
+    let hasSave = false;
+try {
+    const saveStr = localStorage.getItem(getModID());
+    if (saveStr && saveStr.length > 0) {
+        const decoded = b64_to_utf8(saveStr);
+        const loadedPlayer = JSON.parse(decoded);
+        // 真正有效的存档必须版本匹配
+        if (loadedPlayer) {
+        window.player = loadedPlayer;
+        if (loadedPlayer.versionType !== getModID()) {
+        console.warn("存档版本不匹配（存档版:", loadedPlayer.versionType, "当前模组:", getModID(), "），尝试加载，如有异常请重新开始。");
+        window.player.versionType = getModID();
+        }
+        hasSave = true;
+    }
+    else {
+    window.player = getStartplayer();
+    }
+        } else {
+            window.player = getStartplayer();
+        }
+        window.options = getStartOptions();
+        loadOptions();
+    } catch(e) {
+        window.player = getStartplayer();
+        window.options = getStartOptions();
+    }
+    if (!window.player) window.player = getStartplayer();
+    if (!window.options) window.options = getStartOptions();
+    
+    fixSave();
+    updateLayers();
+    setupTemp();
+    updateTemp();
+    updateTabFormats();
+    resizeCanvas();
+    applyZoomSetting();
+    applyTextSelectSetting();
+    setupModInfo();
+    changeTheme();
+    return hasSave;
+}
+
+(function() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initStartScreen);
+    } else {
+        initStartScreen();
+    }
+
+    function initStartScreen() {
+        initBgm();
+
+        const versionEl = document.getElementById('startScreenVersion');
+        if (versionEl && typeof VERSION !== 'undefined' && VERSION.withName) {
+        versionEl.textContent = VERSION.withName;
+    }
+
+        const startScreen = document.getElementById('startScreen');
+        if (startScreen) {
+            const newBtn = document.getElementById('newGameBtn');
+            const loadBtn = document.getElementById('loadGameBtn');
+
+            let hasSave = false;
+            try {
+                const saveStr = localStorage.getItem(getModID());
+                hasSave = saveStr && saveStr.length > 0;
+            } catch(e) {}
+            if (hasSave && loadBtn) loadBtn.style.display = 'inline-block';
+
+            const startGame = (loadSave) => {
+                try {
+                    if (loadSave && hasSave) {
+                        loadGameDataOnly();
+                    } else {
+                        resetToNewGame();
+                    }
+                    startGameEngine();
+                    startScreen.style.opacity = '0';
+                    setTimeout(() => startScreen.remove(), 500);
+                } catch (e) {
+                    console.error("启动游戏时出错:", e);
+                    alert("启动失败，请查看控制台错误：" + e.message);
+                }
+            };
+
+            newBtn?.addEventListener('click', () => startGame(false));
+            if (loadBtn) loadBtn.addEventListener('click', () => startGame(true));
+        } else {
+            loadGameDataOnly();
+            startGameEngine();
+        }
+    }
+})();

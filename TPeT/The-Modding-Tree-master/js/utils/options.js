@@ -20,9 +20,19 @@ function getStartOptions() {
     }
 }
 
+function applyTextSelectSetting() {
+    if (!window.options) return;
+    if (window.options.textSelect) {
+        document.body.classList.remove('disable-text-select');
+    } else {
+        document.body.classList.add('disable-text-select');
+    }
+}
+
 function applyZoomSetting() {
     const viewport = document.getElementById('viewportMeta');
     if (!viewport) return;
+    if (!window.options) return;
     if (window.options.enableZoom) {
         viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, viewport-fit=cover');
     } else {
@@ -39,7 +49,7 @@ function toggleOpt(name) {
         changeTreeQuality();
     if (name == "oldStyle")
         updateStyle();
-    save(); // 添加保存，确保设置持久化
+    save();
 }
 
 var styleCooldown = 0;
@@ -108,13 +118,5 @@ function toggleTextSelect() {
     window.options.textSelect = !window.options.textSelect;
     applyTextSelectSetting();
     save();
-}
-
-function applyTextSelectSetting() {
-    if (window.options.textSelect) {
-        document.body.classList.remove('disable-text-select');
-    } else {
-        document.body.classList.add('disable-text-select');
-    }
 }
 

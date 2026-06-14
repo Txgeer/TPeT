@@ -101,3 +101,37 @@
 .star:after {
 	transform: rotate(35deg);
 }
+
+/* tree-node.css */
+
+@keyframes unlockGlow {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 var(--points);
+        border-color: var(--points);
+        filter: brightness(1);
+    }
+    30% {
+        transform: scale(1.2);
+        box-shadow: 0 0 30px 10px var(--points);
+        border-color: var(--points);
+        filter: brightness(1.3);
+    }
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px 5px var(--points);
+        border-color: var(--points);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 var(--points);
+        border-color: rgba(0, 0, 0, 0.125);
+        filter: brightness(1);
+    }
+}
+
+.treeNode.just-unlocked {
+    animation: unlockGlow 1.2s ease-out forwards;
+    z-index: 9999;
+    position: relative;
+}

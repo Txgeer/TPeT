@@ -102,9 +102,85 @@ h1, h2, h3, b, input {
     50% { text-shadow: 0 0 20px var(--points); }
     100% { text-shadow: 0 0 0 var(--points); }
 }
+
 .disable-text-select {
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+}
+/* ========== 开始界面样式 ========== */
+.start-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    z-index: 100000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Bahnschrift', sans-serif;
+    transition: opacity 0.5s ease;
+}
+
+.start-card {
+    background: linear-gradient(135deg, #1a2a3a, #0a1a2a);
+    padding: 2rem 3rem;
+    border-radius: 2rem;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.game-title {
+    font-size: 3rem;
+    color: #007777;
+    text-shadow: 0 0 10px #003f3f;
+    margin-bottom: 0.5rem;
+}
+
+.version {
+    font-size: 1rem;
+    opacity: 0.8;
+    margin-bottom: 1.5rem;
+}
+
+.start-btn {
+    background: #2c3e50;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    padding: 0.5rem 2rem;
+    margin: 1rem 0.5rem;
+    border-radius: 3rem;
+    cursor: pointer;
+    transition: 0.2s;
+    font-weight: bold;
+}
+
+.start-btn:hover {
+    background: #bf7f00;
+    transform: scale(1.05);
+    box-shadow: 0 0 15px #bf7f00;
+}
+
+.credits {
+    margin-top: 1.5rem;
+    font-size: 0.8rem;
+    opacity: 0.7;
 }
