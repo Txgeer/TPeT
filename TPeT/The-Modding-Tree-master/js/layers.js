@@ -1,4 +1,5 @@
 function applySoftcap(value) {
+    value = new Decimal(value);
     let isSoftcap = false;
     let cap = new Decimal(100);
     if (player.c.activeChallenge === 12 || player.c.activeChallenge === 13 || player.c.activeChallenge === 21 || 
@@ -171,6 +172,12 @@ addLayer("a", {
         tooltip: "要求：获得 9e15 狂怒能量。<br>奖励：解锁挑战精神。",
         done() {return player.b.power.gte(9e15)},
     },
+    15: {
+        name: "从未止步",
+        tooltip: "要求：获得 1e45 蛮王经验值。<br>奖励：优化蛮王升级11 41 42 43的效果。",
+        done() {return player.points.gte(1e45)},
+        unlocked() {return (hasMilestone("m", 6))}
+    },
     21: {
     name: "超越极限",
     tooltip: function() {
@@ -207,6 +214,20 @@ addLayer("a", {
     name: "色彩入侵",
     tooltip: "要求：获得10000亮青色度。<br>奖励：解锁第四个增强工具。",
     done() { return player.cr.cyanchroma.gte(10000); }
+    },
+    25: {
+        name: "第三行的精华",
+        tooltip: function() {
+        if (hasAchievement(this.layer, this.id)) {
+            let eff = achievementEffect(this.layer, this.id);
+            return `要求：获得 1e32 挑战精神。<br>奖励：翻倍骑士团人口，挑战精神，增强器，色度和主机端口获取。<br>当前：${format(eff)}x`;
+        } else {
+            return `要求：获得 1e32 挑战精神。<br>奖励：翻倍骑士团人口，挑战精神，增强器，色度和主机端口获取。<br>当前：1.00x`;
+        }
+    },
+        done() {return player.points.gte(1e32)},
+        effect() {return 2},
+        unlocked() {return (hasMilestone("m", 6))}
     },
     31: {
     name: "牛奶帝国",
@@ -254,11 +275,22 @@ addLayer("a", {
     },
     34: {
     name: "万物终结",
-    tooltip: "要求：蛮王升级31的效果超过109倍。<br>奖励：优化字节的公式。",
+    tooltip: "要求：蛮王升级31的效果超过108.25倍。<br>奖励：优化字节的公式。",
     done() {
-        return upgradeEffect('p', 31).gt(109);
+        return upgradeEffect('p', 31).gt(108.25);
     }
-    }
+    },
+    35: {
+        name: "每个人都很棒 END",
+        tooltip: "要求：拥有每一种主机革新。<br>奖励：解锁终局条件。",
+        done() {
+        return getBuyableAmount("m", 11).gte(1) &&
+               getBuyableAmount("m", 12).gte(1) &&
+               getBuyableAmount("m", 13).gte(1) &&
+               getBuyableAmount("m", 14).gte(1)
+        },
+        unlocked() {return (hasMilestone("m", 6))}
+    },
 },
     tabFormat:{
         '成就':{
@@ -321,14 +353,17 @@ addLayer("p", {
             title: "蛮王出世",
             description: "翻倍蛮王经验值获取。<br>",
             cost: new Decimal(1),
-            effect() {
-            return hasChallenge('c', 13) ? 10 : 2;
+            effect(){
+            let multiple = hasChallenge('c', 13) ? 5 : 0;
+            let multiple2 = hasAchievement('a', 15) ? 1180 : 0;
+            let raw = 2 * multiple * multiple2;
+            return applySoftcap(raw);
             },
             effectDisplay() { 
-                if (hasUpgrade(this.layer, this.id)) 
-                return format(upgradeEffect(this.layer, this.id)) + "x"; 
-                else 
-                return "1.00x";
+            if (hasUpgrade(this.layer, this.id)) 
+            return getUpgradeDisplay(this.layer, this.id);
+            else 
+            return "1.00x";
             },// Add formatting to the effect
             unlocked() {
             if (player.c.activeChallenge === 13 || player.c.activeChallenge === 21 || player.c.activeChallenge === 22 || 
@@ -590,7 +625,8 @@ addLayer("p", {
             cost: new Decimal(1e18),
             effect() {
             let exponent = hasChallenge('c', 21) ? 0.5 : 0.2;
-            let raw = new Decimal(player.a.achievements.length).add(1).pow(exponent);
+            let exponent2 = hasAchievement('a', 15) ? 1.5 : 0;
+            let raw = new Decimal(player.a.achievements.length).add(1).pow(exponent + exponent2);
             return applySoftcap(raw);
             },
             effectDisplay() { 
@@ -613,7 +649,8 @@ addLayer("p", {
             cost: new Decimal(1e19),
             effect() {
             let exponent = hasChallenge('c', 13) ? 0.5 : 0.2;
-            let raw = buyableEffect("k", 21).mul(buyableEffect("k", 23)).pow(exponent);
+            let exponent2 = hasAchievement('a', 15) ? 1.5 : 0;
+            let raw = buyableEffect("k", 21).mul(buyableEffect("k", 23)).pow(exponent + exponent2);
             return applySoftcap(raw);
             },
             effectDisplay() { 
@@ -638,7 +675,8 @@ addLayer("p", {
             cost: new Decimal(1e20),
             effect() {
             let exponent = hasChallenge('c', 13) ? 0.5 : 0.2;
-            let raw = player.b.points.add(1).pow(exponent);
+            let exponent2 = hasAchievement('a', 15) ? 1.5 : 0;
+            let raw = player.b.points.add(1).pow(exponent + exponent2);
             return applySoftcap(raw);
             },
             effectDisplay() { 
@@ -800,6 +838,7 @@ addLayer("k", {
         if (hasUpgrade('b', 23)) mult = mult.times(upgradeEffect('b', 23))
         if (hasUpgrade('e', 11)) mult = mult.times(upgradeEffect('e', 11))
         if (hasUpgrade('e', 23)) mult = mult.times(upgradeEffect('e', 23))
+        if (hasAchievement('a', 25)) mult = mult.times(achievementEffect('a', 25))
         if (player.cr.bluechroma.gt(0)) {mult = mult.times(player.cr.bluechroma.log2().add(1))}
         let threshold = getCurrentThreshold();
         if (player.k.points.gte(threshold)) {
@@ -1415,6 +1454,7 @@ addLayer("c", {
         mult = mult.times(buyableEffect('e', 13))
         if (player.cr.cyanchroma.gt(0)) {mult = mult.times(player.cr.cyanchroma.log2().add(1))}
         if (hasUpgrade('e', 24)) mult = mult.times(upgradeEffect('e', 24))
+        if (hasAchievement('a', 25)) mult = mult.times(achievementEffect('a', 25))
         mult = mult.times(buyableEffect('k', 24))
         let threshold = getCurrentThreshold();
         if (player.c.points.gte(threshold)) {
@@ -1711,7 +1751,8 @@ addLayer("e", {
         mult = mult.times(buyableEffect('e', 12))
         mult = mult.times(buyableEffect('k', 24))
         if (player.cr.magentachroma.gt(0)) {mult = mult.times(player.cr.magentachroma.log2().add(1))}
-        if (hasAchievement('a', 31)) mult = mult.times(achievementEffect('a', 31))
+        if (hasAchievement('a', 25)) mult = mult.times(achievementEffect('a', 25))
+        if (hasAchievement('a', 31)) mult = mult.times(achievementEffect('a', 31)) 
         return mult;
     },
     gainExp() { return new Decimal(1); },
@@ -1805,16 +1846,21 @@ addLayer("e", {
             content: ['main-display', 'prestige-button', 'milestones']
         },
         "增强工具": {
-        content: [
+    content: function() {
+        let baseContent = [
             'main-display',
-            'prestige-button',
-            ['row', [['display-text', '快速购买：'], ['toggle', ['e', 'fastBuy']]]],
-            'buyables'
-        ],
-        unlocked() {
-            return player.e.hasAchieved23 === true;
+            'prestige-button'
+        ];
+        if (hasMilestone('e', 7)) {
+            baseContent.push(['row', [['display-text', '快速购买：'], ['toggle', ['e', 'fastBuy']]]]);
         }
-        }
+        baseContent.push('buyables');
+        return baseContent;
+    },
+    unlocked() {
+        return player.e.hasAchieved23 === true;
+    }
+    },
     },
     milestones:{
         1:
@@ -2004,6 +2050,7 @@ addLayer("cr", {
         let mult = new Decimal(1);
         if (player.cr.graychroma.gt(0)) {mult = mult.times(player.cr.graychroma.log2().add(1))}
         mult = mult.times(buyableEffect('k', 14))
+        if (hasAchievement('a', 25)) mult = mult.times(achievementEffect('a', 25))
         if (hasAchievement('a', 31)) mult = mult.times(achievementEffect('a', 31))
         if (hasUpgrade('cr', 24)) mult = mult.times(upgradeEffect('cr', 24))
         return mult;
@@ -2893,6 +2940,7 @@ addLayer("m", {
     branches: ["cr"],
     gainMult() {
         let mult = new Decimal(1);
+        if (hasAchievement('a', 25)) mult = mult.times(achievementEffect('a', 25))
         mult = mult.times(buyableEffect('m', 14));
         return mult;
     },
@@ -3125,7 +3173,16 @@ addLayer("m", {
         requirementDescription:"10 主机端口",
         effectDescription:"主机资源不再重置。",
         done() {return player.m.points.gte(10)}
+        },
+        6:
+        {
+        requirementDescription:"游戏速度达到8.2x",
+        effectDescription:"解锁第五列成就。",
+        done() {
+        if (!player.m || !player.m.byte) return false;
+        return getByteSpeedMult().gte(8.2);
         }
+        },
     },
     upgrades:{
         11: {

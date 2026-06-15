@@ -160,25 +160,6 @@ h1, h2, h3, b, input {
     margin-bottom: 1.5rem;
 }
 
-.start-btn {
-    background: #2c3e50;
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    padding: 0.5rem 2rem;
-    margin: 1rem 0.5rem;
-    border-radius: 3rem;
-    cursor: pointer;
-    transition: 0.2s;
-    font-weight: bold;
-}
-
-.start-btn:hover {
-    background: #bf7f00;
-    transform: scale(1.05);
-    box-shadow: 0 0 15px #bf7f00;
-}
-
 .credits {
     margin-top: 1.5rem;
     font-size: 0.8rem;

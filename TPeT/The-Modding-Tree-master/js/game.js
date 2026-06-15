@@ -687,7 +687,6 @@ try {
     if (saveStr && saveStr.length > 0) {
         const decoded = b64_to_utf8(saveStr);
         const loadedPlayer = JSON.parse(decoded);
-        // 真正有效的存档必须版本匹配
         if (loadedPlayer) {
         window.player = loadedPlayer;
         if (loadedPlayer.versionType !== getModID()) {
