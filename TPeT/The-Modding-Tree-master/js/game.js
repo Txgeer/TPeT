@@ -690,7 +690,6 @@ try {
         if (loadedPlayer) {
         window.player = loadedPlayer;
         if (loadedPlayer.versionType !== getModID()) {
-        console.warn("存档版本不匹配（存档版:", loadedPlayer.versionType, "当前模组:", getModID(), "），尝试加载，如有异常请重新开始。");
         window.player.versionType = getModID();
         }
         hasSave = true;

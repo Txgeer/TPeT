@@ -296,6 +296,9 @@ addLayer("a", {
         '成就':{
             content:[
             //['infoboxes','main-text'],
+            ['display-text', function() {
+                return `你有 <h3 style="color: #ffff3f; text-shadow: 10px">${formatWhole(player.a.achievements.length)}</h3> 成就`;
+            }],
             'achievements',
             ],
         },
@@ -354,8 +357,8 @@ addLayer("p", {
             description: "翻倍蛮王经验值获取。<br>",
             cost: new Decimal(1),
             effect(){
-            let multiple = hasChallenge('c', 13) ? 5 : 0;
-            let multiple2 = hasAchievement('a', 15) ? 1180 : 0;
+            let multiple = hasChallenge('c', 13) ? 5 : 1;
+            let multiple2 = hasAchievement('a', 15) ? 1180 : 1;
             let raw = 2 * multiple * multiple2;
             return applySoftcap(raw);
             },

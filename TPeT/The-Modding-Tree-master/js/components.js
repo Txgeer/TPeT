@@ -20,6 +20,9 @@ function loadVue() {
         }
         window.player = Vue.reactive(player);
         window.tmp = Vue.reactive(tmp);
+        window.options = Vue.reactive(options);
+        player = window.player;
+        tmp = window.tmp;
         options = window.options;
         window.activePopups = Vue.reactive(activePopups);
         window.__reactiveProxies = true;

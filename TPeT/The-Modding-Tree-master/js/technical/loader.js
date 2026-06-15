@@ -21,7 +21,6 @@ function startLoadingModFiles() {
 
     setTimeout(() => {
         if (loadedCount < modFiles.length) {
-            console.warn('Forcing game start after timeout');
             tryStartGame();
         }
     }, 5000);

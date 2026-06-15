@@ -130,6 +130,7 @@ function getPointGen() {
 	if (player.cr.redchroma.gt(0)) {gain = gain.times(player.cr.redchroma.log2().add(1))}
 	if (hasAchievement('a', 12)) gain = gain.times(achievementEffect('a', 12))
 	if (hasUpgrade('g', 22)) gain = gain.times(upgradeEffect('g', 22))
+	if (!(gain instanceof Decimal) || gain.lte(0)) gain = new Decimal(1)
 	return gain
 }
 
