@@ -3,23 +3,23 @@ let modInfo = {
 	author: "Txgeer",
 	pointsName: "蛮王经验值",
 	modFiles: [
-        "technical/layerSupport.js",
-        "utils/NumberFormating.js",
-        "utils/options.js",
-        "utils/themes.js",
-        "utils/easyAccess.js",
-        "technical/temp.js",
-        "technical/displays.js",
-        "utils.js",
-        "tree.js",
-		"utils/save.js",
-        "technical/systemComponents.js",
-        "technical/canvas.js",
-		"technical/particleSystem.js",
-        "components.js",
-		"game.js",
-        "layers.js",
-		],
+    "technical/layerSupport.js",
+    "utils/NumberFormating.js",
+    "utils/options.js",
+    "utils/themes.js",
+    "utils/easyAccess.js",
+    "technical/temp.js",
+    "technical/displays.js",
+    "utils.js",
+    "tree.js",
+    "utils/save.js",
+    "technical/systemComponents.js",
+    "technical/canvas.js",
+    "technical/particleSystem.js",
+    "layers.js",
+    "components.js",
+    "game.js"
+],
 
 	discordName: "",
 	discordLink: "",
@@ -112,8 +112,9 @@ function canGenPoints(){
 function getPointGen() {
 	if(!canGenPoints())
 		return new Decimal(1)
-
-	let gain = new Decimal(1)
+	if (!player || !player.p) 
+		return new Decimal(1)
+    let gain = new Decimal(1)
 	if (hasUpgrade('p', 11)) gain = gain.times(upgradeEffect('p', 11))
 	if (hasUpgrade('p', 12)) gain = gain.times(upgradeEffect('p', 12))
 	if (hasUpgrade('p', 22)) gain = gain.times(upgradeEffect('p', 22))
