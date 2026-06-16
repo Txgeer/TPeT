@@ -12,7 +12,6 @@ function startLoadingModFiles() {
             tryStartGame();
         };
         script.onerror = function() {
-            console.error(`Failed to load ${modFiles[i]}`);
             loadedCount++;
             tryStartGame();
         };
@@ -37,11 +36,9 @@ if (typeof Vue === 'undefined') {
     vueScript.async = false;
     document.head.appendChild(vueScript);
     vueScript.onload = function() {
-        console.log('Vue loaded successfully');
         startLoadingModFiles();
     };
     vueScript.onerror = function() {
-        console.error('Failed to load local Vue. Please check the file path js/vue.global.js');
         startLoadingModFiles();
     };
 } else {

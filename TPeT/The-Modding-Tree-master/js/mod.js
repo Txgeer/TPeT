@@ -29,13 +29,16 @@ let modInfo = {
 let getModID = () => modInfo.id ?? `${modInfo.name.replace(/\s+/g, '-')}-${modInfo.author.replace(/\s+/g, '-')}`;
 // Set your version in num and name
 let VERSION = {
-	num: "0.9.2",
+	num: "0.9.3",
 	name: "万物终？结"
 }
 
 let changelog = `<h1>更新日志:</h1><br>
+    <h3>v0.9.3 2026.6.17</h3><br>
+		- 添加游戏图标。<br>
     <h3>v0.9.2 2026.6.15</h3><br>
 		- 添加3个成就。<br>
+		- 终局：1e50 蛮王经验值。<br>
     <h3>v0.9.1 2026.6.14</h3><br>
 		- 添加开始界面。<br>
     <h3>v0.9 2026.6.14</h3><br>
@@ -46,6 +49,7 @@ let changelog = `<h1>更新日志:</h1><br>
 		- 添加主机，9个主机资源，8个主机升级和4个主机革新。<br>
 		- 添加2个成就。<br>
 		- 添加1个挑战。<br>
+		- 终局：1e45 蛮王经验值<br>
     <h3>v0.7 2026.6.1</h3><br>
 		- 添加4个φ 精华升级。<br>
 		- 添加1个成就。<br>
@@ -75,12 +79,12 @@ let changelog = `<h1>更新日志:</h1><br>
 		- 添加1个骑士可购买。<br>		
     <h3>v0.4.2 2026.5.14</h3><br>
 		- 添加4个蛮王升级。<br>
-		- 添加1个成就.<br>
-		- 添加1个挑战.<br>
+		- 添加1个成就。<br>
+		- 添加1个挑战。<br>
     <h3>v0.4.1 2026.5.10</h3><br>
-		- 重制本游戏.<br>
+		- 重制本游戏。<br>
 		- 添加4个成就。<br>
-		- 添加挑战者和1个挑战。.<br>
+		- 添加挑战者和1个挑战。<br>
     <h3>v0.4</h3><br>
 		- 添加狂战士。<br>
 		- 添加1个骑士可购买。<br>
@@ -89,7 +93,7 @@ let changelog = `<h1>更新日志:</h1><br>
     <h3>v0.2</h3><br>
 		- 添加骑士和Anya。<br>
 	<h3>v0.1</h3><br>
-		- 添加蛮王和9个蛮王升级.<br>
+		- 添加蛮王和9个蛮王升级。<br>
 	<h3>v0.0</h3><br>
 		-`
 
@@ -136,7 +140,9 @@ function getPointGen() {
 
 // You can add non-layer related variables that should to into "player" and be saved here, along with default values
 function addePlayerData() { return {
-	hasAchieved23: false
+	hasAchieved23: false,
+	milkUnlocked: false,
+	Antiteal:false
 }}
 
 function closeDragHint() {

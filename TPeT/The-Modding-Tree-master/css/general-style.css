@@ -84,7 +84,7 @@ h1, h2, h3, b, input {
 }
 
 #points {
-    background: #FFF;
+    background: #ffffff;
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;

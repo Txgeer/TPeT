@@ -1,6 +1,5 @@
 function loadVue() {
     if (typeof Vue === 'undefined') {
-        console.warn('Vue not loaded yet, retrying in 50ms...');
         setTimeout(loadVue, 50);
         return;
     }
@@ -90,8 +89,6 @@ function loadVue() {
     for (const fn of globalFunctionNames) {
         if (typeof window[fn] === 'function') {
             app.config.globalProperties[fn] = window[fn];
-        } else {
-            console.warn(`[Vue 3 Migration] Global function "${fn}" not found on window.`);
         }
     }
 

@@ -562,12 +562,6 @@ function toggleMusic() {
             save();
             musicLoading = false;
         }).catch((e) => {
-            console.error("播放失败:", e);
-            if (e.name === 'NotAllowedError') {
-                alert("浏览器不允许自动播放，请点击页面任意位置后再尝试开启音乐。");
-            } else {
-                alert("音乐文件可能不存在或格式不支持，请检查 resources/bgm.mp3");
-            }
             musicLoading = false;
         });
     } else {
@@ -760,8 +754,6 @@ try {
                     startScreen.style.opacity = '0';
                     setTimeout(() => startScreen.remove(), 500);
                 } catch (e) {
-                    console.error("启动游戏时出错:", e);
-                    alert("启动失败，请查看控制台错误：" + e.message);
                 }
             };
 

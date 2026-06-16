@@ -13931,7 +13931,6 @@ Make sure to use the production build (*.prod.js) when deploying for production.
     throw error;
   }
   function defaultOnWarn(msg) {
-    console.warn(`[Vue warn] ${msg.message}`);
   }
   function createCompilerError(code, loc, messages, additionalMessage) {
     const msg = (messages || errorMessages)[code] + (additionalMessage || ``) ;

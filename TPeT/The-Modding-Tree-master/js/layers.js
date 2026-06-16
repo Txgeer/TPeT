@@ -2611,10 +2611,10 @@ update(diff) {
     12: {
         name: "神圣解放 II",
         challengeDescription: "在 神圣解放 I 的基础上，禁用翠绿色度。",
-        goal: new Decimal(1.3e16),
-        goalDescription: "1.3e16 蛮王等级。",
+        goal: new Decimal(1.5e16),
+        goalDescription: "1.5e16 蛮王等级。",
         rewardDescription: "解锁新的色彩升级。",
-        canComplete() { return player.p.points.gte(1.3e16); },
+        canComplete() { return player.p.points.gte(1.5e16); },
         onComplete() {
         doPopup("challenge", "神圣解放 II 挑战完成！", "挑战完成", 3, "linear-gradient(135deg, #ff0000, #ff7f00, #ffff00, #7fff00, #00ff00, #00ff7f, #00ffff, #007fff, #0000ff, #7f00ff, #ff00ff, #ff007f)");
         },
@@ -2625,10 +2625,10 @@ update(diff) {
     13: {
         name: "神圣解放 III",
         challengeDescription: "在 神圣解放 II 的基础上，禁用苍蓝色度。",
-        goal: new Decimal(1.6e16),
-        goalDescription: "1.6e16 蛮王等级。",
+        goal: new Decimal(2e16),
+        goalDescription: "2e16 蛮王等级。",
         rewardDescription: "解锁新的色彩升级。",
-        canComplete() { return player.p.points.gte(1.6e16); },
+        canComplete() { return player.p.points.gte(2e16); },
         onComplete() {
         doPopup("challenge", "神圣解放 III 挑战完成！", "挑战完成", 3, "linear-gradient(135deg, #ff0000, #ff7f00, #ffff00, #7fff00, #00ff00, #00ff7f, #00ffff, #007fff, #0000ff, #7f00ff, #ff00ff, #ff007f)");
         },
@@ -2639,10 +2639,10 @@ update(diff) {
     21: {
         name: "神圣解放 IIII",
         challengeDescription: "在 神圣解放 III 的基础上，禁用中立色度。",
-        goal: new Decimal(2e16),
-        goalDescription: "2e16 蛮王等级。",
+        goal: new Decimal(2.5e16),
+        goalDescription: "2.5e16 蛮王等级。",
         rewardDescription: "解锁新的色彩升级。",
-        canComplete() { return player.p.points.gte(2e16); },
+        canComplete() { return player.p.points.gte(2.5e16); },
         onComplete() {
         doPopup("challenge", "神圣解放 IIII 挑战完成！", "挑战完成", 3, "linear-gradient(135deg, #ff0000, #ff7f00, #ffff00, #7fff00, #00ff00, #00ff7f, #00ffff, #007fff, #0000ff, #7f00ff, #ff00ff, #ff007f)");
         },
@@ -2653,10 +2653,10 @@ update(diff) {
     22: {
         name: "神圣解放 V",
         challengeDescription: "在 神圣解放 IIII 的基础上，禁用蛮王升级 41 42 43。",
-        goal: new Decimal(2.5e16),
-        goalDescription: "2.5e16 蛮王等级。",
+        goal: new Decimal(3.14e16),
+        goalDescription: "3.14e16 蛮王等级。",
         rewardDescription: "解锁新的色彩升级。",
-        canComplete() { return player.p.points.gte(2.5e16); },
+        canComplete() { return player.p.points.gte(3.14e16); },
         onComplete() {
         doPopup("challenge", "神圣解放 V 挑战完成！", "挑战完成", 3, "linear-gradient(135deg, #ff0000, #ff7f00, #ffff00, #7fff00, #00ff00, #00ff7f, #00ffff, #007fff, #0000ff, #7f00ff, #ff00ff, #ff007f)");
         },
@@ -2667,10 +2667,10 @@ update(diff) {
     23: {
         name: "神圣解放 END",
         challengeDescription: "在 神圣解放 V 的基础上，GTP无法倍增φ 精华获取。",
-        goal: new Decimal(3.14e16),
-        goalDescription: "3.14e16 蛮王等级。",
+        goal: new Decimal(5e16),
+        goalDescription: "5e16 蛮王等级。",
         rewardDescription: "解锁新的色彩升级。",
-        canComplete() { return player.p.points.gte(3.14e16); },
+        canComplete() { return player.p.points.gte(5e16); },
         onEnter() { player.g.energy = new Decimal(0); },
         onExit() { player.g.energy = new Decimal(0); },
         onComplete() {
@@ -3315,9 +3315,7 @@ addLayer("m", {
             },
             effect() {
                 return new Decimal(getBuyableAmount(this.layer, this.id)).add(1)
-            },
-            unlocked()
-            {return hasAchievement('a', 24)},          
+            },      
         },
     },
     layerShown() { return hasMilestone('cr', 12) || player.m.points.gte(1); }

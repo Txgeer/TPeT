@@ -290,7 +290,7 @@ function NaNcheck(data) {
 		else if (data[item] !== data[item] || checkDecimalNaN(data[item])) {
 			if (!NaNalert) {
 				NaNalert = true;
-				alert("Invalid value found in player, named '" + item + "'. Please let the creator of this mod know! You can refresh the page, and you will be un-NaNed.")
+				alert("发现未定义值, 名为 '" + item + "'。 请让模组制作者知道！ 你可以刷新界面，然后你的值会被定义.")
 				return
 			}
 		}
