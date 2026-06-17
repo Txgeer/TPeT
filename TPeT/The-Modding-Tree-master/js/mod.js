@@ -29,11 +29,14 @@ let modInfo = {
 let getModID = () => modInfo.id ?? `${modInfo.name.replace(/\s+/g, '-')}-${modInfo.author.replace(/\s+/g, '-')}`;
 // Set your version in num and name
 let VERSION = {
-	num: "0.9.3",
+	num: "0.9.4",
 	name: "万物终？结"
 }
 
 let changelog = `<h1>更新日志:</h1><br>
+    <h3>v0.9.4 2026.6.17</h3><br>
+		- 添加光点动画。<br>
+		- 重新平衡游戏。<br>
     <h3>v0.9.3 2026.6.17</h3><br>
 		- 添加游戏图标。<br>
     <h3>v0.9.2 2026.6.15</h3><br>
@@ -131,7 +134,7 @@ function getPointGen() {
     gain = gain.times(buyableEffect('k', 23))
     gain = gain.times(getFuryBonus(player.b.power))
 	gain = gain.times(player.c.points.pow(0.5).add(1))
-	if (player.cr.redchroma.gt(0)) {gain = gain.times(player.cr.redchroma.log2().add(1))}
+	if (player.cr.redchroma.gt(0)) {gain = gain.times(player.cr.redchroma.add(1).log2())}
 	if (hasAchievement('a', 12)) gain = gain.times(achievementEffect('a', 12))
 	if (hasUpgrade('g', 22)) gain = gain.times(upgradeEffect('g', 22))
 	if (!(gain instanceof Decimal) || gain.lte(0)) gain = new Decimal(1)

@@ -656,12 +656,17 @@ function startGameEngine() {
     if (window.options.musicEnabled && bgm.paused) {
         bgm.play().catch(e => console.warn("音乐播放失败", e));
     }
+
+    if (typeof startTreeAnimation === 'function') {
+    startTreeAnimation();
+    }
 }
 
 function resetToNewGame() {
     localStorage.removeItem(getModID());
     localStorage.removeItem(getModID() + "_options");
     player = getStartplayer();
+    window.player = player;
     window.options = getStartOptions();
     options = window.options;
     fixSave();
@@ -676,33 +681,44 @@ function resetToNewGame() {
 
 function loadGameDataOnly() {
     let hasSave = false;
-try {
-    const saveStr = localStorage.getItem(getModID());
-    if (saveStr && saveStr.length > 0) {
-        const decoded = b64_to_utf8(saveStr);
-        const loadedPlayer = JSON.parse(decoded);
-        if (loadedPlayer) {
-        window.player = loadedPlayer;
-        if (loadedPlayer.versionType !== getModID()) {
-        window.player.versionType = getModID();
-        }
-        hasSave = true;
-    }
-    else {
-    window.player = getStartplayer();
-    }
+    try {
+        const saveStr = localStorage.getItem(getModID());
+        if (saveStr && saveStr.length > 0) {
+            const decoded = b64_to_utf8(saveStr);
+            const loadedPlayer = JSON.parse(decoded);
+            if (loadedPlayer) {
+                window.player = loadedPlayer;
+                player = window.player;
+                if (loadedPlayer.versionType !== getModID()) {
+                    window.player.versionType = getModID();
+                    player = window.player;
+                }
+                hasSave = true;
+            } else {
+                window.player = getStartplayer();
+                player = window.player; 
+            }
         } else {
             window.player = getStartplayer();
+            player = window.player;
         }
         window.options = getStartOptions();
         loadOptions();
+        options = window.options;
     } catch(e) {
         window.player = getStartplayer();
+        player = window.player;
         window.options = getStartOptions();
+        options = window.options;
     }
-    if (!window.player) window.player = getStartplayer();
-    if (!window.options) window.options = getStartOptions();
-    
+    if (!window.player) {
+        window.player = getStartplayer();
+        player = window.player;
+    }
+    if (!window.options) {
+        window.options = getStartOptions();
+        options = window.options;
+    }
     fixSave();
     updateLayers();
     setupTemp();

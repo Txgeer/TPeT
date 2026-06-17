@@ -156,14 +156,18 @@ function getStartGrid(layer) {
 
 function fixSave() {
 	defaultData = getStartplayer();
-	fixData(defaultData, player);
-
-	for (layer in layers) {
-		if (player[layer].best !== undefined)
-			player[layer].best = new Decimal(player[layer].best);
-		if (player[layer].total !== undefined)
-			player[layer].total = new Decimal(player[layer].total);
-
+    fixData(defaultData, player);
+    for (layer in layers) {
+        if (player[layer].best !== undefined)
+            player[layer].best = new Decimal(player[layer].best);
+        if (player[layer].total !== undefined)
+            player[layer].total = new Decimal(player[layer].total);
+        const layerData = player[layer];
+        for (let key in layerData) {
+            if (defaultData[layer] && defaultData[layer][key] instanceof Decimal) {
+                layerData[key] = new Decimal(layerData[key] || 0);
+            }
+        }
 		if (layers[layer].tabFormat && !Array.isArray(layers[layer].tabFormat)) {
 
 			if (!Object.keys(layers[layer].tabFormat).includes(player.subtabs[layer].mainTabs))
@@ -176,6 +180,7 @@ function fixSave() {
 		}
 	}
 }
+
 function fixData(defaultData, newData) {
     if (!newData) return;
     for (let item in defaultData) {
