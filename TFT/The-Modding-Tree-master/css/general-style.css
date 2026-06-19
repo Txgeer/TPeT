@@ -1,0 +1,220 @@
+/* Global things */
+@font-face {
+    font-family: 'Bahnschrift';
+    src: url('../resources/Bahnschrift.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* 主题切换动画 */
+body.theme-transition {
+    animation: themeFlash 0.3s ease-out;
+}
+
+@keyframes themeFlash {
+    0% {
+        opacity: 1;
+    }
+    30% {
+        opacity: 0.7;
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+body {
+	color: var(--color);
+	overflow: hidden;
+	--background: linear-gradient(135deg, #000000 0%, #007f7f 100%);
+    font-family: "bahnschrift";
+    text-shadow: 0 0 2px rgba(0,0,0,0.5);
+    scroll-behavior: smooth;
+	--color: #dfdfdf;
+	--points: #ffffff;
+	background: var(--background);
+    transition: background 0.5s ease-in-out;
+    touch-action: manipulation
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* General text */
+h1, h2, h3, b, input {
+	display: inline;
+	font-family: "bahnschrift"
+}
+
+/* These are styles for different states of components. You can make layer-specific versions with .c.locked, for example */
+.locked {
+    background-color: #bf8f8f;
+    cursor: not-allowed;
+    opacity: 0.7;
+    filter: grayscale(0.5);
+}
+
+/* Can meens can be clicked/bought/etc */
+.can {
+	cursor: pointer;
+}
+
+.can:hover {
+    transition: all 0.2s ease;
+    filter: brightness(1.05);
+    box-shadow: 0 0 20px var(--points), 0 5px 15px rgba(0,0,0,0.4);
+    transform: translateY(-3px) scale(1.02);
+    will-change: transform;
+}
+
+.bought {
+	background-color: #77bf5f;
+	cursor: default;
+	box-shadow: 0 0 12px #5fbf4f, inset 0 1px 2px rgba(255,255,255,0.3);
+}
+
+#points {
+    background: linear-gradient(90deg, #00ff00, #007f00);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+    font-weight: bold;
+    display: inline-block;
+}
+
+.points-flash {
+    animation: flash 0.3s ease-out;
+}
+
+@keyframes flash {
+    0% { text-shadow: 0 0 0 var(--points); }
+    50% { text-shadow: 0 0 20px var(--points); }
+    100% { text-shadow: 0 0 0 var(--points); }
+}
+
+.disable-text-select {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+/* ========== 开始界面样式 ========== */
+.start-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    z-index: 100000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Bahnschrift', sans-serif;
+    transition: opacity 0.5s ease;
+}
+
+.start-card {
+    background: linear-gradient(135deg, #1a2a3a, #0a1a2a);
+    padding: 2rem 3rem;
+    border-radius: 2rem;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.game-title {
+    font-size: 3rem;
+    color: #007777;
+    text-shadow: 0 0 10px #003f3f;
+    margin-bottom: 0.5rem;
+}
+
+.version {
+    font-size: 1rem;
+    opacity: 0.8;
+    margin-bottom: 1.5rem;
+}
+
+.credits {
+    margin-top: 1.5rem;
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+/* ========== 自定义滚动条 ========== */
+/* WebKit 浏览器 */
+::-webkit-scrollbar {
+    width: 15px;
+    height: 15px;
+    background-color: transparent;
+}
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 0 !important;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--color);
+    border-radius: 0 !important;
+    border: none;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--points);
+}
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* Firefox 浏览器 */
+* {
+    scrollbar-width: auto;      /* auto 比 thin 更粗 */
+    scrollbar-color: var(--color) rgba(0, 0, 0, 0.3);
+}
+
+.bg2 {
+    background: linear-gradient(125deg, #000000, #001f3f, #003f3f, #000000);
+    background-size: 200% 200%;
+    animation: subtleShift 25s ease infinite;
+    opacity: 0.9;
+}
+
+@keyframes subtleShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* 隐藏原生滚动条，但保留滚动功能 */
+#treeTab, #treeOverlay {
+    overflow-y: auto;
+    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;  /* IE/Edge */
+}
+#treeTab::-webkit-scrollbar,
+#treeOverlay::-webkit-scrollbar {
+    display: none;  /* Chrome/Safari */
+}
