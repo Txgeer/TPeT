@@ -22,14 +22,14 @@
 	<audio id="bgm" loop preload="auto" style="display: none;"></audio>
 	<div id="startScreen" class="start-screen">
         <div class="start-card">
-            <h1 class="game-title">蛮王树</h1>
+            <h1 class="game-title">未命名树</h1>
             <p class="version" id="startScreenVersion"></p>
             <button id="newGameBtn" class="longUpg">新游戏</button>
             <button id="loadGameBtn" class="longUpg" style="display: none;">继续游戏</button>
             <div class="credits">作者：Txgeer</div>
         </div>
     </div>
-	<div id="app">
+		<div id="app">
 		<canvas id="treeCanvas" class="canvas" v-if="!(tmp.gameEnded && !player.keepGoing)"></canvas>
 
 		<div v-if="false" id="loadingSection" class="fullWidth">

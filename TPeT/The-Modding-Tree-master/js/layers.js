@@ -124,7 +124,7 @@ addLayer("a", {
     color: "#ffff3f",
     requires: new Decimal(25), // Can be a function that takes requirement increases into account
     resource: "成就", // Name of prestige currency
-    baseResource: "狂战士营人口", // Name of resource prestige is based on
+    baseResource: "", // Name of resource prestige is based on
     baseAmount() {return player.points}, // Get the current amount of baseResource
     type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     exponent: 10, // Prestige currency exponent
@@ -1412,10 +1412,12 @@ addLayer("b", {
             'main-display',
             ['display-text',
             function() {
+                if (player.b.points.gte(1)) {
             	return `你有 <h3 style="color: #7f0000; text-shadow: 10px">${format(player.b.power)}</h3> 狂怒能量,为你的蛮王提供 <h3 style="color: #7f0000; text-shadow: 10px">${format(getFuryBonus(player.b.power))}</h3> 倍率的经验值和等级`}
+                }
             ],
             ['display-text', function() {
-                    return `你每秒获得 <h3 style="color: #7f0000; text-shadow: 10px">${format(player.b.powerGainRate)}</h3> 狂怒能量`;
+                return `你每秒获得 <h3 style="color: #7f0000; text-shadow: 10px">${format(player.b.powerGainRate)}</h3> 狂怒能量`;
             }],
             'prestige-button',
             'upgrades',
@@ -1427,10 +1429,12 @@ addLayer("b", {
             'main-display',
             ['display-text',
             function() {
+            	if (player.b.points.gte(1)) {
             	return `你有 <h3 style="color: #7f0000; text-shadow: 10px">${format(player.b.power)}</h3> 狂怒能量,为你的蛮王提供 <h3 style="color: #7f0000; text-shadow: 10px">${format(getFuryBonus(player.b.power))}</h3> 倍率的经验值和等级`}
+                }
             ],
             ['display-text', function() {
-                    return `你每秒获得 <h3 style="color: #7f0000; text-shadow: 10px">${format(player.b.powerGainRate)}</h3> 狂怒能量`;
+                return `你每秒获得 <h3 style="color: #7f0000; text-shadow: 10px">${format(player.b.powerGainRate)}</h3> 狂怒能量`;
             }],
             'prestige-button',
             'milestones',
@@ -1694,7 +1698,9 @@ addLayer("c", {
             'main-display',
             ['display-text',
             function() {
+                if (player.c.points.gte(1)) {
             	return `你的挑战精神为你的蛮王提供 <h3 style="color: #7fff7f; text-shadow: 10px">${format(player.c.points.pow(0.5).add(1))}</h3> 倍率的经验值和等级`}
+                }
             ],
             ['display-text', function() {
             let threshold = getCurrentThreshold();
@@ -1717,7 +1723,9 @@ addLayer("c", {
             'main-display',
             ['display-text',
             function() {
+                if (player.c.points.gte(1)) {
             	return `你的挑战精神为你的蛮王提供 <h3 style="color: #7fff7f; text-shadow: 10px">${format(player.c.points.pow(0.5).add(1))}</h3> 倍率的经验值和等级`}
+                }
             ],
             ['display-text', function() {
             let threshold = getCurrentThreshold();

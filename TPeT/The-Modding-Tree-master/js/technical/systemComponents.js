@@ -130,9 +130,14 @@ var systemComponents = {
     </div>
 	`
     },
-
+//不要乱动
     'info-tab': {
-        template: `
+    data() {
+        return {
+            engineVersion: '3.0'
+        };
+    },
+    template: `
         <div>
         <h2>{{modInfo.name}}</h2>
         <br>
@@ -141,6 +146,8 @@ var systemComponents = {
             <br>
             作者： {{modInfo.author}}	
         </span>
+        <br>
+        PROJECT:NTV3 <a v-bind:href="'https://github.com/Txgeer/TPeT/blob/main/PROJECTNTV3/The-Modding-Tree-master/NTV3changelog.md'" target="_blank" class="link" v-bind:style = "{'font-size': '14px', 'display': 'inline'}" >{{ engineVersion }}</a> 作者： Txgeer
         <br>
         模组树 <a v-bind:href="'https://github.com/Acamaeda/The-Modding-Tree/blob/master/changelog.md'" target="_blank" class="link" v-bind:style = "{'font-size': '14px', 'display': 'inline'}" >{{TMT_VERSION.tmtNum}}</a> 作者： Acamaeda
         <br>

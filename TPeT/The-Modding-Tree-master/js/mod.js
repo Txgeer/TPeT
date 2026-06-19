@@ -204,3 +204,23 @@ function maxTickLength() {
 // you can cap their current resources with this.
 function fixOldSave(){
 }
+
+function getGameSpeedMultiplier(diff) {
+    if (player.m && player.m.unlocked && player.m.byte && player.m.byte.gt(0)) {
+        let speedMult = getByteSpeedMult();
+        let mult = speedMult.toNumber();
+        mult = Math.min(mult);
+        if (mult < 0) mult = 1;
+        return mult;
+    }
+    return 1;
+}
+
+window.startScreenConfig = {
+    title: "蛮王树",
+    version: VERSION.withName,
+    author: "Txgeer",
+    newGameText: "新游戏",
+    loadGameText: "继续游戏",
+    credits: "作者：Txgeer"
+};

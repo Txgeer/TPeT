@@ -212,7 +212,7 @@ function load() {
     try {
         get = localStorage.getItem(getModID());
     } catch(e) {
-        console.error("localStorage access failed", e);
+        console.error("本地数据读取失败", e);
         get = null;
     }
 
@@ -224,7 +224,7 @@ function load() {
             let decoded = b64_to_utf8(get);
             player = JSON.parse(decoded);
         } catch(e) {
-            console.error("Save decode failed, resetting save", e);
+            console.error("加载存档失败，重置存档", e);
             player = getStartplayer();
         }
         if (!player) player = getStartplayer();
@@ -271,7 +271,7 @@ function loadOptions() {
                 window.options[key] = savedOpts[key];
             }
         } catch(e) {
-            console.error("Options decode failed, using defaults", e);
+            console.error("加载选项失败，使用默认配置", e);
         }
     }
     if (themes.indexOf(window.options.theme) < 0) window.options.theme = "default";

@@ -606,15 +606,12 @@ function startIntervals() {
             }
             if (!options.offlineProd || player.offTime.remain <= 0) player.offTime = undefined;
         }
-        if (player.m && player.m.unlocked && player.m.byte && player.m.byte.gt(0)) {
-            let speedMult = getByteSpeedMult();
-            let mult = speedMult.toNumber();
-            mult = Math.min(mult);
-            if (mult < 0) mult = 1;
-            diff *= mult;
-            tmp.speedMult = mult;
+        if (typeof getGameSpeedMultiplier === 'function') {
+        let speedMult = getGameSpeedMultiplier(diff);
+        diff *= speedMult;
+        tmp.speedMult = speedMult;
         } else {
-            tmp.speedMult = 1;
+        tmp.speedMult = 1;
         }
         player.time = now;
         if (needCanvasUpdate) {
@@ -641,6 +638,10 @@ function startIntervals() {
 
 function startGameEngine() {
     if (gameStarted) return;
+    if (typeof player === 'undefined' || !player || typeof tmp === 'undefined') {
+        setTimeout(startGameEngine, 100);
+        return;
+    };
     gameStarted = true;
     player.time = Date.now();
     
@@ -654,7 +655,7 @@ function startGameEngine() {
     
     let bgm = getBgm();
     if (window.options.musicEnabled && bgm.paused) {
-        bgm.play().catch(e => console.warn("音乐播放失败", e));
+        bgm.play().catch(() => {});
     }
 
     if (typeof startTreeAnimation === 'function') {
@@ -665,8 +666,9 @@ function startGameEngine() {
 function resetToNewGame() {
     localStorage.removeItem(getModID());
     localStorage.removeItem(getModID() + "_options");
-    player = getStartplayer();
-    window.player = player;
+    let newPlayer = getStartplayer();
+    window.player = Vue.reactive(newPlayer);
+    player = window.player;
     window.options = getStartOptions();
     options = window.options;
     fixSave();
@@ -687,7 +689,7 @@ function loadGameDataOnly() {
             const decoded = b64_to_utf8(saveStr);
             const loadedPlayer = JSON.parse(decoded);
             if (loadedPlayer) {
-                window.player = loadedPlayer;
+                window.player = Vue.reactive(loadedPlayer);
                 player = window.player;
                 if (loadedPlayer.versionType !== getModID()) {
                     window.player.versionType = getModID();
@@ -695,27 +697,21 @@ function loadGameDataOnly() {
                 }
                 hasSave = true;
             } else {
-                window.player = getStartplayer();
-                player = window.player; 
+                window.player = Vue.reactive(getStartplayer());
+                player = window.player;
             }
         } else {
-            window.player = getStartplayer();
+            window.player = Vue.reactive(getStartplayer());
             player = window.player;
         }
         window.options = getStartOptions();
         loadOptions();
         options = window.options;
     } catch(e) {
-        window.player = getStartplayer();
+        console.error('Load save failed, using fresh start', e);
+        const freshPlayer = getStartplayer();
+        window.player = Vue.reactive(freshPlayer);
         player = window.player;
-        window.options = getStartOptions();
-        options = window.options;
-    }
-    if (!window.player) {
-        window.player = getStartplayer();
-        player = window.player;
-    }
-    if (!window.options) {
         window.options = getStartOptions();
         options = window.options;
     }
@@ -740,24 +736,38 @@ function loadGameDataOnly() {
     }
 
     function initStartScreen() {
-        initBgm();
+    initBgm();
 
-        const versionEl = document.getElementById('startScreenVersion');
-        if (versionEl && typeof VERSION !== 'undefined' && VERSION.withName) {
-        versionEl.textContent = VERSION.withName;
+    const config = window.startScreenConfig || {};
+
+    const titleEl = document.querySelector('.game-title');
+    if (titleEl) titleEl.textContent = config.title || '未命名树';
+
+    const versionEl = document.getElementById('startScreenVersion');
+    if (versionEl) {
+        versionEl.textContent = config.version || (VERSION && VERSION.withName) || '';
     }
 
-        const startScreen = document.getElementById('startScreen');
-        if (startScreen) {
-            const newBtn = document.getElementById('newGameBtn');
-            const loadBtn = document.getElementById('loadGameBtn');
+    const creditsEl = document.querySelector('.credits');
+    if (creditsEl) {
+        creditsEl.textContent = config.credits || (config.author ? '作者：' + config.author : '作者：Txgeer');
+    }
 
-            let hasSave = false;
-            try {
-                const saveStr = localStorage.getItem(getModID());
-                hasSave = saveStr && saveStr.length > 0;
-            } catch(e) {}
-            if (hasSave && loadBtn) loadBtn.style.display = 'inline-block';
+    const newBtn = document.getElementById('newGameBtn');
+    if (newBtn) newBtn.textContent = config.newGameText || '新游戏';
+
+    const loadBtn = document.getElementById('loadGameBtn');
+    if (loadBtn) loadBtn.textContent = config.loadGameText || '继续游戏';
+
+    let hasSave = false;
+    try {
+        const saveStr = localStorage.getItem(getModID());
+        hasSave = saveStr && saveStr.length > 0;
+    } catch(e) {}
+    if (loadBtn) {
+        loadBtn.style.display = hasSave ? 'inline-block' : 'none';
+    }
+
 
             const startGame = (loadSave) => {
                 try {
@@ -775,7 +785,7 @@ function loadGameDataOnly() {
 
             newBtn?.addEventListener('click', () => startGame(false));
             if (loadBtn) loadBtn.addEventListener('click', () => startGame(true));
-        } else {
+         else {
             loadGameDataOnly();
             startGameEngine();
         }

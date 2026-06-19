@@ -3,7 +3,10 @@ function loadVue() {
         setTimeout(loadVue, 50);
         return;
     }
-    
+    if (typeof player === 'undefined') {
+        setTimeout(loadVue, 50);
+        return;
+    }
     if (Vue.config && Vue.config.compilerOptions) {
         Vue.config.compilerOptions.whitespace = 'condense';
     }
