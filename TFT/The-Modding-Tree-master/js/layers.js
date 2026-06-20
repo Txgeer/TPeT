@@ -1,3 +1,12 @@
+function getVisibleLayerCount() {
+    let count = 0;
+    for (let layer of LAYERS) {
+        if (tmp[layer] && tmp[layer].layerShown) {
+            count++;
+        }
+    }
+    return count;
+}
 addLayer("a", {
     name: "成就", // This is optional, only used in a few places, If absent it just uses the layer id.
     symbol: "A", // This appears on the layer's node. Default is the id with the first letter capitalized
@@ -72,9 +81,9 @@ addLayer("f", {
     exponent: 0.5,
     gainMult() {
         let mult = new Decimal(1);
-        if (player.f.rice.gt(0)) {
-            mult = mult.div(player.f.rice.add(1).log10());
-        }
+        if (player.f.rice.gt(0)) mult = mult.div(player.f.rice.add(1).log10())
+        if (hasUpgrade('m', 11)) mult = mult.div(upgradeEffect('m', 11))
+        if (hasUpgrade('m', 12)) mult = mult.div(upgradeEffect('m', 12))
         return mult;
     },
     gainExp() {
@@ -85,7 +94,10 @@ addLayer("f", {
         { key: "f", description: "F: 进行一次农业重置", onPress() { if (canReset(this.layer)) doReset(this.layer); } },
     ],
     doReset(resettingLayer) {
-        let keep = [];
+        let keep = ["shown"];
+        if (layers[resettingLayer].row>=1) {
+        layerDataReset(this.layer, keep);
+        }
     },
     microtabs: {
         cropGroup: {
@@ -155,9 +167,7 @@ addLayer("f", {
         let components = [
             ['infobox', 'wheat'], 
         ]; 
-        if (hasUpgrade("f", 12)) {
-            components.push(['infobox', 'rice']);
-        }
+        if (hasUpgrade("f", 12)) components.push(['infobox', 'rice']);
         return components;
     },
     unlocked() {
@@ -175,6 +185,23 @@ addLayer("f", {
             title: "多元化发展",
             description: "解锁水稻。",
             cost: new Decimal(2),
+        },
+        13: {
+            title: "小麦加速",
+            description: "小麦增益自身获取。",
+            cost: new Decimal(5),
+            effect() {
+            return player.f.wheat.add(10).log10()
+            },
+            effectDisplay() { 
+            if (hasUpgrade(this.layer, this.id)) 
+            return format(upgradeEffect(this.layer, this.id)) + "x";
+            else 
+            return "1.00x";
+            },// Add formatting to the effect
+            unlocked() {
+            return hasAchievement('a',11);
+            }
         },
         21: {
             title: "小麦种子",
@@ -204,20 +231,6 @@ addLayer("f", {
             return "1.00x";
             },// Add formatting to the effect
         },
-        13: {
-            title: "小麦加速",
-            description: "小麦增益自身获取。",
-            cost: new Decimal(5),
-            effect() {
-            return player.f.wheat.add(10).log10()
-            },
-            effectDisplay() { 
-            if (hasUpgrade(this.layer, this.id)) 
-            return format(upgradeEffect(this.layer, this.id)) + "x";
-            else 
-            return "1.00x";
-            },// Add formatting to the effect
-        },
         23: {
             title: "水稻加速",
             description: "水稻增益自身获取。",
@@ -231,6 +244,9 @@ addLayer("f", {
             else 
             return "1.00x";
             },// Add formatting to the effect
+            unlocked() {
+            return hasAchievement('a',11);
+            }
         },
         31: {
             title: "小麦辅助",
@@ -245,6 +261,9 @@ addLayer("f", {
             else 
             return "1.00x";
             },// Add formatting to the effect
+            unlocked() {
+            return hasAchievement('a',11);
+            }
         },
         32: {
             title: "水稻辅助",
@@ -259,11 +278,17 @@ addLayer("f", {
             else 
             return "1.00x";
             },// Add formatting to the effect
+            unlocked() {
+            return hasAchievement('a',11);
+            }
         },
         33: {
             title: "人力机器",
             description: "解锁人力。",
             cost: new Decimal(9),
+            unlocked() {
+            return hasAchievement('a',11);
+            }
         },
     },
     infoboxes: {
@@ -290,30 +315,35 @@ addLayer("f", {
         let baseGain = player.f.points.add(10).log10();
         if (hasUpgrade("f", 11) && player.f.activeCrop === "wheat") {
             player.f.wheatGainRate = baseGain;
-            if (hasUpgrade("f", 21)) {
-            player.f.wheatGainRate = player.f.wheatGainRate.times(upgradeEffect("f", 21));  
-            }
-            if (hasUpgrade("f", 13)) {
-            player.f.wheatGainRate = player.f.wheatGainRate.times(upgradeEffect("f", 13));  
-            }
-            if (hasUpgrade("f", 32)) {
-            player.f.wheatGainRate = player.f.wheatGainRate.times(upgradeEffect("f", 32));  
-            }
+            if (hasUpgrade("f", 21)) player.f.wheatGainRate = player.f.wheatGainRate.times(upgradeEffect("f", 21));  
+            if (hasUpgrade("f", 13)) player.f.wheatGainRate = player.f.wheatGainRate.times(upgradeEffect("f", 13));  
+            if (hasUpgrade("f", 32)) player.f.wheatGainRate = player.f.wheatGainRate.times(upgradeEffect("f", 32));  
+            if (hasUpgrade("m", 11)) player.f.wheatGainRate = player.f.wheatGainRate.times(upgradeEffect("m", 11)); 
+            if (hasUpgrade("m", 12)) player.f.wheatGainRate = player.f.wheatGainRate.times(upgradeEffect("m", 12)); 
             player.f.wheat = player.f.wheat.add(player.f.wheatGainRate.times(diff));
         }
         if (hasUpgrade("f", 12) && player.f.activeCrop === "rice") {
             player.f.riceGainRate = baseGain.pow(0.5);
-            if (hasUpgrade("f", 22)) {
-            player.f.riceGainRate = player.f.riceGainRate.times(upgradeEffect("f", 22));  
-            }
-            if (hasUpgrade("f", 23)) {
-            player.f.riceGainRate = player.f.riceGainRate.times(upgradeEffect("f", 23));  
-            }
-            if (hasUpgrade("f", 31)) {
-            player.f.riceGainRate = player.f.riceGainRate.times(upgradeEffect("f", 31));  
-            }
+            if (hasUpgrade("f", 22)) player.f.riceGainRate = player.f.riceGainRate.times(upgradeEffect("f", 22));  
+            if (hasUpgrade("f", 23)) player.f.riceGainRate = player.f.riceGainRate.times(upgradeEffect("f", 23));  
+            if (hasUpgrade("f", 31)) player.f.riceGainRate = player.f.riceGainRate.times(upgradeEffect("f", 31));  
+            if (hasUpgrade("m", 11)) player.f.riceGainRate = player.f.riceGainRate.times(upgradeEffect("m", 11)); 
+            if (hasUpgrade("m", 12)) player.f.riceGainRate = player.f.riceGainRate.times(upgradeEffect("m", 12)); 
             player.f.rice = player.f.rice.add(player.f.riceGainRate.times(diff));
         }
+    },
+    automate() {
+    if (hasMilestone("m", 1)) {
+        if (player.m.points.gte(1)) quickUpgBuy("f", [11]);
+        if (player.m.points.gte(2)) quickUpgBuy("f", [12]);
+        if (player.m.points.gte(3)) quickUpgBuy("f", [21]);
+        if (player.m.points.gte(4)) quickUpgBuy("f", [22]);
+        if (player.m.points.gte(5)) quickUpgBuy("f", [13]);
+        if (player.m.points.gte(6)) quickUpgBuy("f", [23]);
+        if (player.m.points.gte(7)) quickUpgBuy("f", [31]);
+        if (player.m.points.gte(8)) quickUpgBuy("f", [32]);
+        if (player.m.points.gte(9)) quickUpgBuy("f", [33]);
+    }
     },
     style: {
         background: "linear-gradient(135deg, #000000, #3f1f00)",
@@ -359,7 +389,7 @@ addLayer("m", {
         let keep = [];
     },
     tabFormat: {
-        "农业": {
+        "人力": {
             content: [
                 ['infobox', 'story'],
                 'main-display',
@@ -367,14 +397,66 @@ addLayer("m", {
                 'upgrades',
             ]
         },
+        "里程碑": {
+            content: [
+                ['infobox', 'story'],
+                'main-display',
+                'prestige-button',
+                'milestones',
+            ]
+        }
     },
     upgrades: {
+        11: {
+            title: "功成名就",
+            description: "基于成就数量增益绿钞，田地，水稻和小麦获取。",
+            cost: new Decimal(1),
+            effect() {
+            return new Decimal(player.a.achievements.length).add(10).log10()
+            },
+            effectDisplay() { 
+            if (hasUpgrade(this.layer, this.id)) 
+            return format(upgradeEffect(this.layer, this.id)) + "x";
+            else 
+            return "1.00x";
+            },// Add formatting to the effect
+        },
+        12: {
+            title: "导入轮班制",
+            description: "基于当前显示的节点数量增益绿钞，田地，水稻和小麦获取。",
+            cost: new Decimal(10),
+            effect() {
+            let visibleLayers = getVisibleLayerCount();
+            return new Decimal(Math.max(visibleLayers, 1)).add(10).log10();
+            },
+            effectDisplay() { 
+            if (hasUpgrade(this.layer, this.id)) 
+            return format(upgradeEffect(this.layer, this.id)) + "x";
+            else 
+            return "1.00x";
+            },// Add formatting to the effect
+        },
+    },
+    milestones:{
+        1:
+        {
+        requirementDescription:"2 人力",
+        effectDescription:function() {
+        if (hasMilestone(this.layer, this.id)) {
+            let eff = player.m.points.min(9);
+            return `基于人力自动购买田地升级。<br>奖励：翻倍蛮王经验值与蛮王等级获取。<br>当前：${formatWhole(eff)}x`;
+        } else {
+            return `基于人力自动购买田地升级。<br>奖励：翻倍蛮王经验值与蛮王等级获取。<br>当前：NaNx`;
+        }
+        },
+        done() {return player.m.points.gte(2)},
+        },
     },
     infoboxes: {
         "story": {
-            title: "章节 0：开端",
-            body: "你是一位游戏开发者，在开发完毕你的新游戏《蛮王树》之后，你感到浑身疲倦，仿佛人生失去了意义。但在此时，你突然想起祖父家里有一片大庄园等待着你，于是你立刻启程前往，发现这里却是一片荒凉......你觉得你是时候做出一些改变了。",
-            style: { "color": "#7f3f00" },
+            title: "章节 1：雇佣",
+            body: "随着田地规模的逐步扩大，你逐渐感到愈发的力不从心。所以你认为是时候扩大农场的规模了。",
+            style: { "color": "#7fbfff" },
             bodyStyle: { "color": "#ffffff" }
         },
     },

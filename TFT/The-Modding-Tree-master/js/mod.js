@@ -59,7 +59,9 @@ function getPointGen() {
 	if (!player || !player.f) 
 		return new Decimal(1)
     let gain = new Decimal(1)
-    if (player.f.wheat.gt(0)) {gain = gain.times(player.f.wheat.add(1).log10())}
+    if (player.f.wheat.gt(0)) gain = gain.times(player.f.wheat.add(1).log10())
+    if (hasUpgrade('m', 11)) gain = gain.times(upgradeEffect('m', 11))
+    if (hasUpgrade('m', 12)) gain = gain.times(upgradeEffect('m', 12))
 	if (!(gain instanceof Decimal) || gain.lte(0)) gain = new Decimal(1)
 	return gain
 }
