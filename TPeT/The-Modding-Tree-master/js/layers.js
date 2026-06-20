@@ -324,6 +324,7 @@ addLayer("p", {
     exponent: 0.5, // Prestige currency exponent
     gainMult() { // Calculate the multiplier for main currency from bonuses
     let mult = new Decimal(1);
+    if (hasUpgrade('p', 11)) mult = mult.times(upgradeEffect('p', 11))
     if (hasUpgrade('p', 13)) mult = mult.times(upgradeEffect('p', 13))
     if (hasUpgrade('p', 21)) mult = mult.times(upgradeEffect('p', 21))
     if (hasUpgrade('p', 31)) mult = mult.times(upgradeEffect('p', 31))
@@ -333,7 +334,7 @@ addLayer("p", {
     mult = mult.times(buyableEffect('k', 23))
     mult = mult.times(getFuryBonus(player.b.power))
     mult = mult.times(player.c.points.pow(0.5).add(1))
-    if (player.cr.greenchroma.gt(0)) {mult = mult.times(player.cr.greenchroma.add(1).log2())}
+    if (player.cr.greenchroma.gt(0)) mult = mult.times(player.cr.greenchroma.add(1).log2())
     let threshold = getCurrentThreshold();
     if (player.p.points.gte(threshold)) {
     let logPoints = player.p.points.log10();
@@ -356,7 +357,7 @@ addLayer("p", {
     upgrades: {        
         11: {    
             title: "蛮王出世",
-            description: "翻倍蛮王经验值获取。<br>",
+            description: "翻倍蛮王经验值和蛮王等级获取。<br>",
             cost: new Decimal(1),
             effect(){
             let multiple = hasChallenge('c', 13) ? 5 : 1;
@@ -561,7 +562,7 @@ addLayer("p", {
             let exponent = hasChallenge('c', 22) ? 0.4 : 0.15;
             let base= hasChallenge('c', 22) ? player.a.resetTime : player.p.resetTime;
             let raw = new Decimal(base).add(1).times(buyableEffect("e", 11)).times(buyableEffect("k", 24)).pow(exponent);
-            if (player.cr.blackchroma.gt(0)) {raw = raw.times(player.cr.blackchroma.add(1).log2())}
+            if (player.cr.blackchroma.gt(0)) raw = raw.times(player.cr.blackchroma.add(1).log2())
             return applySoftcap(raw);
             },
             effectDisplay() { 
@@ -586,7 +587,7 @@ addLayer("p", {
             let exponent = hasChallenge('c', 22) ? 0.5 : 0.2;
             let base= hasChallenge('c', 22) ? player.a.resetTime : player.p.resetTime;
             let raw = new Decimal(base).add(1).times(buyableEffect("e", 11)).times(buyableEffect("k", 24)).pow(exponent);
-            if (player.cr.blackchroma.gt(0)) {raw = raw.times(player.cr.blackchroma.add(1).log2())}
+            if (player.cr.blackchroma.gt(0)) raw = raw.times(player.cr.blackchroma.add(1).log2())
             return applySoftcap(raw);
             },
             effectDisplay() { 
@@ -626,7 +627,7 @@ addLayer("p", {
         },
         41: {    
             title: "Wv之力",
-            description: "基于已经完成的成就数量增益蛮王经验值获取。",
+            description: "基于成就数量增益蛮王经验值获取。",
             cost: new Decimal(1e18),
             effect() {
             let exponent = hasChallenge('c', 21) ? 0.5 : 0.2;
@@ -712,15 +713,9 @@ addLayer("p", {
         
     },
     automate() {
-    if (hasMilestone("k", 1)) {
-        quickUpgBuy("p", [11, 12, 13]);
-        }
-    if (hasMilestone("k", 2)) {
-        quickUpgBuy("p", [21, 22, 23]);
-        }
-    if (hasMilestone("k", 3)) {
-        quickUpgBuy("p", [31, 32, 33]);
-        }
+    if (hasMilestone("k", 1)) quickUpgBuy("p", [11, 12, 13]);
+    if (hasMilestone("k", 2)) quickUpgBuy("p", [21, 22, 23]);
+    if (hasMilestone("k", 3)) quickUpgBuy("p", [31, 32, 33]);
     },
     passiveGeneration() {
             let pg=new Decimal(0);
@@ -732,20 +727,16 @@ addLayer("p", {
             return pg;
     },
     doReset(resettingLayer){
-        let keep=[]
+        let keep=["shown"]
         if (hasMilestone('c', 1)) {
         keep.push("upgrades");
         }
-        if(layers[resettingLayer].row>=1){
-        if (!hasMilestone('e', 5)) {
-        player.b.power = new Decimal(0);
-        }
-        if (!hasMilestone('e', 6)) {
-        player.k.milk = new Decimal(0);
-        }
+        if (layers[resettingLayer].row>=1) {
+        if (!hasMilestone('e', 5)) player.b.power = new Decimal(0);
+        if (!hasMilestone('e', 6)) player.k.milk = new Decimal(0);
         layerDataReset(this.layer, keep);
         }
-        if(layers[resettingLayer].row>=2){
+        if (layers[resettingLayer].row>=2) {
         if (!hasMilestone('g', 2)) {
         player.cr.redchroma = new Decimal(0);
         player.cr.greenchroma = new Decimal(0);
@@ -756,20 +747,12 @@ addLayer("p", {
         player.cr.cyanchroma = new Decimal(0);
         player.cr.blackchroma = new Decimal(0);
         }
-        if(hasMilestone('cr', 3)){
-        player.p.points = new Decimal(9e15);
-        }
-        if(hasMilestone('cr', 4)){
-        player.k.points = new Decimal(200);
-        }
-        if(hasMilestone('cr', 6)){
-        player.b.points = new Decimal(27);
-        }
+        if(hasMilestone('cr', 3)) player.p.points = new Decimal(9e15);
+        if(hasMilestone('cr', 4)) player.k.points = new Decimal(200);
+        if(hasMilestone('cr', 6)) player.b.points = new Decimal(27);
         }
         if (layers[resettingLayer].row>=3) {
-        if(!hasMilestone('g', 7)){
-        player.g.energy = new Decimal(0);
-        }
+        if(!hasMilestone('g', 7)) player.g.energy = new Decimal(0);
         if (!hasMilestone("m", 5)){
         player.m.byte = new Decimal(0);
         player.m.hdd = new Decimal(0);
@@ -781,15 +764,9 @@ addLayer("p", {
         player.m.l1Cache = new Decimal(0);
         player.m.register = new Decimal(0);
         }
-        if(hasMilestone('g', 4)){
-        player.c.points = new Decimal(9e15);
-        }
-        if(hasMilestone('g', 5)){
-        player.e.points = new Decimal(11);
-        }
-        if(hasMilestone('g', 6)){
-        player.cr.points = new Decimal(609);
-        }
+        if (hasMilestone('g', 4)) player.c.points = new Decimal(9e15);
+        if (hasMilestone('g', 5)) player.e.points = new Decimal(11);
+        if(hasMilestone('g', 6)) player.cr.points = new Decimal(609);
         }
     },
     tabFormat: {
@@ -849,7 +826,7 @@ addLayer("k", {
         if (hasUpgrade('e', 11)) mult = mult.times(upgradeEffect('e', 11))
         if (hasUpgrade('e', 23)) mult = mult.times(upgradeEffect('e', 23))
         if (hasAchievement('a', 25)) mult = mult.times(achievementEffect('a', 25))
-        if (player.cr.bluechroma.gt(0)) {mult = mult.times(player.cr.bluechroma.add(1).log2())}
+        if (player.cr.bluechroma.gt(0)) mult = mult.times(player.cr.bluechroma.add(1).log2())
         let threshold = getCurrentThreshold();
         if (player.k.points.gte(threshold)) {
         let logPoints = player.k.points.log10();
@@ -1021,27 +998,18 @@ addLayer("k", {
         requirementDescription:"2 骑士团人口",
         effectDescription:"自动购买第一行蛮王升级。",
         done() {return player.k.points.gte(2)},
-        onComplete() {
-            quickUpgBuy("p", [11, 12, 13]);
-        }
         },
         2:
         {
         requirementDescription:"4 骑士团人口",
         effectDescription:"自动购买第二行蛮王升级。",
         done() {return player.k.points.gte(4)},
-        onComplete() {
-            quickUpgBuy("p", [21, 22, 23]);
-        }
         },
         3:
         {
         requirementDescription:"7 骑士团人口",
         effectDescription:"自动购买第三行蛮王升级。",
         done() {return player.k.points.gte(7)},
-        onComplete() {
-            quickUpgBuy("p", [31, 32, 33]);
-        }
         },
         4:
         {
@@ -1466,7 +1434,7 @@ addLayer("c", {
     gainMult() { // Calculate the multiplier for main currency from bonuses
         let mult = new Decimal(1)
         mult = mult.times(buyableEffect('e', 13))
-        if (player.cr.cyanchroma.gt(0)) {mult = mult.times(player.cr.cyanchroma.add(1).log2())}
+        if (player.cr.cyanchroma.gt(0)) mult = mult.times(player.cr.cyanchroma.add(1).log2())
         if (hasUpgrade('e', 24)) mult = mult.times(upgradeEffect('e', 24))
         if (hasAchievement('a', 25)) mult = mult.times(achievementEffect('a', 25))
         mult = mult.times(buyableEffect('k', 24))
@@ -1768,7 +1736,7 @@ addLayer("e", {
         let mult = new Decimal(1);
         mult = mult.times(buyableEffect('e', 12))
         mult = mult.times(buyableEffect('k', 24))
-        if (player.cr.magentachroma.gt(0)) {mult = mult.times(player.cr.magentachroma.add(1).log2())}
+        if (player.cr.magentachroma.gt(0)) mult = mult.times(player.cr.magentachroma.add(1).log2())
         if (hasAchievement('a', 25)) mult = mult.times(achievementEffect('a', 25))
         if (hasAchievement('a', 31)) mult = mult.times(achievementEffect('a', 31)) 
         return mult;
@@ -2066,7 +2034,7 @@ addLayer("cr", {
     branches: ["p"],
     gainMult() {
         let mult = new Decimal(1);
-        if (player.cr.graychroma.gt(0)) {mult = mult.times(player.cr.graychroma.add(1).log2())}
+        if (player.cr.graychroma.gt(0)) mult = mult.times(player.cr.graychroma.add(1).log2())
         mult = mult.times(buyableEffect('k', 14))
         if (hasAchievement('a', 25)) mult = mult.times(achievementEffect('a', 25))
         if (hasAchievement('a', 31)) mult = mult.times(achievementEffect('a', 31))
