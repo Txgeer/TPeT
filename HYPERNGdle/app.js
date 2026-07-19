@@ -31,7 +31,7 @@
         // ---------- 初始化徽章模块 ----------
         if (window.Badges && typeof window.Badges.initBadgeUI === 'function') {
             if (badgeList && totalScoreSpan) {
-                window.Badges.initBadgeUI(badgeList, totalScoreSpan);
+                window.Badges.initBadgeUI(badgeList, totalScoreSpan, currentScoreSpan);
             } else {
                 console.warn('Badge UI elements missing, skipping badge initialization.');
             }

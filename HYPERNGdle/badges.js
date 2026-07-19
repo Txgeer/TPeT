@@ -45,6 +45,17 @@
         return sum > 2 * n;
     }
 
+    // ---------- 三角数判断 ----------
+    function isTriangular(n) {
+        if (n < 0) return false;
+        // 解方程 n = k*(k+1)/2  =>  k = (sqrt(8n+1)-1)/2
+        const discriminant = 8 * n + 1;
+        const sqrtDisc = Math.sqrt(discriminant);
+        if (sqrtDisc !== Math.floor(sqrtDisc)) return false;
+        const k = (sqrtDisc - 1) / 2;
+        return k === Math.floor(k);
+    }
+
     // ---------- 徽章定义 ----------
     const BADGE_DEFS = [
         // 位数徽章
@@ -70,7 +81,7 @@
         // ---- 条件徽章 ----
         {
             id: 'multiple-of-three',
-            name: '三的倍数',
+            name: '3的倍数',
             emoji: '➗3️⃣',
             score: 4,
             rarity: '平庸',
@@ -139,26 +150,6 @@
             }
         },
         {
-            id: 'multiple-of-11',
-            name: '11的倍数',
-            emoji: '➗1️⃣1️⃣',
-            score: 11,
-            rarity: '普通',
-            check: function(digitsStr) {
-                let oddSum = 0, evenSum = 0;
-                for (let i = 0; i < digitsStr.length; i++) {
-                    const digit = parseInt(digitsStr[i], 10);
-                    if ((i + 1) % 2 === 1) { // 从1开始计数，奇数位
-                        oddSum += digit;
-                    } else {
-                        evenSum += digit;
-                    }
-                }
-                const diff = Math.abs(oddSum - evenSum);
-                return diff % 11 === 0;
-            }
-        },
-        {
             id: 'multiple-of-9',
             name: '9的倍数',
             emoji: '➗9️⃣',
@@ -171,101 +162,7 @@
                 }
                 return sum % 9 === 0;
             }
-        },
-        {
-            id: 'multiple-of-13',
-            name: '13的倍数',
-            emoji: '➗1️⃣3️⃣',
-            score: 13,
-            rarity: '普通',
-            check: function(digitsStr) {
-                if (digitsStr.length === 0) return false;
-                const lastDigit = parseInt(digitsStr[digitsStr.length - 1], 10);
-                const remaining = digitsStr.slice(0, -1);
-                const remainingNum = remaining === '' ? 0 : parseInt(remaining, 10);
-                const result = remainingNum + 4 * lastDigit;
-                return result % 13 === 0;
-            }
-        },
-        {
-            id: 'multiple-of-17',
-            name: '17的倍数',
-            emoji: '➗1️⃣7️⃣',
-            score: 17,
-            rarity: '普通',
-            check: function(digitsStr) {
-                if (digitsStr.length === 0) return false;
-                const lastDigit = parseInt(digitsStr[digitsStr.length - 1], 10);
-                const remaining = digitsStr.slice(0, -1);
-                const remainingNum = remaining === '' ? 0 : parseInt(remaining, 10);
-                const result = remainingNum - 5 * lastDigit;
-                return result % 17 === 0;
-            }
-        },
-        {
-            id: 'multiple-of-19',
-            name: '19的倍数',
-            emoji: '➗1️⃣9️⃣',
-            score: 19,
-            rarity: '普通',
-            check: function(digitsStr) {
-                if (digitsStr.length === 0) return false;
-                let num = parseInt(digitsStr, 10);
-                let a, b;
-                if (digitsStr.length <= 3) {
-                    a = 0;
-                    b = num;
-                } else {
-                    const remaining = digitsStr.slice(0, -3);
-                    a = parseInt(remaining, 10);
-                    b = parseInt(digitsStr.slice(-3), 10);
-                }
-                const diff = Math.abs(a * 7 - b);
-                return diff % 19 === 0;
-            }
-        },
-                {
-            id: 'multiple-of-23',
-            name: '23的倍数',
-            emoji: '➗2️⃣3️⃣',
-            score: 23,
-            rarity: '普通',
-            check: function(digitsStr) {
-                if (digitsStr.length === 0) return false;
-                let num = parseInt(digitsStr, 10);
-                let a, b;
-                if (digitsStr.length <= 4) {
-                    return num % 23 === 0;
-                } else {
-                    const remaining = digitsStr.slice(0, -4);
-                    a = parseInt(remaining, 10);
-                    b = parseInt(digitsStr.slice(-4), 10);
-                }
-                const diff = Math.abs(a * 5 - b);
-                return diff % 23 === 0;
-            }
-        },
-        {
-            id: 'multiple-of-29',
-            name: '29的倍数',
-            emoji: '➗2️⃣9️⃣',
-            score: 29,
-            rarity: '普通',
-            check: function(digitsStr) {
-                if (digitsStr.length === 0) return false;
-                let num = parseInt(digitsStr, 10);
-                let a, b;
-                if (digitsStr.length <= 4) {
-                    return num % 29 === 0;
-                } else {
-                    const remaining = digitsStr.slice(0, -4);
-                    a = parseInt(remaining, 10);
-                    b = parseInt(digitsStr.slice(-4), 10);
-                }
-                const diff = Math.abs(a * 5 - b);
-                return diff % 29 === 0;
-            }
-        },
+        },       
         {
             id: 'multiple-of-7',
             name: '7的倍数',
@@ -281,7 +178,50 @@
                 return result % 7 === 0;
             }
         },
+        {
+            id: 'harshad',
+            name: '哈沙德数',
+            emoji: '🤣',
+            score: 5,
+            rarity: '平庸',
+            check: function(digitsStr) {
+                let sum = 0;
+                for (let i = 0; i < digitsStr.length; i++) {
+                    sum += parseInt(digitsStr[i], 10);
+                }
+                const num = parseInt(digitsStr, 10);
+                return sum > 0 && num % sum === 0;
+            }
+        },
+        {
+        id: 'triangular-number',
+            name: '三角数',
+            emoji: '👣👣👣➗2️⃣',
+            score: 70718,
+            rarity: '史诗',
+            check: function(digitsStr) {
+                const num = parseInt(digitsStr, 10);
+                return isTriangular(num);
+            }
+        }
+
     ];
+
+    const PRIMES_FOR_BADGES = [11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97];
+    for (const p of PRIMES_FOR_BADGES) {
+        const digits = p.toString().split('').map(d => d + '️⃣').join('');
+        BADGE_DEFS.push({
+            id: `multiple-of-${p}`,
+            name: `${p}的倍数`,
+            emoji: `➗${digits}`,
+            score: p,
+            rarity: '普通',
+            check: function(digitsStr) {
+                const n = parseInt(digitsStr, 10);
+                return n % p === 0;
+            }
+       });
+    }
 
     // ---------- 全局状态 ----------
     let earnedBadges = [];        // 每个徽章对象：{ id, name, emoji, score, rarity, count }
