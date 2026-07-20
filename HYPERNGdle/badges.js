@@ -1249,16 +1249,24 @@
     function updateBadgeUI() {
         if (!badgeListEl || !totalScoreSpan) return;
         const format = (num) => num.toLocaleString();
-
+    
         totalScoreSpan.textContent = format(totalTP);
         if (currentScoreSpan) {
             currentScoreSpan.textContent = format(currentTP);
         }
         badgeListEl.innerHTML = '';
-
-        const sorted = [...earnedBadges].sort((a,b) => b.score - a.score);
+    
+        // 排序：新徽章（newBadgeIds 中）优先，其余按分数降序
+        const sorted = [...earnedBadges].sort((a, b) => {
+            const aNew = newBadgeIds.has(a.id);
+            const bNew = newBadgeIds.has(b.id);
+            if (aNew && !bNew) return -1;
+            if (!aNew && bNew) return 1;
+            return b.score - a.score;
+        });
+    
         const hasCurrent = currentNumberStr && currentNumberStr.length > 0;
-
+    
         sorted.forEach(badge => {
             const def = BADGE_DEFS.find(d => d.id === badge.id);
             let isActive = false;
@@ -1266,16 +1274,16 @@
                 isActive = def.check(currentNumberStr);
             }
             if (!isActive && !showAllBadges) return;
-
+    
             const isNew = newBadgeIds.has(badge.id);
             const activeClass = isActive ? '' : 'badge-pill--inactive';
             const rarityClass = 'badge-pill--' + badge.rarity;
-
+    
             const pill = document.createElement('span');
             pill.className = `badge-pill ${rarityClass} ${activeClass}`;
             const countDisplay = badge.count > 1 ? ` ×${badge.count}` : '';
             const newTag = isNew ? `<span class="badge-new">新！</span>` : '';
-
+    
             pill.innerHTML = `
                 <span class="badge-emoji">${badge.emoji}</span>
                 <span class="badge-name">${badge.name}${countDisplay}</span>
@@ -1283,14 +1291,14 @@
                 <span class="badge-rarity">${badge.rarity}</span>
                 <span class="badge-score">+${format(badge.score)}TP</span>
             `;
-
+    
             if (isNew) {
                 pill.addEventListener('mouseenter', function() {
                     newBadgeIds.delete(badge.id);
-                    updateBadgeUI();
+                    updateBadgeUI();  // 重新排序并刷新显示
                 });
             }
-
+    
             badgeListEl.appendChild(pill);
         });
     }
