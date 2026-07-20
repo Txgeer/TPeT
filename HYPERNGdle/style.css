@@ -144,10 +144,7 @@ body {
     box-shadow: 0 0 0 2px var(--outline-strong);
 }
 
-/* 其余样式不变（保持原样） */
-/* …… 下面继续你原有的所有样式，从 .number-card 到结尾 …… */
-
-/* ===== 为了完整性，以下粘贴你原有的所有样式 ===== */
+/* ===== 数字卡片 ===== */
 .number-card {
     width: 100%;
     background: var(--surface);
@@ -251,6 +248,7 @@ body {
     box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08), inset 0 0 40px rgba(0, 0, 0, 0.02);
 }
 
+/* ===== 生成按钮 ===== */
 .btn-generate {
     width: 100%;
     padding: 18px 12px;
@@ -331,6 +329,7 @@ body {
     to { transform: rotate(360deg); }
 }
 
+/* ===== 徽章区域 ===== */
 .badge-area {
     width: 100%;
     display: flex;
@@ -377,6 +376,8 @@ body {
     min-height: 38px;
     padding: 2px 0;
 }
+
+/* ===== 徽章 Pill ===== */
 .badge-pill {
     display: inline-flex;
     align-items: center;
@@ -431,6 +432,8 @@ body {
     line-height: 1.4;
     white-space: nowrap;
 }
+
+/* 稀有度颜色 */
 .badge-pill--平庸 { border-color: var(--rarity-平庸); color: var(--rarity-平庸); background: rgba(176,176,176,0.07); box-shadow: 0 0 6px rgba(176,176,176,0.1); }
 .badge-pill--平庸 .badge-rarity { color: var(--rarity-平庸); border-color: var(--rarity-平庸); }
 .badge-pill--普通 { border-color: var(--rarity-普通); color: var(--rarity-普通); background: rgba(110,231,183,0.07); box-shadow: 0 0 8px rgba(110,231,183,0.15); }
@@ -447,8 +450,16 @@ body {
 .badge-pill--神话 .badge-rarity { color: var(--rarity-神话); border-color: var(--rarity-神话); }
 .badge-pill--超越 { border-color: var(--rarity-超越); color: var(--rarity-超越); background: rgba(96,165,250,0.07); box-shadow: 0 0 20px rgba(96,165,250,0.45); }
 .badge-pill--超越 .badge-rarity { color: var(--rarity-超越); border-color: var(--rarity-超越); }
-.badge-pill--终结 { border-color: var(--rarity-终结); color: var(--rarity-终结); background: rgba(248,113,113,0.07); box-shadow: 0 0 24px rgba(248,113,113,0.5); }
-.badge-pill--终结 .badge-rarity { color: var(--rarity-终结); border-color: var(--rarity-终结); }
+/* 终结：红色填充 */
+.badge-pill--终结 {
+    border-color: #f87171;
+    color: #fff;
+    background: #f87171;
+    box-shadow: 0 0 24px rgba(248,113,113,0.5);
+}
+.badge-pill--终结 .badge-rarity { color: #fff; border-color: rgba(255,255,255,0.6); background: rgba(0,0,0,0.15); }
+.badge-pill--终结 .badge-score { color: #fff; border-color: rgba(255,255,255,0.4); background: rgba(0,0,0,0.1); }
+
 .badge-pill--inactive { opacity: 0.3; filter: grayscale(0.3); transition: opacity 0.3s ease, filter 0.3s ease; }
 .badge-pill--无尽 {
     border-color: transparent;
@@ -464,6 +475,7 @@ body {
 @keyframes rainbow-bg { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 .badge-pill--无尽:hover { transform: translateY(-1px) scale(1.02); box-shadow: 0 0 30px rgba(255,255,255,0.35); }
 
+/* ===== 控制按钮组 ===== */
 .badge-controls {
     width: 100%;
     display: flex;
@@ -483,6 +495,7 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     letter-spacing: 0.06em;
+    user-select: none;
 }
 .btn-toggle-badges:hover {
     border-color: var(--outline-strong);
@@ -490,6 +503,55 @@ body {
     background: var(--surface-raised);
 }
 .btn-toggle-badges:active { transform: scale(0.96); }
+
+/* 筛选按钮 */
+.btn-filter {
+    min-width: 70px;
+    justify-content: center;
+}
+.btn-filter.filter-all {
+    border-color: var(--outline-strong);
+    color: var(--prose-2);
+    background: var(--surface);
+}
+.btn-filter.filter-all:hover {
+    border-color: var(--prose-2);
+    color: var(--prose);
+    background: var(--surface-raised);
+}
+/* 筛选按钮稀有度颜色（与徽章保持一致） */
+.btn-filter.badge-pill--平庸 { border-color: var(--rarity-平庸); color: var(--rarity-平庸); background: rgba(176,176,176,0.06); }
+.btn-filter.badge-pill--平庸:hover { background: rgba(176,176,176,0.12); }
+.btn-filter.badge-pill--普通 { border-color: var(--rarity-普通); color: var(--rarity-普通); background: rgba(110,231,183,0.06); }
+.btn-filter.badge-pill--普通:hover { background: rgba(110,231,183,0.12); }
+.btn-filter.badge-pill--罕见 { border-color: var(--rarity-罕见); color: var(--rarity-罕见); background: rgba(147,197,253,0.06); }
+.btn-filter.badge-pill--罕见:hover { background: rgba(147,197,253,0.12); }
+.btn-filter.badge-pill--稀有 { border-color: var(--rarity-稀有); color: var(--rarity-稀有); background: rgba(167,139,250,0.06); }
+.btn-filter.badge-pill--稀有:hover { background: rgba(167,139,250,0.12); }
+.btn-filter.badge-pill--史诗 { border-color: var(--rarity-史诗); color: var(--rarity-史诗); background: rgba(251,191,36,0.06); }
+.btn-filter.badge-pill--史诗:hover { background: rgba(251,191,36,0.12); }
+.btn-filter.badge-pill--传说 { border-color: var(--rarity-传说); color: var(--rarity-传说); background: rgba(244,114,182,0.06); }
+.btn-filter.badge-pill--传说:hover { background: rgba(244,114,182,0.12); }
+.btn-filter.badge-pill--神话 { border-color: var(--rarity-神话); color: var(--rarity-神话); background: rgba(52,211,153,0.06); }
+.btn-filter.badge-pill--神话:hover { background: rgba(52,211,153,0.12); }
+.btn-filter.badge-pill--超越 { border-color: var(--rarity-超越); color: var(--rarity-超越); background: rgba(96,165,250,0.06); }
+.btn-filter.badge-pill--超越:hover { background: rgba(96,165,250,0.12); }
+/* 终结筛选按钮：红色填充 */
+.btn-filter.badge-pill--终结 {
+    border-color: #f87171;
+    color: #fff;
+    background: #f87171;
+}
+.btn-filter.badge-pill--终结:hover { filter: brightness(1.1); }
+.btn-filter.badge-pill--无尽 {
+    border-color: transparent;
+    color: #fff;
+    background: linear-gradient(135deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #8b00ff, #ff0000);
+    background-size: 400% 400%;
+    animation: rainbow-bg 6s ease infinite;
+}
+.btn-filter.badge-pill--无尽:hover { filter: brightness(1.1); }
+
 .btn-reset { color: #f87171 !important; border-color: #f87171 !important; }
 .btn-reset:hover { background: rgba(248,113,113,0.1) !important; }
 .btn-share {
@@ -529,6 +591,7 @@ body {
     font-weight: 400;
 }
 
+/* ===== 响应式 ===== */
 @media (max-width: 480px) {
     .number-card { padding: 22px 14px 20px; }
     .number-card__digits { font-size: clamp(1.8rem, 12vw, 3.2rem); }
@@ -541,6 +604,8 @@ body {
     .badge-pill .badge-score { font-size: 0.5rem; padding: 1px 8px; }
     .app { gap: 20px; }
     .theme-btn { width: 30px; height: 30px; font-size: 0.85rem; }
+    .btn-toggle-badges { font-size: 0.6rem; padding: 4px 12px; }
+    .btn-filter { min-width: 56px; }
 }
 @media (max-width: 380px) {
     .number-card__digits { font-size: clamp(1.4rem, 10vw, 2.4rem); }

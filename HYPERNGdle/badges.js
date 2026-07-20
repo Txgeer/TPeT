@@ -1,4 +1,4 @@
-// badges.js – 徽章管理模块（含数据持久化、硬重置、历史最佳记录）
+// badges.js – 徽章管理模块（含数据持久化、硬重置、历史最佳记录 + 稀有度筛选）
 (function() {
     'use strict';
 
@@ -251,7 +251,6 @@
         return isPrime(quotient);
     }
 
-    // ---------- 亲密质数判断 ----------
     function isIntimatePrime(n) {
         if (n < 2 || !isPrime(n)) return false;
         const discriminant = 4 * n + 5;
@@ -262,14 +261,13 @@
         return k >= 1;
     }
 
-    // ---------- 普洛尼克数判断（包含0） ----------
     function isPronic(n) {
         if (n < 0) return false;
         const k = Math.floor(Math.sqrt(n));
         return k * (k + 1) === n;
     }
 
-    // ---------- 徽章定义 ----------
+    // ========== 徽章定义 ==========
     const BADGE_DEFS = [
         // 位数徽章
         { id: 'nine-digits', name: '九位数', emoji: '9️⃣', score: 10, rarity: '平庸',
@@ -862,11 +860,9 @@
             check: function(digitsStr) {
                 const num = parseInt(digitsStr, 10);
                 if (!isPrime(num)) return false;
-                // 三胞胎质数有两种形式：(p, p+2, p+6) 或 (p, p+4, p+6)
-                // 检查 n 是否属于其中一种
                 if (num >= 2) {
-                    if (isPrime(num - 2) && isPrime(num + 4)) return true; // 模式 (n-2, n, n+4)
-                    if (isPrime(num - 4) && isPrime(num + 2)) return true; // 模式 (n-4, n, n+2)
+                    if (isPrime(num - 2) && isPrime(num + 4)) return true;
+                    if (isPrime(num - 4) && isPrime(num + 2)) return true;
                 }
                 return false;
             }
@@ -880,8 +876,6 @@
             check: function(digitsStr) {
                 const num = parseInt(digitsStr, 10);
                 if (!isPrime(num)) return false;
-                // 四胞胎质数形式：(p, p+2, p+6, p+8)
-                // 检查 n 是否为其成员之一
                 if (num >= 2) {
                     if (isPrime(num) && isPrime(num + 2) && isPrime(num + 6) && isPrime(num + 8)) return true;
                     if (isPrime(num - 2) && isPrime(num) && isPrime(num + 4) && isPrime(num + 6)) return true;
@@ -986,10 +980,8 @@
             score: 8,
             rarity: '平庸',
             check: function(digitsStr) {
-                // 去除前导零，获取有效位数
                 const trimmed = digitsStr.replace(/^0+/, '') || '0';
                 const len = trimmed.length;
-                // 仅限 2、4、6、8、10 位（且≤10）
                 if (len % 2 !== 0 || len > 10) return false;
                 const half = len / 2;
                 let prodLeft = 1, prodRight = 1;
@@ -1015,7 +1007,7 @@
                 for (let i = 0; i < half; i++) {
                     const leftDigit = parseInt(trimmed[i], 10);
                     const rightDigit = parseInt(trimmed[half + i], 10);
-                    if (leftDigit === 0 || rightDigit === 0) return false; // 积不为0
+                    if (leftDigit === 0 || rightDigit === 0) return false;
                     prodLeft *= leftDigit;
                     prodRight *= rightDigit;
                 }
@@ -1038,7 +1030,6 @@
         });
     }
 
-    // 辅助：数字转 Emoji 数字
     function toEmojiDigits(num) {
         const map = {
             '0':'0️⃣','1':'1️⃣','2':'2️⃣','3':'3️⃣','4':'4️⃣',
@@ -1280,7 +1271,7 @@
         });
     }
 
-    // ---------- 全局状态 ----------
+    // ========== 全局状态 ==========
     let earnedBadges = [];
     let totalTP = 0;
     let currentTP = 0;
@@ -1291,14 +1282,21 @@
     let bestScore = 0;
     let showAllBadges = true;         // 是否显示所有徽章（包括未获得的）
 
+    // ===== 新增：稀有度筛选状态 =====
+    let filterRarity = 'all';          // 'all' 或具体稀有度名称
+
+    // 稀有度顺序（从低到高）
+    const RARITY_ORDER = ['平庸', '普通', '罕见', '稀有', '史诗', '传说', '神话', '超越', '终结', '无尽'];
+
     // ---------- 数据持久化 ----------
     function loadData() {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
             if (!raw) return null;
             const data = JSON.parse(raw);
-            // 兼容旧版本：若不存在 showAllBadges，默认为 true
             if (data.showAllBadges === undefined) data.showAllBadges = true;
+            // 兼容旧版本：没有 filterRarity 则默认为 'all'
+            if (data.filterRarity === undefined) data.filterRarity = 'all';
             return data;
         } catch {
             return null;
@@ -1312,7 +1310,8 @@
             totalGenerations: totalGenerations,
             bestNumber: bestNumber,
             bestScore: bestScore,
-            showAllBadges: showAllBadges
+            showAllBadges: showAllBadges,
+            filterRarity: filterRarity   // 新增：保存筛选状态
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }
@@ -1321,11 +1320,68 @@
     let badgeListEl = null;
     let totalScoreSpan = null;
     let currentScoreSpan = null;
+    let filterBtnEl = null;            // 新增：筛选按钮引用
+
+    // ===== 新增：获取已拥有的稀有度列表（按稀有度顺序） =====
+    function getOwnedRarities() {
+        const owned = new Set();
+        for (const badge of earnedBadges) {
+            owned.add(badge.rarity);
+        }
+        return RARITY_ORDER.filter(r => owned.has(r));
+    }
+
+    // ===== 新增：循环切换到下一个筛选状态 =====
+    function cycleFilter() {
+        const owned = getOwnedRarities();
+        // 如果没有已拥有的徽章，则保持 'all'
+        if (owned.length === 0) {
+            filterRarity = 'all';
+        } else if (filterRarity === 'all') {
+            // 从 'all' 切换到最低稀有度
+            filterRarity = owned[0];
+        } else {
+            const idx = owned.indexOf(filterRarity);
+            if (idx === -1 || idx === owned.length - 1) {
+                // 当前筛选的稀有度不存在或已是最高，回到 'all'
+                filterRarity = 'all';
+            } else {
+                // 切换到下一个更高的稀有度
+                filterRarity = owned[idx + 1];
+            }
+        }
+        saveData();
+        updateBadgeUI();
+        updateFilterButton();
+    }
+
+    // ===== 新增：获取当前筛选状态 =====
+    function getFilterRarity() {
+        return filterRarity;
+    }
+
+    // ===== 新增：更新筛选按钮的文字和样式 =====
+    function updateFilterButton() {
+        if (!filterBtnEl) return;
+        // 移除所有稀有度样式类
+        filterBtnEl.className = 'btn-toggle-badges btn-filter';
+        // 添加基础类
+        filterBtnEl.classList.add('btn-filter');
+        if (filterRarity === 'all') {
+            filterBtnEl.textContent = '🔍 全部';
+            filterBtnEl.classList.add('filter-all');
+        } else {
+            // 显示稀有度名称，并应用对应的颜色类
+            filterBtnEl.textContent = `🔍 ${filterRarity}`;
+            // 使用徽章 pill 的稀有度样式
+            filterBtnEl.classList.add(`badge-pill--${filterRarity}`);
+        }
+    }
 
     // ---------- 显示模式 ----------
     function toggleShowAllBadges() {
         showAllBadges = !showAllBadges;
-        saveData();                // 持久化
+        saveData();
         updateBadgeUI();
     }
 
@@ -1339,6 +1395,9 @@
         totalScoreSpan = totalScoreElement;
         currentScoreSpan = currentScoreElement || null;
 
+        // 获取筛选按钮
+        filterBtnEl = document.getElementById('filterBtn');
+
         const saved = loadData();
         if (saved) {
             earnedBadges = saved.earnedBadges || [];
@@ -1347,6 +1406,7 @@
             bestNumber = saved.bestNumber || '';
             bestScore = saved.bestScore || 0;
             showAllBadges = saved.showAllBadges !== undefined ? saved.showAllBadges : true;
+            filterRarity = saved.filterRarity !== undefined ? saved.filterRarity : 'all';
         } else {
             earnedBadges = [];
             totalTP = 0;
@@ -1354,7 +1414,9 @@
             bestNumber = '';
             bestScore = 0;
             showAllBadges = true;
+            filterRarity = 'all';
         }
+        updateFilterButton();
         updateBadgeUI();
 
         if (window.onTotalGenerationsChange) {
@@ -1365,6 +1427,7 @@
         }
     }
 
+    // ===== 修改：UI 渲染（加入稀有度筛选） =====
     function updateBadgeUI() {
         if (!badgeListEl || !totalScoreSpan) return;
         const format = (num) => num.toLocaleString();
@@ -1375,51 +1438,90 @@
         }
         badgeListEl.innerHTML = '';
     
-        // 排序：新徽章（newBadgeIds 中）优先，其余按分数降序
-        const sorted = [...earnedBadges].sort((a, b) => {
+        // --- 构建待显示的徽章列表 ---
+        let badgesToShow = [];
+    
+        if (showAllBadges) {
+            // 显示所有徽章（包括未获得的）
+            for (const def of BADGE_DEFS) {
+                const earned = earnedBadges.find(b => b.id === def.id);
+                if (earned) {
+                    badgesToShow.push({ ...earned, isEarned: true });
+                } else {
+                    badgesToShow.push({
+                        id: def.id,
+                        name: def.name,
+                        emoji: def.emoji,
+                        score: def.score,
+                        rarity: def.rarity,
+                        count: 0,
+                        isEarned: false
+                    });
+                }
+            }
+        } else {
+            // 只显示已获得的徽章
+            badgesToShow = earnedBadges.map(b => ({ ...b, isEarned: true }));
+        }
+    
+        // --- 按稀有度筛选 ---
+        // 在 badgesToShow 构建后
+        if (showAllBadges && filterRarity !== 'all') {
+            badgesToShow = badgesToShow.filter(b => b.rarity === filterRarity);
+        }
+        // 若 showAllBadges 为 false，则不过滤稀有度
+    
+        // --- 排序：新徽章优先，然后按分数降序 ---
+        badgesToShow.sort((a, b) => {
             const aNew = newBadgeIds.has(a.id);
             const bNew = newBadgeIds.has(b.id);
             if (aNew && !bNew) return -1;
             if (!aNew && bNew) return 1;
-            return b.score - a.score;
+            return (b.score || 0) - (a.score || 0);
         });
     
+        // --- 渲染 ---
         const hasCurrent = currentNumberStr && currentNumberStr.length > 0;
     
-        sorted.forEach(badge => {
+        for (const badge of badgesToShow) {
             const def = BADGE_DEFS.find(d => d.id === badge.id);
             let isActive = false;
             if (hasCurrent && def) {
                 isActive = def.check(currentNumberStr);
             }
-            if (!isActive && !showAllBadges) return;
-    
+            // 未获得的徽章且不活跃，但 showAllBadges 为 true 时仍显示（灰色）
+            const isEarned = badge.isEarned !== undefined ? badge.isEarned : true;
+            if (!isEarned && !showAllBadges) continue;
+            if (!isEarned && !isActive && showAllBadges) {
+                // 未获得且不活跃，显示为灰色
+            }
             const isNew = newBadgeIds.has(badge.id);
-            const activeClass = isActive ? '' : 'badge-pill--inactive';
+            const activeClass = (isActive && isEarned) ? '' : 'badge-pill--inactive';
             const rarityClass = 'badge-pill--' + badge.rarity;
     
             const pill = document.createElement('span');
             pill.className = `badge-pill ${rarityClass} ${activeClass}`;
             const countDisplay = badge.count > 1 ? ` ×${badge.count}` : '';
-            const newTag = isNew ? `<span class="badge-new">新！</span>` : '';
+            const newTag = isNew && isEarned ? `<span class="badge-new">新！</span>` : '';
+            const scoreDisplay = isEarned ? `+${format(badge.score)}TP` : '';
     
             pill.innerHTML = `
                 <span class="badge-emoji">${badge.emoji}</span>
                 <span class="badge-name">${badge.name}${countDisplay}</span>
                 ${newTag}
                 <span class="badge-rarity">${badge.rarity}</span>
-                <span class="badge-score">+${format(badge.score)}TP</span>
+                <span class="badge-score">${scoreDisplay}</span>
             `;
     
-            if (isNew) {
+            if (isNew && isEarned) {
                 pill.addEventListener('mouseenter', function() {
                     newBadgeIds.delete(badge.id);
-                    updateBadgeUI();  // 重新排序并刷新显示
+                    updateBadgeUI();
                 });
             }
     
             badgeListEl.appendChild(pill);
-        });
+        }
     }
 
     // ---------- 检查并颁发徽章 ----------
@@ -1450,7 +1552,6 @@
             }
         }
 
-        // 更新历史最佳
         if (currentTP > bestScore) {
             bestScore = currentTP;
             bestNumber = numberStr;
@@ -1477,7 +1578,6 @@
         return totalGenerations;
     }
 
-    // ---------- 获取历史最佳 ----------
     function getBest() {
         return { number: bestNumber, score: bestScore };
     }
@@ -1493,7 +1593,9 @@
         bestNumber = '';
         bestScore = 0;
         showAllBadges = true;
+        filterRarity = 'all';
         localStorage.removeItem(STORAGE_KEY);
+        updateFilterButton();
         updateBadgeUI();
         if (window.onTotalGenerationsChange) {
             window.onTotalGenerationsChange(0);
@@ -1510,6 +1612,8 @@
         currentTP = 0;
         currentNumberStr = '';
         newBadgeIds.clear();
+        filterRarity = 'all';
+        updateFilterButton();
         updateBadgeUI();
     }
 
@@ -1527,6 +1631,11 @@
         getTotalGenerations,
         hardReset,
         getBest,
+        // 新增筛选相关接口
+        cycleFilter,
+        getFilterRarity,
+        getOwnedRarities,
+        updateFilterButton,
         getBadgesForNumber: function(numberStr) {
             const result = [];
             for (const def of BADGE_DEFS) {

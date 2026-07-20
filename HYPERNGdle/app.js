@@ -7,7 +7,6 @@
         const stored = localStorage.getItem('theme') || 'auto';
         applyTheme(stored);
 
-        // 监听系统主题变化（仅当处于 auto 模式时）
         const media = window.matchMedia('(prefers-color-scheme: dark)');
         const handleChange = () => {
             if (localStorage.getItem('theme') === 'auto') {
@@ -15,8 +14,6 @@
             }
         };
         media.addEventListener('change', handleChange);
-
-        // 返回清理函数（可选）
         return () => media.removeEventListener('change', handleChange);
     }
 
@@ -25,17 +22,14 @@
         if (theme === 'auto') {
             const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             root.setAttribute('data-theme', isDark ? 'dark' : 'light');
-            // 保存 auto 标记，但不保存实际解析后的值
             localStorage.setItem('theme', 'auto');
         } else {
             root.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
         }
-        // 更新按钮激活状态
         document.querySelectorAll('.theme-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.theme === theme);
         });
-        // 如果当前是 auto，高亮 auto 按钮
         if (theme === 'auto') {
             document.querySelector('.theme-btn[data-theme="auto"]')?.classList.add('active');
         }
@@ -53,11 +47,9 @@
 
     // ===== 主流程 =====
     document.addEventListener('DOMContentLoaded', function() {
-        // 初始化主题
         const cleanupTheme = initTheme();
         setupThemeButtons();
 
-        // ---------- 检查必要元素 ----------
         const container = document.getElementById('digitsContainer');
         if (!container) {
             console.error('Error: Required element #digitsContainer not found in DOM.');
@@ -80,17 +72,18 @@
         const bestNumberSpan = document.getElementById('bestNumber');
         const bestScoreSpan = document.getElementById('bestScore');
 
+        // ===== 新增：筛选按钮 =====
+        const filterBtn = document.getElementById('filterBtn');
+
         // ---------- 初始化徽章模块 ----------
         if (window.Badges && typeof window.Badges.initBadgeUI === 'function') {
             if (badgeList && totalScoreSpan) {
                 window.Badges.initBadgeUI(badgeList, totalScoreSpan, currentScoreSpan);
-                // 设置总次数更新回调
                 window.onTotalGenerationsChange = function(count) {
                     if (totalGenerationsSpan) {
                         totalGenerationsSpan.textContent = count.toLocaleString();
                     }
                 };
-                // 设置最佳更新回调
                 window.onBestChange = function(best) {
                     if (bestNumberSpan && bestScoreSpan) {
                         if (best.number) {
@@ -102,11 +95,18 @@
                         }
                     }
                 };
-                // 初始显示
                 window.onTotalGenerationsChange(window.Badges.getTotalGenerations());
-                // 初始最佳
                 const best = window.Badges.getBest();
                 window.onBestChange(best);
+
+                // 绑定筛选按钮事件
+                if (filterBtn) {
+                    filterBtn.addEventListener('click', function() {
+                        window.Badges.cycleFilter();
+                        // 更新按钮文字和样式由 badges.js 内部的 updateFilterButton 负责
+                    });
+                    // 初始状态由 badges.js 在 initBadgeUI 中更新
+                }
             } else {
                 console.warn('Badge UI elements missing, skipping badge initialization.');
             }
@@ -116,7 +116,6 @@
 
         const TOTAL_DIGITS = 10;
 
-        // ---------- 创建数字占位 ----------
         let digitEls = createDigitSpans(TOTAL_DIGITS);
         let isGenerating = false;
 
@@ -150,7 +149,6 @@
             card.style.borderColor = '';
         }
 
-        // ---------- 逐位揭示 ----------
         function revealNumber(numberStr) {
             return new Promise((resolve) => {
                 const digits = numberStr.split('');
@@ -219,7 +217,6 @@
             });
         }
 
-        // ---------- 主流程 ----------
         async function handleGenerate() {
             if (isGenerating) return;
 
@@ -234,17 +231,14 @@
             window.__currentNumber = numStr;
             await revealNumber(numStr);
 
-            // 调用徽章检查
             if (window.Badges && typeof window.Badges.checkAndAwardBadges === 'function') {
                 window.Badges.checkAndAwardBadges(numStr);
-                // 更新最佳显示（徽章内部已更新，但我们需要刷新UI）
                 const best = window.Badges.getBest();
                 if (window.onBestChange) window.onBestChange(best);
             } else {
                 console.warn('Badges module not available');
             }
 
-            // 增加生成次数并保存
             if (window.Badges && typeof window.Badges.incrementGenerations === 'function') {
                 window.Badges.incrementGenerations();
             }
@@ -256,7 +250,6 @@
             if (navigator.vibrate) navigator.vibrate(12);
         }
 
-        // ---------- 事件绑定 ----------
         btn.addEventListener('click', handleGenerate);
         btn.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
@@ -284,7 +277,6 @@
                     window.Badges.hardReset();
                     resetDigits();
                     window.__currentNumber = '';
-                    // 更新最佳显示
                     const best = window.Badges.getBest();
                     if (window.onBestChange) window.onBestChange(best);
                 }
@@ -385,7 +377,6 @@
             }, 2000);
         }
 
-        // 初始加载后自动生成一次
         resetDigits();
         setTimeout(handleGenerate, 1000);
     });
