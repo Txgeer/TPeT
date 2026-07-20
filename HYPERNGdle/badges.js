@@ -1243,7 +1243,7 @@
             emoji: '➰➰➰',
             score: 666666667,
             rarity: '终结',
-            description: '数字本身及左右截断后均为质数的数（共 15 个）',
+            description: '数字本身及左右截断后均为质数的数',
             check: function(d) {
                 const list = [2,3,5,7,23,37,53,73,313,317,373,797,3137,3797,739397];
                 return list.includes(parseInt(d,10));
