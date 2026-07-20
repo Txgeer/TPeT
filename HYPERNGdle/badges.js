@@ -1360,20 +1360,16 @@
         return filterRarity;
     }
 
-    // ===== 新增：更新筛选按钮的文字和样式 =====
     function updateFilterButton() {
         if (!filterBtnEl) return;
-        // 移除所有稀有度样式类
         filterBtnEl.className = 'btn-toggle-badges btn-filter';
-        // 添加基础类
         filterBtnEl.classList.add('btn-filter');
+        const label = window.Badges.getFilterButtonLabel(); // 或直接调用内部函数
         if (filterRarity === 'all') {
-            filterBtnEl.textContent = '🔍 全部';
+            filterBtnEl.textContent = `🔍 ${label}`;
             filterBtnEl.classList.add('filter-all');
         } else {
-            // 显示稀有度名称，并应用对应的颜色类
-            filterBtnEl.textContent = `🔍 ${filterRarity}`;
-            // 使用徽章 pill 的稀有度样式
+            filterBtnEl.textContent = `🔍 ${label}`;
             filterBtnEl.classList.add(`badge-pill--${filterRarity}`);
         }
     }
@@ -1427,49 +1423,47 @@
         }
     }
 
-    // ===== 修改：UI 渲染（加入稀有度筛选） =====
     function updateBadgeUI() {
         if (!badgeListEl || !totalScoreSpan) return;
         const format = (num) => num.toLocaleString();
-    
+
         totalScoreSpan.textContent = format(totalTP);
-        if (currentScoreSpan) {
-            currentScoreSpan.textContent = format(currentTP);
-        }
+            if (currentScoreSpan) {
+                currentScoreSpan.textContent = format(currentTP);
+            }
         badgeListEl.innerHTML = '';
     
-        // --- 构建待显示的徽章列表 ---
         let badgesToShow = [];
     
         if (showAllBadges) {
-            // 显示所有徽章（包括未获得的）
-            for (const def of BADGE_DEFS) {
-                const earned = earnedBadges.find(b => b.id === def.id);
-                if (earned) {
-                    badgesToShow.push({ ...earned, isEarned: true });
-                } else {
-                    badgesToShow.push({
-                        id: def.id,
-                        name: def.name,
-                        emoji: def.emoji,
-                        score: def.score,
-                        rarity: def.rarity,
-                        count: 0,
-                        isEarned: false
-                    });
+            // ===== 模式1：“显示所有” → 显示所有历史上获得过的徽章 =====
+            // 只显示 earnedBadges 中已有的，不显示未获得的
+            badgesToShow = earnedBadges.map(b => ({ ...b, isEarned: true }));
+        } else {
+            // ===== 模式2：“隐藏未获得” → 只显示当前数字能触发的徽章 =====
+            if (currentNumberStr && currentNumberStr.length > 0) {
+                for (const def of BADGE_DEFS) {
+                    if (def.check(currentNumberStr)) {
+                        const earned = earnedBadges.find(b => b.id === def.id);
+                        badgesToShow.push({
+                            id: def.id,
+                            name: def.name,
+                            emoji: def.emoji,
+                            score: def.score,
+                            rarity: def.rarity,
+                            count: earned ? earned.count : 0,
+                            isEarned: !!earned
+                        });
+                    }
                 }
             }
-        } else {
-            // 只显示已获得的徽章
-            badgesToShow = earnedBadges.map(b => ({ ...b, isEarned: true }));
+            // 如果 currentNumberStr 为空，badgesToShow 保持为空数组
         }
     
-        // --- 按稀有度筛选 ---
-        // 在 badgesToShow 构建后
-        if (showAllBadges && filterRarity !== 'all') {
+        // --- 按稀有度筛选（如果 filterRarity 不为 'all'） ---
+        if (filterRarity !== 'all') {
             badgesToShow = badgesToShow.filter(b => b.rarity === filterRarity);
         }
-        // 若 showAllBadges 为 false，则不过滤稀有度
     
         // --- 排序：新徽章优先，然后按分数降序 ---
         badgesToShow.sort((a, b) => {
@@ -1481,21 +1475,13 @@
         });
     
         // --- 渲染 ---
-        const hasCurrent = currentNumberStr && currentNumberStr.length > 0;
-    
         for (const badge of badgesToShow) {
             const def = BADGE_DEFS.find(d => d.id === badge.id);
-            let isActive = false;
-            if (hasCurrent && def) {
-                isActive = def.check(currentNumberStr);
-            }
-            // 未获得的徽章且不活跃，但 showAllBadges 为 true 时仍显示（灰色）
+            const isActive = def && currentNumberStr && def.check(currentNumberStr);
             const isEarned = badge.isEarned !== undefined ? badge.isEarned : true;
-            if (!isEarned && !showAllBadges) continue;
-            if (!isEarned && !isActive && showAllBadges) {
-                // 未获得且不活跃，显示为灰色
-            }
             const isNew = newBadgeIds.has(badge.id);
+    
+            // 在“显示所有”模式下，如果当前未触发，显示为“已获得但未激活”样式
             const activeClass = (isActive && isEarned) ? '' : 'badge-pill--inactive';
             const rarityClass = 'badge-pill--' + badge.rarity;
     
@@ -1503,7 +1489,7 @@
             pill.className = `badge-pill ${rarityClass} ${activeClass}`;
             const countDisplay = badge.count > 1 ? ` ×${badge.count}` : '';
             const newTag = isNew && isEarned ? `<span class="badge-new">新！</span>` : '';
-            const scoreDisplay = isEarned ? `+${format(badge.score)}TP` : '';
+                const scoreDisplay = isEarned ? `+${format(badge.score)}TP` : '';
     
             pill.innerHTML = `
                 <span class="badge-emoji">${badge.emoji}</span>
@@ -1523,7 +1509,7 @@
             badgeListEl.appendChild(pill);
         }
     }
-
+    
     // ---------- 检查并颁发徽章 ----------
     function checkAndAwardBadges(numberStr) {
         currentNumberStr = numberStr;
@@ -1670,6 +1656,14 @@
             newBadgeIds.clear();
             updateBadgeUI();
             saveData();
+        },
+        getFilterButtonLabel: function() {
+            const rarity = this.getFilterRarity();
+            return rarity === 'all' ? '全部' : rarity;
+        },
+        getFilterButtonClass: function() {
+            const rarity = this.getFilterRarity();
+            return rarity === 'all' ? 'filter-all' : 'badge-pill--' + rarity;
         }
     };
 })();

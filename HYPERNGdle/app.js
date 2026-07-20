@@ -1,4 +1,4 @@
-// app.js – 主应用逻辑（数字生成、揭示、按钮交互，含徽章显示切换 + 复制分享 + 历史最佳）
+// app.js – 主应用逻辑（数字生成、揭示、按钮交互，含徽章显示切换 + 复制分享 + 历史最佳 + 筛选按钮）
 (function() {
     'use strict';
 
@@ -45,6 +45,23 @@
         });
     }
 
+    // ===== 更新筛选按钮状态 =====
+    function updateFilterButton() {
+        const filterBtnEl = document.getElementById('filterBtn');
+        if (!filterBtnEl) return;
+        // 重置类
+        filterBtnEl.className = 'btn-toggle-badges btn-filter';
+        // 通过全局 Badges 对象获取当前筛选值
+        const rarity = window.Badges.getFilterRarity();
+        const label = rarity === 'all' ? '全部' : rarity;
+        filterBtnEl.textContent = `🔍 ${label}`;
+        if (rarity === 'all') {
+            filterBtnEl.classList.add('filter-all');
+        } else {
+            filterBtnEl.classList.add(`badge-pill--${rarity}`);
+        }
+    }
+
     // ===== 主流程 =====
     document.addEventListener('DOMContentLoaded', function() {
         const cleanupTheme = initTheme();
@@ -72,9 +89,6 @@
         const bestNumberSpan = document.getElementById('bestNumber');
         const bestScoreSpan = document.getElementById('bestScore');
 
-        // ===== 新增：筛选按钮 =====
-        const filterBtn = document.getElementById('filterBtn');
-
         // ---------- 初始化徽章模块 ----------
         if (window.Badges && typeof window.Badges.initBadgeUI === 'function') {
             if (badgeList && totalScoreSpan) {
@@ -98,15 +112,6 @@
                 window.onTotalGenerationsChange(window.Badges.getTotalGenerations());
                 const best = window.Badges.getBest();
                 window.onBestChange(best);
-
-                // 绑定筛选按钮事件
-                if (filterBtn) {
-                    filterBtn.addEventListener('click', function() {
-                        window.Badges.cycleFilter();
-                        // 更新按钮文字和样式由 badges.js 内部的 updateFilterButton 负责
-                    });
-                    // 初始状态由 badges.js 在 initBadgeUI 中更新
-                }
             } else {
                 console.warn('Badge UI elements missing, skipping badge initialization.');
             }
@@ -114,8 +119,23 @@
             console.warn('Badges module not loaded properly.');
         }
 
-        const TOTAL_DIGITS = 10;
+        // ---------- 筛选按钮 ----------
+        const filterBtn = document.getElementById('filterBtn');
+        if (filterBtn && window.Badges) {
+            // 初始更新
+            updateFilterButton();
+            filterBtn.addEventListener('click', function() {
+                if (window.Badges) {
+                    window.Badges.cycleFilter();
+                    updateFilterButton();
+                }
+            });
+            // 当徽章列表变化时，刷新按钮状态（例如硬重置后）
+            // 通过 MutationObserver 或自定义事件，但简单起见，在硬重置后手动调用
+            // 在硬重置中我们会调用 updateFilterButton
+        }
 
+        const TOTAL_DIGITS = 10;
         let digitEls = createDigitSpans(TOTAL_DIGITS);
         let isGenerating = false;
 
@@ -149,6 +169,7 @@
             card.style.borderColor = '';
         }
 
+        // ---------- 逐位揭示 ----------
         function revealNumber(numberStr) {
             return new Promise((resolve) => {
                 const digits = numberStr.split('');
@@ -217,6 +238,7 @@
             });
         }
 
+        // ---------- 主流程 ----------
         async function handleGenerate() {
             if (isGenerating) return;
 
@@ -235,6 +257,8 @@
                 window.Badges.checkAndAwardBadges(numStr);
                 const best = window.Badges.getBest();
                 if (window.onBestChange) window.onBestChange(best);
+                // 刷新筛选按钮（可能稀有度列表变化）
+                updateFilterButton();
             } else {
                 console.warn('Badges module not available');
             }
@@ -250,6 +274,7 @@
             if (navigator.vibrate) navigator.vibrate(12);
         }
 
+        // ---------- 事件绑定 ----------
         btn.addEventListener('click', handleGenerate);
         btn.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
@@ -264,9 +289,9 @@
             toggleBtn.addEventListener('click', function() {
                 window.Badges.toggleShowAllBadges();
                 const showAll = window.Badges.getShowAllBadges();
-                this.textContent = showAll ? '隐藏未获得徽章' : '显示所有徽章';
+                this.textContent = showAll ? '只看当前' : '显示所有已获得';
             });
-            toggleBtn.textContent = window.Badges.getShowAllBadges() ? '隐藏未获得徽章' : '显示所有徽章';
+            toggleBtn.textContent = window.Badges.getShowAllBadges() ? '只看当前' : '显示所有已获得';
         }
 
         // ---------- 硬重置按钮 ----------
@@ -279,6 +304,8 @@
                     window.__currentNumber = '';
                     const best = window.Badges.getBest();
                     if (window.onBestChange) window.onBestChange(best);
+                    // 刷新筛选按钮
+                    updateFilterButton();
                 }
             });
         }
@@ -377,6 +404,7 @@
             }, 2000);
         }
 
+        // 初始加载后自动生成一次
         resetDigits();
         setTimeout(handleGenerate, 1000);
     });
