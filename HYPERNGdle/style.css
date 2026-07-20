@@ -570,3 +570,41 @@ body {
         padding: 0 6px;
     }
 }
+
+/* ===== 无尽稀有度（彩虹渐变） ===== */
+.badge-pill--无尽 {
+    border-color: transparent;
+    color: #fff;
+    background: linear-gradient(135deg, 
+        #ff0000, #ff7f00, #ffff00, #00ff00, 
+        #0000ff, #8b00ff, #ff0000
+    );
+    background-size: 400% 400%;
+    animation: rainbow-bg 6s ease infinite;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.25);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.badge-pill--无尽 .badge-rarity {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.badge-pill--无尽 .badge-score {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(0, 0, 0, 0.1);
+}
+
+@keyframes rainbow-bg {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* 无尽徽章悬停效果（保留原有交互） */
+.badge-pill--无尽:hover {
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.35);
+}
