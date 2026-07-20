@@ -905,6 +905,17 @@
                 const num = parseInt(digitsStr, 10);
                 return isPrime(num) && num % 4 === 1;
             }
+        },
+        {
+            id: 'factorial-prime',
+            name: '阶乘质数',
+            emoji: '⁉',
+            score: 1111111111,
+            rarity: '无尽',
+            check: function(digitsStr) {
+                const num = parseInt(digitsStr, 10);
+                return [2, 3, 5, 7, 23, 719, 5039, 39916801, 479001599].includes(num);
+            }
         }
 
     ];
