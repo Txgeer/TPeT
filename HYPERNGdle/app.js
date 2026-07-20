@@ -2,7 +2,61 @@
 (function() {
     'use strict';
 
+    // ===== 主题管理 =====
+    function initTheme() {
+        const stored = localStorage.getItem('theme') || 'auto';
+        applyTheme(stored);
+
+        // 监听系统主题变化（仅当处于 auto 模式时）
+        const media = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleChange = () => {
+            if (localStorage.getItem('theme') === 'auto') {
+                applyTheme('auto');
+            }
+        };
+        media.addEventListener('change', handleChange);
+
+        // 返回清理函数（可选）
+        return () => media.removeEventListener('change', handleChange);
+    }
+
+    function applyTheme(theme) {
+        const root = document.documentElement;
+        if (theme === 'auto') {
+            const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            root.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            // 保存 auto 标记，但不保存实际解析后的值
+            localStorage.setItem('theme', 'auto');
+        } else {
+            root.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+        }
+        // 更新按钮激活状态
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.theme === theme);
+        });
+        // 如果当前是 auto，高亮 auto 按钮
+        if (theme === 'auto') {
+            document.querySelector('.theme-btn[data-theme="auto"]')?.classList.add('active');
+        }
+    }
+
+    function setupThemeButtons() {
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const theme = this.dataset.theme;
+                applyTheme(theme);
+                e.stopPropagation();
+            });
+        });
+    }
+
+    // ===== 主流程 =====
     document.addEventListener('DOMContentLoaded', function() {
+        // 初始化主题
+        const cleanupTheme = initTheme();
+        setupThemeButtons();
+
         // ---------- 检查必要元素 ----------
         const container = document.getElementById('digitsContainer');
         if (!container) {

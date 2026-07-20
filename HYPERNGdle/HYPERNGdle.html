@@ -13,7 +13,14 @@
 <body>
 
     <div class="app" role="main">
-        <h1 class="title">HYPERNGdle</h1>
+        <div class="app-header">
+            <h1 class="title">HYPERNGdle</h1>
+            <div class="theme-switcher" id="themeSwitcher">
+                <button class="theme-btn" data-theme="light" aria-label="亮色主题">☀️</button>
+                <button class="theme-btn" data-theme="dark" aria-label="暗色主题">🌙</button>
+                <button class="theme-btn" data-theme="auto" aria-label="跟随系统">🤖</button>
+            </div>
+        </div>
 
         <div class="number-card" id="numberCard">
             <div class="number-card__label">Your Number</div>

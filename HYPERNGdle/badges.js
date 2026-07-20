@@ -891,22 +891,94 @@
             }
         },
         {
-    id: 'detective',
-    name: '侦探',
-    emoji: '🕵️‍♂️',
-    score: 16778524,
-    rarity: '超越',
-    check: function(digitsStr) {
-        if (digitsStr.length === 0) return false;
-        let sum = 0, product = 1;
-        for (let ch of digitsStr) {
-            const digit = parseInt(ch, 10);
-            sum += digit;
-            product *= digit;
+            id: 'detective',
+            name: '侦探',
+            emoji: '🕵️‍♂️',
+            score: 16778524,
+            rarity: '超越',
+            check: function(digitsStr) {
+                if (digitsStr.length === 0) return false;
+                let sum = 0, product = 1;
+                for (let ch of digitsStr) {
+                    const digit = parseInt(ch, 10);
+                    sum += digit;
+                    product *= digit;
+                }
+                return sum === product;
+            }
+        },
+        {
+            id: 'neutral-3456',
+            name: '中性',
+            emoji: '💤',
+            score: 7153,
+            rarity: '稀有',
+            check: function(digitsStr) {
+                const allowed = new Set(['3', '4', '5', '6']);
+                for (let ch of digitsStr) {
+                    if (!allowed.has(ch)) return false;
+                }
+                return true;
+            }
+        },
+        {
+            id: 'unstable',
+            name: '欠稳定性',
+            emoji: '💥',
+            score: 9537,
+            rarity: '稀有',
+            check: function(digitsStr) {
+                const allowed = new Set(['0', '1', '8', '9']);
+                for (let ch of digitsStr) {
+                    if (!allowed.has(ch)) return false;
+                }
+                return true;
+            }
+        },
+        {
+            id: 'higher-neutral',
+            name: '高阶中性',
+            emoji: '💤💤',
+            score: 4887586,
+            rarity: '神话',
+            check: function(digitsStr) {
+                const allowed = new Set(['4', '5']);
+                for (let ch of digitsStr) {
+                    if (!allowed.has(ch)) return false;
+                }
+                return true;
+            }
+        },
+        {
+            id: 'higher-unstable',
+            name: '高阶欠稳定性',
+            emoji: '💥💥',
+            score: 9765625,
+            rarity: '神话',
+            check: function(digitsStr) {
+                const allowed = new Set(['0', '9']);
+                for (let ch of digitsStr) {
+                    if (!allowed.has(ch)) return false;
+                }
+                return true;
+            }
+        },
+        {
+            id: 'high-low-balance',
+            name: '高低平衡',
+            emoji: '☯',
+            score: 5,
+            rarity: '平庸',
+            check: function(digitsStr) {
+                let low = 0, high = 0;
+                for (let ch of digitsStr) {
+                    const d = parseInt(ch, 10);
+                    if (d <= 4) low++;
+                    else high++;
+                }
+                return low === high;
+            }
         }
-        return sum === product;
-    }
-}
     ];
 
     // 批量添加质数倍数徽章
