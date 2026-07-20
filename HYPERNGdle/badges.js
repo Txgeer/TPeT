@@ -1,6 +1,9 @@
-// badges.js – 徽章管理模块
+// badges.js – 徽章管理模块（含数据持久化和硬重置）
 (function() {
     'use strict';
+
+    // ---------- 存储键名 ----------
+    const STORAGE_KEY = 'hyperngdle_data';
 
     // ---------- 工具函数 ----------
     function getEffectiveLength(digitsStr) {
@@ -8,7 +11,7 @@
         return trimmed.length === 0 ? 1 : trimmed.length;
     }
 
-    // ---------- 质数判断 ----------
+    // ---------- 数论检测函数 ----------
     function isPrime(n) {
         if (n < 2) return false;
         for (let i = 2; i * i <= n; i++) {
@@ -17,7 +20,6 @@
         return true;
     }
 
-    // ---------- 半质数判断 ----------
     function isSemiprime(n) {
         if (n < 4) return false;
         if (isPrime(n)) return false;
@@ -30,7 +32,6 @@
         return false;
     }
 
-    // ---------- 盈数判断 ----------
     function isAbundant(n) {
         if (n < 1) return false;
         let sum = 0;
@@ -45,10 +46,8 @@
         return sum > 2 * n;
     }
 
-    // ---------- 三角数判断 ----------
     function isTriangular(n) {
         if (n < 0) return false;
-        // 解方程 n = k*(k+1)/2  =>  k = (sqrt(8n+1)-1)/2
         const discriminant = 8 * n + 1;
         const sqrtDisc = Math.sqrt(discriminant);
         if (sqrtDisc !== Math.floor(sqrtDisc)) return false;
@@ -56,7 +55,6 @@
         return k === Math.floor(k);
     }
 
-    // ---------- 快乐数判断 ----------
     function isHappyNumber(n) {
         if (n < 1) return false;
         const seen = new Set();
@@ -73,7 +71,6 @@
         return n === 1;
     }
 
-    // ---------- 自守数判断 ----------
     function isAutomorphic(digitsStr) {
         try {
             const num = BigInt(digitsStr);
@@ -84,7 +81,6 @@
         }
     }
 
-    // ---------- 水仙花数（阿姆斯特朗数）判断 ----------
     function isNarcissistic(n) {
         if (n < 0) return false;
         const str = String(n);
@@ -97,13 +93,10 @@
         return sum === n;
     }
 
-    // ---------- 判断是否为完全 k 次方数 ----------
     function isPerfectPower(num, k) {
         if (num < 0) return false;
         if (k === 0) return false;
-        // 处理 0 和 1 的特殊情况：0^k = 0, 1^k = 1
         if (num === 0 || num === 1) return true;
-        // 用二分法或直接开根号法
         let low = 1, high = Math.floor(Math.pow(num, 1/k)) + 1;
         while (low <= high) {
             const mid = Math.floor((low + high) / 2);
@@ -115,18 +108,14 @@
         return false;
     }
 
-    // ---------- 双阶乘判断 ----------
     function isDoubleFactorial(n) {
         if (n < 1) return false;
-        // 奇数双阶乘：1*3*5*...
-        let odd = 1;
-        let factor = 1;
+        let odd = 1, factor = 1;
         while (odd <= n) {
             if (odd === n) return true;
             factor += 2;
             odd *= factor;
         }
-        // 偶数双阶乘：2*4*6*...
         let even = 2;
         factor = 2;
         while (even <= n) {
@@ -137,11 +126,9 @@
         return false;
     }
 
-    // ---------- 阶乘判断 ----------
     function isFactorial(n) {
         if (n < 1) return false;
-        let product = 1;
-        let i = 1;
+        let product = 1, i = 1;
         while (product < n) {
             i++;
             product *= i;
@@ -149,51 +136,38 @@
         return product === n;
     }
 
-    // ---------- 梅森数判断（2的幂-1） ----------
     function isMersenneNumber(n) {
         if (n < 1) return false;
-        // 检查 n+1 是否为 2 的幂
         const m = n + 1;
         return (m & (m - 1)) === 0;
     }
 
-    // ---------- 尺规作图数判断 ----------
     function isConstructible(n) {
         if (n < 1) return false;
-        // 已知费马素数
         const fermatPrimes = [3, 5, 17, 257, 65537];
         let temp = n;
-        // 先除去所有因子2
         while (temp % 2 === 0) temp /= 2;
-        // 检查剩余部分是否仅由费马素数各至多一次构成
         for (let p of fermatPrimes) {
             if (temp % p === 0) {
                 temp /= p;
-                // 若还能被p整除，说明有重复因子，不符合
                 if (temp % p === 0) return false;
             }
         }
         return temp === 1;
     }
 
-    // ---------- 雷劈数判断 ----------
     function isKaprekar(digitsStr) {
         const n = BigInt(digitsStr);
         if (n < 0n) return false;
         for (let i = 1; i < digitsStr.length; i++) {
-            const leftStr = digitsStr.slice(0, i);
-            const rightStr = digitsStr.slice(i);
-            const left = BigInt(leftStr);
-           const right = BigInt(rightStr);
+            const left = BigInt(digitsStr.slice(0, i));
+            const right = BigInt(digitsStr.slice(i));
             const sum = left + right;
-            if (sum * sum === n) {
-                return true;
-            }
+            if (sum * sum === n) return true;
         }
         return false;
     }
 
-    // ---------- 斐波那契数列判断 ----------
     function isFibonacci(n) {
         if (n < 0) return false;
         let a = 0, b = 1;
@@ -206,8 +180,7 @@
         }
         return false;
     }
-    
-    // ---------- 吕卡数列判断 ----------
+
     function isLucas(n) {
         if (n < 0) return false;
         let a = 2, b = 1;
@@ -220,8 +193,7 @@
         }
         return false;
     }
-    
-    // ---------- 佩尔数列判断 ----------
+
     function isPell(n) {
         if (n < 0) return false;
         let a = 0, b = 1;
@@ -235,10 +207,8 @@
         return false;
     }
 
-    // ---------- 四面体数判断 ----------
     function isTetrahedral(n) {
         if (n < 0) return false;
-        // 四面体数公式: T(n) = n(n+1)(n+2)/6
         let i = 0;
         while (true) {
             const tetra = i * (i + 1) * (i + 2) / 6;
@@ -247,11 +217,9 @@
             i++;
         }
     }
-    
-    // ---------- 四棱锥数（平方锥体数）判断 ----------
+
     function isSquarePyramidal(n) {
         if (n < 0) return false;
-        // 四棱锥数公式: P(n) = n(n+1)(2n+1)/6
         let i = 0;
         while (true) {
             const pyramid = i * (i + 1) * (2 * i + 1) / 6;
@@ -261,32 +229,59 @@
         }
     }
 
-    // ---------- 卡伦数判断 ----------
     function isCullen(digitsStr) {
         const n = BigInt(digitsStr);
         if (n < 1n) return false;
         let i = 1n;
         while (true) {
-            const val = i * (1n << i) + 1n;   // i * 2^i + 1
+            const val = i * (1n << i) + 1n;
             if (val === n) return true;
             if (val > n) return false;
             i++;
         }
     }
-    
-    // ---------- 胡道尔数判断 ----------
+
     function isWoodall(digitsStr) {
         const n = BigInt(digitsStr);
         if (n < 1n) return false;
         let i = 1n;
         while (true) {
-            const val = i * (1n << i) - 1n;   // i * 2^i - 1
+            const val = i * (1n << i) - 1n;
             if (val === n) return true;
             if (val > n) return false;
             i++;
         }
     }
-    
+
+    function isProth(digitsStr) {
+        const n = BigInt(digitsStr);
+        if (n < 1n) return false;
+        let exponent = 1n;
+        while (true) {
+            const power = 1n << exponent;
+            if (power > n) break;
+            const diff = n - 1n;
+            if (diff % power === 0n) {
+                const k = diff / power;
+                if (k % 2n === 1n && power > k) return true;
+            }
+            exponent++;
+        }
+        return false;
+    }
+
+    function isMoran(digitsStr) {
+        const num = parseInt(digitsStr, 10);
+        if (num <= 0) return false;
+        let sum = 0;
+        for (let ch of digitsStr) {
+            sum += parseInt(ch, 10);
+        }
+        if (num % sum !== 0) return false;
+        const quotient = num / sum;
+        return isPrime(quotient);
+    }
+
     // ---------- 徽章定义 ----------
     const BADGE_DEFS = [
         // 位数徽章
@@ -413,8 +408,8 @@
             id: 'harshad',
             name: '哈沙德数',
             emoji: '🤣',
-            score: 5,
-            rarity: '平庸',
+            score: 19,
+            rarity: '普通',
             check: function(digitsStr) {
                 let sum = 0;
                 for (let i = 0; i < digitsStr.length; i++) {
@@ -443,7 +438,7 @@
                     rarity: '普通',
             check: function(digitsStr) {
                 const len = digitsStr.length;
-                if (len % 2 !== 0) return false;          // 奇数位直接忽略
+                if (len % 2 !== 0) return false;
                 const half = len / 2;
                 let sumFirst = 0, sumSecond = 0;
                 for (let i = 0; i < half; i++) {
@@ -864,7 +859,6 @@
             rarity: '终结',
             check: function(digitsStr) {
                 const num = parseInt(digitsStr, 10);
-                // 高度合成数列表（包含所有 10 位以内的已知高度合成数）
                 const list = [
                     1, 2, 4, 6, 12, 24, 36, 48, 60, 120, 180, 240, 360, 720, 840, 1260, 1680, 2520, 5040, 7560, 10080, 15120, 20160, 25200, 27720, 45360, 50400, 55440, 83160, 110880, 166320, 221760, 277200, 332640, 498960, 554400, 665280, 720720, 1081080, 1441440, 2162160, 2882880, 3603600, 4324320, 6486480, 7207200, 8648640, 10810800, 14414400, 17297280, 21621600, 32432400, 36756720, 43243200, 61261200, 73513440, 110270160, 122522400, 147026880, 183783600, 232792560, 279351072, 367567200, 465585120, 698377680, 735134400, 1102701600, 1396755360, 2095133040, 2327925600, 2793510720, 3491888400, 4655851200, 5587021440, 6983776800
                 ];
@@ -916,10 +910,298 @@
                 const num = parseInt(digitsStr, 10);
                 return [2, 3, 5, 7, 23, 719, 5039, 39916801, 479001599].includes(num);
             }
+        },
+        {
+            id: 'thanks',
+            name: '拜谢',
+            emoji: '🎎',
+            score: 126,
+            rarity: '罕见',
+            check: function(digitsStr) {
+                return digitsStr.includes('297');
+            }
+        },
+        {
+            id: 'extreme',
+            name: '极值',
+            emoji: '☄',
+            score: 126,
+            rarity: '罕见',
+            check: function(digitsStr) {
+        return digitsStr.includes('308');
+            }
+        },
+        {
+            id: 'divine',
+            name: '神明',
+            emoji: '🧙‍♂️',
+            score: 1429,
+            rarity: '稀有',
+            check: function(digitsStr) {
+                return digitsStr.includes('6365');
+            }
+        },
+        {
+            id: 'disorder',
+            name: '无序',
+            emoji: '💱',
+            score: 16667,
+            rarity: '史诗',
+            check: function(digitsStr) {
+                return digitsStr.includes('19728');
+            }
+        },
+        {
+            id: 'brain-bubble',
+            name: '脑泡',
+            emoji: '🧠',
+            score: 16668,
+            rarity: '史诗',
+            check: function(digitsStr) {
+                return digitsStr.includes('66686');
+            }
+        },
+        {
+            id: 'shape-flow',
+            name: '形意顺',
+            emoji: '🍕',
+            score: 67,
+            rarity: '普通',
+            check: function(digitsStr) {
+                return digitsStr.includes('122') || digitsStr.includes('221');
+            }
+        },
+        {
+            id: 'advanced-shape-flow',
+            name: '高阶形意顺',
+            emoji: '🍕🍕',
+            score: 100022,
+            rarity: '传说',
+            check: function(digitsStr) {
+                return digitsStr.includes('122333') || digitsStr.includes('333221');
+            }
+        },
+        {
+            id: 'big-sawtooth',
+            name: '大锯齿',
+            emoji: '🤐',
+            score: 12345680,
+            rarity: '超越',
+            check: function(digitsStr) {
+                if (digitsStr.length < 2) return false;
+                const a = digitsStr[0];
+                const b = digitsStr[1];
+                for (let i = 0; i < digitsStr.length; i++) {
+                    if (i % 2 === 0) {
+                        if (digitsStr[i] !== a) return false;
+                    } else {
+                        if (digitsStr[i] !== b) return false;
+                    }
+                }
+                return true;
+            }
+        },
+        // 两对
+        {
+            id: 'two-pairs',
+            name: '两对',
+            emoji: '✔✔',
+            score: 16,
+            rarity: '普通',
+            check: function(digitsStr) {
+                for (let i = 0; i <= digitsStr.length - 4; i++) {
+                    const sub = digitsStr.slice(i, i + 4);
+                    if (sub[0] === sub[1] && sub[2] === sub[3]) return true;
+                }
+                return false;
+            }
+        },
+        // 三对
+        {
+            id: 'three-pairs',
+            name: '三对',
+            emoji: '✔✔✔',
+            score: 218,
+            rarity: '罕见',
+            check: function(digitsStr) {
+                for (let i = 0; i <= digitsStr.length - 6; i++) {
+                    const sub = digitsStr.slice(i, i + 6);
+                    if (sub[0] === sub[1] && sub[2] === sub[3] && sub[4] === sub[5]) return true;
+                }
+                return false;
+            }
+        },
+        // 四对
+        {
+            id: 'four-pairs',
+            name: '四对',
+            emoji: '✔✔✔✔',
+            score: 3573,
+            rarity: '稀有',
+            check: function(digitsStr) {
+                for (let i = 0; i <= digitsStr.length - 8; i++) {
+                    const sub = digitsStr.slice(i, i + 8);
+                    if (sub[0] === sub[1] && sub[2] === sub[3] && sub[4] === sub[5] && sub[6] === sub[7]) return true;
+                }
+                return false;
+            }
+        },
+        // 五对
+        {
+            id: 'five-pairs',
+            name: '五对',
+            emoji: '✔✔✔✔✔',
+            score: 111112,
+            rarity: '传说',
+            check: function(digitsStr) {
+                for (let i = 0; i <= digitsStr.length - 10; i++) {
+                    const sub = digitsStr.slice(i, i + 10);
+                    if (sub[0] === sub[1] && sub[2] === sub[3] && sub[4] === sub[5] && sub[6] === sub[7] && sub[8] === sub[9]) return true;
+                }
+                return false;
+            }
+        },        
+        // 两三条
+        {        
+            id: 'two-triples',
+            name: '两三条',
+            emoji: '🌿🌿',
+            score: 2071,
+            rarity: '稀有',
+            check: function(digitsStr) {
+                for (let i = 0; i <= digitsStr.length - 6; i++) {
+                    const sub = digitsStr.slice(i, i + 6);
+                    if (sub[0] === sub[1] && sub[1] === sub[2] && sub[3] === sub[4] && sub[4] === sub[5]) return true;
+                }
+                return false;
+            }
+        },
+        // 三三条
+        {
+            id: 'three-triples',
+            name: '三三条',
+            emoji: '🌿🌿🌿',
+            score: 529353,
+            rarity: '传说',
+            check: function(digitsStr) {
+                for (let i = 0; i <= digitsStr.length - 9; i++) {
+                    const sub = digitsStr.slice(i, i + 9);
+                    if (sub[0] === sub[1] && sub[1] === sub[2] && sub[3] === sub[4] && sub[4] === sub[5] && sub[6] === sub[7] && sub[7] === sub[8]) return true;
+                }
+                return false;
+            }
+        },
+        // 两四条
+        {
+            id: 'two-quads',
+            name: '两四条',
+            emoji: '🐍🐍',
+            score: 348420,
+            rarity: '传说',
+            check: function(digitsStr) {
+                for (let i = 0; i <= digitsStr.length - 8; i++) {
+                    const sub = digitsStr.slice(i, i + 8);
+                    if (sub[0] === sub[1] && sub[1] === sub[2] && sub[2] === sub[3] && sub[4] === sub[5] && sub[5] === sub[6] && sub[6] === sub[7]) return true;
+                }
+                return false;
+            }
+        },
+        // 两五条
+        {
+            id: 'two-quints',
+            name: '两五条',
+            emoji: '🦑🦑',
+            score: 111111112,
+            rarity: '终结',
+            check: function(digitsStr) {
+                for (let i = 0; i <= digitsStr.length - 10; i++) {
+                    const sub = digitsStr.slice(i, i + 10);
+                    if (sub[0] === sub[1] && sub[1] === sub[2] && sub[2] === sub[3] && sub[3] === sub[4] && sub[5] === sub[6] && sub[6] === sub[7] && sub[7] === sub[8] && sub[8] === sub[9]) return true;
+                }
+                return false;
+            }
+        },
+        {
+            id: 'parity-balance',
+            name: '合作协同',
+            emoji: '🕊',
+            score: 5,
+            rarity: '平庸',
+            check: function(digitsStr) {
+                let oddCount = 0, evenCount = 0;
+                for (let ch of digitsStr) {
+                    const digit = parseInt(ch, 10);
+                    if (digit % 2 === 0) evenCount++;
+                    else oddCount++;
+                }
+                return oddCount === evenCount;
+            }
+        },
+        {
+            id: 'bear-market',
+            name: '熊市',
+            emoji: '📉',
+            score: 1024,
+            rarity: '稀有',
+            check: function(digitsStr) {
+                for (let ch of digitsStr) {
+                    const d = parseInt(ch, 10);
+                    if (d < 0 || d > 4) return false;
+                }
+                return true;
+            }
+        },
+        {
+            id: 'bull-market',
+            name: '牛市',
+            emoji: '📈',
+            score: 820,
+            rarity: '罕见',
+            check: function(digitsStr) {
+                for (let ch of digitsStr) {
+                    const d = parseInt(ch, 10);
+                    if (d < 5 || d > 9) return false;
+                }
+                return true;
+            }
+        },
+        {
+            id: 'anti-aesthetic',
+            name: '反美学',
+            emoji: '👁‍🗨',
+            score: 7153,
+            rarity: '稀有',
+            check: function(digitsStr) {
+                const allowed = new Set(['4', '6', '7', '9']);
+                for (let ch of digitsStr) {
+                    if (!allowed.has(ch)) return false;
+                }
+                return true;
+            }
+        },
+        {
+            id: 'proth',
+            name: '普罗斯数',
+            emoji: '🦐',
+            score: 70508,
+            rarity: '史诗',
+            check: function(digitsStr) {
+                return isProth(digitsStr);
+            }
+        },
+        {
+            id: 'moran',
+            name: '莫兰数',
+            emoji: '💐',
+            score: 259,
+            rarity: '罕见',
+            check: function(digitsStr) {
+                return isMoran(digitsStr);
+            }
         }
-
     ];
 
+    // ---------- 生成质数倍数徽章 ----------
     const PRIMES_FOR_BADGES = [11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97];
     for (const p of PRIMES_FOR_BADGES) {
         const digits = p.toString().split('').map(d => d + '️⃣').join('');
@@ -957,7 +1239,7 @@
     for (let i = 0; i < 19; i++) {
         const exponent = i + 2;           // 2 ~ 20
         const score = powerScores[i];
-        const rarity = exponent <= 9 ? '终结' : '无尽';
+        const rarity = exponent <= 12 ? '终结' : '无尽';
     
         BADGE_DEFS.push({
             id: `power-of-2-${exponent}`,
@@ -1000,7 +1282,6 @@
             rarity: rarity,
             check: function(digitsStr) {
                 const num = parseInt(digitsStr, 10);
-                // 0 和 1 的任意次方都是 0 或 1，但它们的平方、立方等也符合，但通常我们视为 true
                 return isPerfectPower(num, k);
             }
         });
@@ -1074,7 +1355,7 @@
         { n: 7, emoji: '7️⃣🦅', score: 277778, rarity: '传说', name: '恐龙号' },
         { n: 8, emoji: '8️⃣🦅', score: 3703704, rarity: '神话', name: '麒麟号' },
         { n: 9, emoji: '9️⃣🦅', score: 55555556, rarity: '超越', name: '骁龙号' },
-        { n: 10, emoji: '🔟🦅', score: 1111111111, rarity: '无尽', name: '天玑号' }
+        { n: 10, emoji: '🔟🦅', score: 1111111112, rarity: '无尽', name: '天玑号' }
     ];
     
     for (let def of consecutiveDefs) {
@@ -1102,31 +1383,120 @@
             }
         });
     }
+
+    // ---------- 倍数尾数徽章 ----------
+    const suffixBadgeDefs = [
+        ['multiple-of-5', '5的倍数', '➗5️⃣', 5, '平庸', ['0', '5']],
+        ['multiple-of-10', '10的倍数', '➗🔟', 10, '平庸', ['0']],
+        ['multiple-of-25', '25的倍数', '➗5️⃣5️⃣', 25, '普通', ['00', '25', '50', '75']],
+        ['multiple-of-50', '50的倍数', '➗5️⃣▫', 50, '普通', ['00', '50']],
+        ['multiple-of-100', '100的倍数', '➗🔟▫', 100, '普通', ['00']],
+        ['multiple-of-500', '500的倍数', '➗5️⃣▪', 500, '罕见', ['000', '500']],
+        ['multiple-of-1000', '1000的倍数', '➗🔟▪', 1000, '罕见', ['000']],
+        ['multiple-of-5000', '5000的倍数', '➗5️⃣◽', 5000, '稀有', ['0000', '5000']],
+        ['multiple-of-10000', '10000的倍数', '➗🔟◽', 10000, '稀有', ['0000']],
+        ['multiple-of-50000', '50000的倍数', '➗5️⃣◾', 50000, '史诗', ['00000', '50000']],
+        ['multiple-of-100000', '100000的倍数', '➗🔟◾', 100000, '史诗', ['00000']],
+        ['multiple-of-500000', '500000的倍数', '➗5️⃣◻', 500000, '传说', ['000000', '500000']],
+        ['multiple-of-1000000', '1000000的倍数', '➗🔟◻', 1000000, '传说', ['000000']],
+        ['multiple-of-5000000', '5000000的倍数', '➗5️⃣◼', 5000000, '神话', ['0000000', '5000000']],
+        ['multiple-of-10000000', '10000000的倍数', '➗🔟◼', 10000000, '神话', ['0000000']],
+        ['multiple-of-50000000', '50000000的倍数', '➗5️⃣⬜', 50000000, '超越', ['00000000', '50000000']],
+        ['multiple-of-100000000', '100000000的倍数', '➗🔟⬜', 100000000, '超越', ['00000000']],
+        ['multiple-of-500000000', '500000000的倍数', '➗5️⃣⬛', 500000000, '终结', ['000000000', '500000000']],
+        ['multiple-of-1000000000', '1000000000的倍数', '➗🔟⬛', 1000000000, '终结', ['000000000']]
+    ];
+    
+    for (let def of suffixBadgeDefs) {
+        const [id, name, emoji, score, rarity, suffixes] = def;
+        BADGE_DEFS.push({
+            id: id,
+            name: name,
+            emoji: emoji,
+            score: score,
+            rarity: rarity,
+            check: function(digitsStr) {
+                for (let suffix of suffixes) {
+                    if (digitsStr.endsWith(suffix)) return true;
+                }
+                return false;
+            }
+        });
+    }
     
     // ---------- 全局状态 ----------
-    let earnedBadges = [];        // 每个徽章对象：{ id, name, emoji, score, rarity, count }
+    let earnedBadges = [];
     let totalTP = 0;
     let currentTP = 0;
     let currentNumberStr = '';
-    let newBadgeIds = new Set();  // 本轮首次获得的徽章 id
+    let newBadgeIds = new Set();
+    let totalGenerations = 0;
+
+    // ---------- 数据持久化 ----------
+    function loadData() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return null;
+            return JSON.parse(raw);
+        } catch {
+            return null;
+        }
+    }
+
+    function saveData() {
+        const data = {
+            earnedBadges: earnedBadges,
+            totalTP: totalTP,
+            totalGenerations: totalGenerations
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
 
     // ---------- DOM 引用 ----------
     let badgeListEl = null;
     let totalScoreSpan = null;
     let currentScoreSpan = null;
 
+    // ---------- 显示模式控制 ----------
+    let showAllBadges = true;
+
+    function toggleShowAllBadges() {
+        showAllBadges = !showAllBadges;
+        updateBadgeUI();
+    }
+
+    function getShowAllBadges() {
+        return showAllBadges;
+    }
+
     // ---------- 初始化绑定 ----------
     function initBadgeUI(badgeListElement, totalScoreElement, currentScoreElement) {
         badgeListEl = badgeListElement;
         totalScoreSpan = totalScoreElement;
         currentScoreSpan = currentScoreElement || null;
+
+        // 恢复数据
+        const saved = loadData();
+        if (saved) {
+            earnedBadges = saved.earnedBadges || [];
+            totalTP = saved.totalTP || 0;
+            totalGenerations = saved.totalGenerations || 0;
+        } else {
+            earnedBadges = [];
+            totalTP = 0;
+            totalGenerations = 0;
+        }
         updateBadgeUI();
+
+        // 通知外部总次数变化
+        if (window.onTotalGenerationsChange) {
+            window.onTotalGenerationsChange(totalGenerations);
+        }
     }
 
     function updateBadgeUI() {
         if (!badgeListEl || !totalScoreSpan) return;
     
-        // 格式化数字函数
         const format = (num) => num.toLocaleString();
     
         totalScoreSpan.textContent = format(totalTP);
@@ -1135,9 +1505,7 @@
         }
         badgeListEl.innerHTML = '';
     
-        // 按得分从高到低排序
         const sorted = [...earnedBadges].sort((a, b) => b.score - a.score);
-    
         const hasCurrentNumber = currentNumberStr && currentNumberStr.length > 0;
     
         sorted.forEach(badge => {
@@ -1146,11 +1514,12 @@
             if (hasCurrentNumber && def) {
                 isActive = def.check(currentNumberStr);
             }
-    
+            if (!isActive && !showAllBadges) return;
+
             const isNew = newBadgeIds.has(badge.id);
             const activeClass = isActive ? '' : 'badge-pill--inactive';
             const rarityClass = 'badge-pill--' + badge.rarity;
-    
+        
             const pill = document.createElement('span');
             pill.className = `badge-pill ${rarityClass} ${activeClass}`;
     
@@ -1165,11 +1534,18 @@
                 <span class="badge-score">+${format(badge.score)}TP</span>
             `;
     
+            if (isNew) {
+                pill.addEventListener('mouseenter', function() {
+                    newBadgeIds.delete(badge.id);
+                    updateBadgeUI();
+                });
+            }
+    
             badgeListEl.appendChild(pill);
         });
     }
-    
-    // ---------- 检查并颁发徽章（重复可叠加） ----------
+       
+    // ---------- 检查并颁发徽章 ----------
     function checkAndAwardBadges(numberStr) {
         currentNumberStr = numberStr;
         currentTP = 0;
@@ -1178,7 +1554,6 @@
         for (const def of BADGE_DEFS) {
             if (def.check(numberStr)) {
                 currentTP += def.score;
-
                 const existing = earnedBadges.find(b => b.id === def.id);
                 if (existing) {
                     existing.count += 1;
@@ -1200,9 +1575,38 @@
 
         newBadgeIds = new Set(newlyEarnedIds);
         updateBadgeUI();
+        saveData();  // 保存数据
     }
 
-    // ---------- 重置徽章 ----------
+    // ---------- 增加生成次数 ----------
+    function incrementGenerations() {
+        totalGenerations++;
+        saveData();
+        if (window.onTotalGenerationsChange) {
+            window.onTotalGenerationsChange(totalGenerations);
+        }
+    }
+
+    function getTotalGenerations() {
+        return totalGenerations;
+    }
+
+    // ---------- 硬重置 ----------
+    function hardReset() {
+        earnedBadges = [];
+        totalTP = 0;
+        currentTP = 0;
+        currentNumberStr = '';
+        newBadgeIds.clear();
+        totalGenerations = 0;
+        localStorage.removeItem(STORAGE_KEY);
+        updateBadgeUI();
+        if (window.onTotalGenerationsChange) {
+            window.onTotalGenerationsChange(0);
+        }
+    }
+
+    // ---------- 重置徽章（软重置，仅清空当前数据，不保存） ----------
     function resetBadges() {
         earnedBadges = [];
         totalTP = 0;
@@ -1220,5 +1624,29 @@
         getEarnedBadges: () => earnedBadges.slice(),
         getTotalTP: () => totalTP,
         getCurrentTP: () => currentTP,
+        toggleShowAllBadges,
+        getShowAllBadges,
+        incrementGenerations,
+        getTotalGenerations,
+        hardReset,
+        unlockAll: function() {
+            BADGE_DEFS.forEach(def => {
+                const existing = earnedBadges.find(b => b.id === def.id);
+                if (!existing) {
+                    earnedBadges.push({
+                        id: def.id,
+                        name: def.name,
+                        emoji: def.emoji,
+                        score: def.score,
+                        rarity: def.rarity,
+                        count: 1
+                    });
+                    totalTP += def.score;
+                }
+            });
+            newBadgeIds.clear();
+            updateBadgeUI();
+            saveData();
+        }
     };
 })();

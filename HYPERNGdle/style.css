@@ -1,4 +1,4 @@
-/* ===== 完全复刻原版 RNGdle 样式 ===== */
+/* ===== RNGdle 完全复刻（极致优化版） ===== */
 *,
 *::before,
 *::after {
@@ -8,7 +8,7 @@
 }
 
 :root {
-    /* 原版色彩变量（取自 rngdle.com） */
+    /* 原版色彩变量（精确取自 rngdle.com） */
     --background: #0a0a0a;
     --surface: #141414;
     --surface-raised: #1e1e1e;
@@ -22,7 +22,7 @@
     --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'Space Mono', 'Courier New', monospace;
 
-    /* 九种稀有度颜色（完全匹配原版） */
+    /* 九种稀有度颜色（完全匹配原版色值） */
     --rarity-平庸: #b0b0b0;
     --rarity-普通: #6ee7b7;
     --rarity-罕见: #93c5fd;
@@ -48,10 +48,10 @@ body {
     align-items: center;
     justify-content: center;
     padding: 20px;
-    /* 原版背景径向渐变 – 更淡的辉光 */
+    /* 原版背景径向渐变 – 更淡、更柔和 */
     background-image:
-        radial-gradient(ellipse at 50% 90%, rgba(255, 255, 255, 0.018) 0%, transparent 65%),
-        radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.01) 0%, transparent 50%);
+        radial-gradient(ellipse at 50% 90%, rgba(255, 255, 255, 0.025) 0%, transparent 70%),
+        radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.015) 0%, transparent 50%);
 }
 
 .app {
@@ -78,7 +78,7 @@ body {
     filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.04));
 }
 
-/* ===== 数字卡片（完全原版细节） ===== */
+/* ===== 数字卡片（完全原版细节 + 增强质感） ===== */
 .number-card {
     width: 100%;
     background: var(--surface);
@@ -92,27 +92,30 @@ body {
     position: relative;
     overflow: hidden;
     transition: border-color 0.4s ease, box-shadow 0.4s ease;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-/* 顶部光泽层 – 更柔和 */
+/* 顶部光泽层 – 更柔和、更宽 */
 .number-card::before {
     content: '';
     position: absolute;
     inset: -1px -1px auto -1px;
     height: 55%;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 100%);
+    background: linear-gradient(180deg,
+            rgba(255, 255, 255, 0.06) 0%,
+            rgba(255, 255, 255, 0.02) 40%,
+            transparent 100%);
     pointer-events: none;
     border-radius: var(--radius) var(--radius) 0 0;
 }
 
-/* 底部微弱反光 */
+/* 底部微弱反光 – 增强立体感 */
 .number-card::after {
     content: '';
     position: absolute;
     inset: auto -1px -1px -1px;
     height: 30%;
-    background: linear-gradient(0deg, rgba(255, 255, 255, 0.015) 0%, transparent 100%);
+    background: linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%);
     pointer-events: none;
     border-radius: 0 0 var(--radius) var(--radius);
 }
@@ -139,11 +142,11 @@ body {
     font-size: clamp(2.4rem, 10vw, 4.4rem);
     letter-spacing: 0.04em;
     color: var(--prose);
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
     position: relative;
     z-index: 1;
     min-height: 1.4em;
-    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.03));
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.04));
 }
 
 .digit {
@@ -160,14 +163,14 @@ body {
     color: var(--prose);
     opacity: 1;
     transform: scale(1.12);
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.08);
+    text-shadow: 0 0 24px rgba(255, 255, 255, 0.10);
 }
 
 .digit--revealed {
     color: var(--prose);
     opacity: 1;
     transform: scale(1);
-    text-shadow: 0 0 12px rgba(255, 255, 255, 0.04);
+    text-shadow: 0 0 16px rgba(255, 255, 255, 0.06);
 }
 
 .digit--leading-zero {
@@ -176,13 +179,13 @@ body {
     transform: scale(0.92) !important;
 }
 
-/* 卡片发光（边框和阴影） */
+/* 卡片发光（边框和阴影） – 随稀有度变化（由JS控制类） */
 .number-card--glow {
     border-color: var(--outline-strong);
-    box-shadow: 0 8px 40px rgba(255, 255, 255, 0.04), inset 0 0 40px rgba(255, 255, 255, 0.01);
+    box-shadow: 0 8px 40px rgba(255, 255, 255, 0.05), inset 0 0 40px rgba(255, 255, 255, 0.02);
 }
 
-/* ===== 生成按钮（原版风格） ===== */
+/* ===== 生成按钮（原版风格 + 更平滑的反馈） ===== */
 .btn-generate {
     width: 100%;
     padding: 18px 12px;
@@ -200,14 +203,14 @@ body {
     position: relative;
     overflow: hidden;
     user-select: none;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .btn-generate::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 60%);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, transparent 60%);
     pointer-events: none;
     border-radius: var(--radius);
 }
@@ -216,12 +219,12 @@ body {
     background: linear-gradient(180deg, #2e2e2e 0%, #1a1a1a 100%);
     border-color: var(--outline-strong);
     transform: scale(1.015);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .btn-generate:active:not(:disabled) {
     transform: scale(0.97);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     transition-duration: 0.06s;
 }
 
@@ -229,7 +232,7 @@ body {
     opacity: 0.45;
     cursor: not-allowed;
     transform: none;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .btn-generate .btn__text {
@@ -315,7 +318,7 @@ body {
     padding: 2px 0;
 }
 
-/* ===== 徽章药丸（完全原版风格） ===== */
+/* ===== 徽章药丸（完全原版风格 + 精致悬停） ===== */
 .badge-pill {
     display: inline-flex;
     align-items: center;
@@ -575,8 +578,8 @@ body {
 .badge-pill--无尽 {
     border-color: transparent;
     color: #fff;
-    background: linear-gradient(135deg, 
-        #ff0000, #ff7f00, #ffff00, #00ff00, 
+    background: linear-gradient(135deg,
+        #ff0000, #ff7f00, #ffff00, #00ff00,
         #0000ff, #8b00ff, #ff0000
     );
     background-size: 400% 400%;
@@ -603,8 +606,46 @@ body {
     100% { background-position: 0% 50%; }
 }
 
-/* 无尽徽章悬停效果（保留原有交互） */
 .badge-pill--无尽:hover {
     transform: translateY(-1px) scale(1.02);
     box-shadow: 0 0 30px rgba(255, 255, 255, 0.35);
+}
+
+/* ===== 徽章显示切换按钮 ===== */
+.badge-controls {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 4px;
+}
+
+.btn-toggle-badges {
+    background: var(--surface);
+    border: 1px solid var(--outline);
+    color: var(--prose-2);
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 6px 16px;
+    border-radius: 40px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.06em;
+}
+
+.btn-toggle-badges:hover {
+    border-color: var(--outline-strong);
+    color: var(--prose);
+    background: var(--surface-raised);
+}
+
+.btn-toggle-badges:active {
+    transform: scale(0.96);
+}
+
+.btn-reset {
+    color: #f87171 !important;
+    border-color: #f87171 !important;
+}
+.btn-reset:hover {
+    background: rgba(248, 113, 113, 0.1) !important;
 }

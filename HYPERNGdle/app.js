@@ -1,4 +1,4 @@
-// app.js – 主应用逻辑（数字生成、揭示、按钮交互）
+// app.js – 主应用逻辑（数字生成、揭示、按钮交互，含徽章显示切换）
 (function() {
     'use strict';
 
@@ -22,22 +22,28 @@
         const badgeList = document.getElementById('badgeList');
         const currentScoreSpan = document.getElementById('currentScore');
         const totalScoreSpan = document.getElementById('totalScore');
-        if (window.Badges && typeof window.Badges.initBadgeUI === 'function') {
-            window.Badges.initBadgeUI(badgeList, totalScoreSpan, currentScoreSpan);
-        }
-
-        const TOTAL_DIGITS = 10;
+        const totalGenerationsSpan = document.getElementById('totalGenerations');
 
         // ---------- 初始化徽章模块 ----------
         if (window.Badges && typeof window.Badges.initBadgeUI === 'function') {
             if (badgeList && totalScoreSpan) {
                 window.Badges.initBadgeUI(badgeList, totalScoreSpan, currentScoreSpan);
+                // 设置总次数更新回调
+                window.onTotalGenerationsChange = function(count) {
+                    if (totalGenerationsSpan) {
+                        totalGenerationsSpan.textContent = count.toLocaleString();
+                    }
+                };
+                // 初始显示
+                window.onTotalGenerationsChange(window.Badges.getTotalGenerations());
             } else {
                 console.warn('Badge UI elements missing, skipping badge initialization.');
             }
         } else {
             console.warn('Badges module not loaded properly.');
         }
+
+        const TOTAL_DIGITS = 10;
 
         // ---------- 创建数字占位 ----------
         let digitEls = createDigitSpans(TOTAL_DIGITS);
@@ -154,6 +160,7 @@
             await new Promise(resolve => setTimeout(resolve, 200));
 
             const numStr = generateRandom10Digit();
+            window.__currentNumber = numStr;
             await revealNumber(numStr);
 
             // 调用徽章检查
@@ -161,6 +168,11 @@
                 window.Badges.checkAndAwardBadges(numStr);
             } else {
                 console.warn('Badges module not available');
+            }
+
+            // 增加生成次数并保存
+            if (window.Badges && typeof window.Badges.incrementGenerations === 'function') {
+                window.Badges.incrementGenerations();
             }
 
             btn.disabled = false;
@@ -178,6 +190,33 @@
                 handleGenerate();
             }
         });
+
+        // ---------- 徽章显示切换按钮 ----------
+        const toggleBtn = document.getElementById('toggleBadgeDisplay');
+        if (toggleBtn && window.Badges && typeof window.Badges.toggleShowAllBadges === 'function') {
+            toggleBtn.addEventListener('click', function() {
+                window.Badges.toggleShowAllBadges();
+                const showAll = window.Badges.getShowAllBadges();
+                this.textContent = showAll ? '隐藏未获得徽章' : '显示所有徽章';
+            });
+            // 初始化按钮文字
+            toggleBtn.textContent = window.Badges.getShowAllBadges() ? '隐藏未获得徽章' : '显示所有徽章';
+        }
+
+        // ---------- 硬重置按钮 ----------
+        const resetBtn = document.getElementById('hardResetBtn');
+        if (resetBtn && window.Badges && typeof window.Badges.hardReset === 'function') {
+            resetBtn.addEventListener('click', function() {
+                if (confirm('确定要清除所有数据吗？此操作不可撤销！')) {
+                    window.Badges.hardReset();
+                    // 重置数字显示
+                    resetDigits();
+                    // 清空当前数字字符串
+                    window.__currentNumber = '';
+                    // 重置得分显示（badges 内部已经更新）
+                }
+            });
+        }
 
         // 初始加载后自动生成一次
         resetDigits();

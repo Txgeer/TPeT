@@ -30,6 +30,14 @@
         <!-- 徽章 & 得分区域 -->
         <div class="badge-area" id="badgeArea">
             <div class="badge-area__scores">
+                <div class="badge-controls">
+                    <button id="toggleBadgeDisplay" class="btn-toggle-badges">隐藏未获得徽章</button>
+                    <button id="hardResetBtn" class="btn-toggle-badges btn-reset" style="color: #f87171; border-color: #f87171;">硬重置</button>
+                </div>
+                <div class="badge-score-item">
+                    <span class="badge-score-label">总次数：</span>
+                    <span class="badge-score-value" id="totalGenerations">0</span>
+                </div>
                 <div class="badge-score-item">
                     <span class="badge-score-label">当前数字 TP：</span>
                     <span class="badge-score-value" id="currentScore">0</span>
