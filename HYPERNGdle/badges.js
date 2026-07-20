@@ -1109,14 +1109,14 @@
 
     // 连续相同数字
     const consecutiveDefs = [
-        { n:3, emoji:'3️⃣🦅', score:15, rarity:'普通', name:'豹子号' },
-        { n:4, emoji:'4️⃣🦅', score:159, rarity:'罕见', name:'狮子号' },
-        { n:5, emoji:'5️⃣🦅', score:1852, rarity:'稀有', name:'老虎号' },
-        { n:6, emoji:'6️⃣🦅', score:22223, rarity:'史诗', name:'大象号' },
-        { n:7, emoji:'7️⃣🦅', score:277778, rarity:'传说', name:'恐龙号' },
-        { n:8, emoji:'8️⃣🦅', score:3703704, rarity:'神话', name:'麒麟号' },
-        { n:9, emoji:'9️⃣🦅', score:55555556, rarity:'超越', name:'骁龙号' },
-        { n:10, emoji:'🔟🦅', score:1111111112, rarity:'无尽', name:'天玑号' }
+        { n:3, emoji:'🐆', score:15, rarity:'普通', name:'豹子号' },
+        { n:4, emoji:'🦁', score:159, rarity:'罕见', name:'狮子号' },
+        { n:5, emoji:'🐯', score:1852, rarity:'稀有', name:'老虎号' },
+        { n:6, emoji:'🐘', score:22223, rarity:'史诗', name:'大象号' },
+        { n:7, emoji:'🦕', score:277778, rarity:'传说', name:'恐龙号' },
+        { n:8, emoji:'🦌', score:3703704, rarity:'神话', name:'麒麟号' },
+        { n:9, emoji:'🐉', score:55555556, rarity:'超越', name:'骁龙号' },
+        { n:10, emoji:'🛰', score:1111111112, rarity:'无尽', name:'天玑号' }
     ];
     for (let def of consecutiveDefs) {
         const n = def.n;
@@ -1126,13 +1126,17 @@
             emoji: def.emoji,
             score: def.score,
             rarity: def.rarity,
-            check: function(d) {
-                if (d.length < n) return false;
-                for (let i = 0; i <= d.length - n; i++) {
-                    const first = d[i];
+            check: function(digitsStr) {
+                const trimmed = digitsStr.replace(/^0+/, '') || '0';
+                if (trimmed.length < n) return false;
+                for (let i = 0; i <= trimmed.length - n; i++) {
+                    const first = trimmed[i];
                     let allSame = true;
-                    for (let j = i+1; j < i+n; j++) {
-                        if (d[j] !== first) { allSame = false; break; }
+                    for (let j = i + 1; j < i + n; j++) {
+                        if (trimmed[j] !== first) {
+                            allSame = false;
+                            break;
+                        }
                     }
                     if (allSame) return true;
                 }
