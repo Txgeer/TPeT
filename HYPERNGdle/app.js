@@ -167,6 +167,8 @@
             });
             card.classList.remove('number-card--glow');
             card.style.borderColor = '';
+            // 移除卡片入场动画类，以便下一次重新触发
+            card.classList.remove('card-enter');
         }
 
         // ---------- 逐位揭示 ----------
@@ -252,6 +254,12 @@
             const numStr = generateRandom10Digit();
             window.__currentNumber = numStr;
             await revealNumber(numStr);
+
+            // ---- 卡片入场动画 ----
+            card.classList.remove('card-enter');
+            // 强制回流以重新触发动画
+            void card.offsetWidth;
+            card.classList.add('card-enter');
 
             if (window.Badges && typeof window.Badges.checkAndAwardBadges === 'function') {
                 window.Badges.checkAndAwardBadges(numStr);
