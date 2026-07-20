@@ -978,6 +978,49 @@
                 }
                 return low === high;
             }
+        },
+        {
+            id: 'air-ticket',
+            name: '飞机票',
+            emoji: '🎟🛩',
+            score: 8,
+            rarity: '平庸',
+            check: function(digitsStr) {
+                // 去除前导零，获取有效位数
+                const trimmed = digitsStr.replace(/^0+/, '') || '0';
+                const len = trimmed.length;
+                // 仅限 2、4、6、8、10 位（且≤10）
+                if (len % 2 !== 0 || len > 10) return false;
+                const half = len / 2;
+                let prodLeft = 1, prodRight = 1;
+                for (let i = 0; i < half; i++) {
+                    prodLeft *= parseInt(trimmed[i], 10);
+                    prodRight *= parseInt(trimmed[half + i], 10);
+                }
+                return prodLeft === prodRight;
+            }
+        },
+        {
+            id: 'air-ticket-premium',
+            name: '客机票',
+            emoji: '✈🎟',
+            score: 993,
+            rarity: '罕见',
+            check: function(digitsStr) {
+                const trimmed = digitsStr.replace(/^0+/, '') || '0';
+                const len = trimmed.length;
+                if (len % 2 !== 0 || len > 10) return false;
+                const half = len / 2;
+                let prodLeft = 1, prodRight = 1;
+                for (let i = 0; i < half; i++) {
+                    const leftDigit = parseInt(trimmed[i], 10);
+                    const rightDigit = parseInt(trimmed[half + i], 10);
+                    if (leftDigit === 0 || rightDigit === 0) return false; // 积不为0
+                    prodLeft *= leftDigit;
+                    prodRight *= rightDigit;
+                }
+                return prodLeft === prodRight;
+            }
         }
     ];
 
