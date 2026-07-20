@@ -904,7 +904,7 @@
             id: 'factorial-prime',
             name: '阶乘质数',
             emoji: '⁉',
-            score: 1111111111,
+            score: 1111111112,
             rarity: '无尽',
             check: function(digitsStr) {
                 const num = parseInt(digitsStr, 10);
