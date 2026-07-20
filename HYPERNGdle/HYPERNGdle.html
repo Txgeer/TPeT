@@ -33,6 +33,7 @@
                 <div class="badge-controls">
                     <button id="toggleBadgeDisplay" class="btn-toggle-badges">隐藏未获得徽章</button>
                     <button id="hardResetBtn" class="btn-toggle-badges btn-reset" style="color: #f87171; border-color: #f87171;">硬重置</button>
+                    <button class="btn-share" id="shareBtn" aria-label="分享当前数字"><span>📤 分享</span></button>
                 </div>
                 <div class="badge-score-item">
                     <span class="badge-score-label">总次数：</span>
@@ -45,6 +46,11 @@
                 <div class="badge-score-item">
                     <span class="badge-score-label">总 TP：</span>
                     <span class="badge-score-value" id="totalScore">0</span>
+                </div>
+                <div class="badge-score-item best-record" id="bestRecord">
+                    <span class="best-label">🏆 历史最佳：</span>
+                    <span class="best-number" id="bestNumber">—</span>
+                    <span class="best-score" id="bestScore">0 TP</span>
                 </div>
             </div>
             <div class="badge-list" id="badgeList"></div>

@@ -1,4 +1,4 @@
-// app.js – 主应用逻辑（数字生成、揭示、按钮交互，含徽章显示切换）
+// app.js – 主应用逻辑（数字生成、揭示、按钮交互，含徽章显示切换 + 复制分享 + 历史最佳）
 (function() {
     'use strict';
 
@@ -23,6 +23,8 @@
         const currentScoreSpan = document.getElementById('currentScore');
         const totalScoreSpan = document.getElementById('totalScore');
         const totalGenerationsSpan = document.getElementById('totalGenerations');
+        const bestNumberSpan = document.getElementById('bestNumber');
+        const bestScoreSpan = document.getElementById('bestScore');
 
         // ---------- 初始化徽章模块 ----------
         if (window.Badges && typeof window.Badges.initBadgeUI === 'function') {
@@ -34,8 +36,23 @@
                         totalGenerationsSpan.textContent = count.toLocaleString();
                     }
                 };
+                // 设置最佳更新回调
+                window.onBestChange = function(best) {
+                    if (bestNumberSpan && bestScoreSpan) {
+                        if (best.number) {
+                            bestNumberSpan.textContent = best.number;
+                            bestScoreSpan.textContent = best.score.toLocaleString() + ' TP';
+                        } else {
+                            bestNumberSpan.textContent = '—';
+                            bestScoreSpan.textContent = '0 TP';
+                        }
+                    }
+                };
                 // 初始显示
                 window.onTotalGenerationsChange(window.Badges.getTotalGenerations());
+                // 初始最佳
+                const best = window.Badges.getBest();
+                window.onBestChange(best);
             } else {
                 console.warn('Badge UI elements missing, skipping badge initialization.');
             }
@@ -166,6 +183,9 @@
             // 调用徽章检查
             if (window.Badges && typeof window.Badges.checkAndAwardBadges === 'function') {
                 window.Badges.checkAndAwardBadges(numStr);
+                // 更新最佳显示（徽章内部已更新，但我们需要刷新UI）
+                const best = window.Badges.getBest();
+                if (window.onBestChange) window.onBestChange(best);
             } else {
                 console.warn('Badges module not available');
             }
@@ -199,7 +219,6 @@
                 const showAll = window.Badges.getShowAllBadges();
                 this.textContent = showAll ? '隐藏未获得徽章' : '显示所有徽章';
             });
-            // 初始化按钮文字
             toggleBtn.textContent = window.Badges.getShowAllBadges() ? '隐藏未获得徽章' : '显示所有徽章';
         }
 
@@ -209,13 +228,107 @@
             resetBtn.addEventListener('click', function() {
                 if (confirm('确定要清除所有数据吗？此操作不可撤销！')) {
                     window.Badges.hardReset();
-                    // 重置数字显示
                     resetDigits();
-                    // 清空当前数字字符串
                     window.__currentNumber = '';
-                    // 重置得分显示（badges 内部已经更新）
+                    // 更新最佳显示
+                    const best = window.Badges.getBest();
+                    if (window.onBestChange) window.onBestChange(best);
                 }
             });
+        }
+
+        // ---------- 复制分享功能 ----------
+        const shareBtn = document.getElementById('shareBtn');
+        if (shareBtn) {
+            shareBtn.addEventListener('click', function() {
+                const numberStr = window.__currentNumber || '';
+                if (!numberStr) {
+                    showToast('请先生成一个数字！');
+                    return;
+                }
+
+                const badges = window.Badges.getBadgesForNumber ? window.Badges.getBadgesForNumber(numberStr) : [];
+                const totalScore = badges.reduce((sum, b) => sum + b.score, 0);
+
+                let text = `🎲 HYPERNGdle\n数字：${numberStr}\n`;
+                if (badges.length === 0) {
+                    text += '（未获得任何徽章）\n';
+                } else {
+                    badges.forEach(b => {
+                        text += `  ${b.emoji} ${b.name}  +${b.score.toLocaleString()} TP\n`;
+                    });
+                }
+                text += `\n本数字总 TP：${totalScore.toLocaleString()}`;
+                const totalTP = window.Badges.getTotalTP ? window.Badges.getTotalTP() : 0;
+                text += `\n历史总 TP：${totalTP.toLocaleString()}`;
+                text += `\n\n🔗 在 HYPERNGdle 试试你的运气：https://txgeer.github.io/TPeT/HYPERNGdle/HYPERNGdle.html`;
+
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        showToast('已复制到剪贴板！');
+                    }).catch(() => {
+                        fallbackCopy(text);
+                    });
+                } else {
+                    fallbackCopy(text);
+                }
+            });
+        }
+
+        function fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            textarea.style.left = '-9999px';
+            textarea.style.top = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                const success = document.execCommand('copy');
+                if (success) {
+                    showToast('已复制到剪贴板！');
+                } else {
+                    alert('复制失败，请手动复制以下内容：\n\n' + text);
+                }
+            } catch (e) {
+                alert('复制失败，请手动复制以下内容：\n\n' + text);
+            }
+            document.body.removeChild(textarea);
+        }
+
+        let toastTimer = null;
+        function showToast(msg) {
+            const old = document.querySelector('.custom-toast');
+            if (old) old.remove();
+            if (toastTimer) clearTimeout(toastTimer);
+
+            const div = document.createElement('div');
+            div.className = 'custom-toast';
+            div.textContent = msg;
+            Object.assign(div.style, {
+                position: 'fixed',
+                bottom: '30px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: 'rgba(20,20,20,0.9)',
+                color: '#f0f0f0',
+                padding: '10px 24px',
+                borderRadius: '40px',
+                fontSize: '0.9rem',
+                fontWeight: '600',
+                border: '1px solid #4a4a4a',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
+                zIndex: '9999',
+                backdropFilter: 'blur(4px)',
+                transition: 'opacity 0.3s ease'
+            });
+            document.body.appendChild(div);
+
+            toastTimer = setTimeout(() => {
+                div.style.opacity = '0';
+                setTimeout(() => div.remove(), 300);
+            }, 2000);
         }
 
         // 初始加载后自动生成一次
