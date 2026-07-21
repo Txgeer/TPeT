@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>扫雷 · 正负雷</title>
+    <title>扫雷^</title>
     <style>
         /* ===== CSS 变量（默认配色） ===== */
         :root {
@@ -1850,6 +1850,20 @@
                 toggleFlag(row, col);
             }
 
+            // ---------- 新增：电脑端双击触发 chord ----------
+            function onCellDoubleClick(e) {
+                if (!gameActive || gameOver) return;
+                const result = getCellFromEvent(e);
+                if (!result) return;
+                const { row, col } = result;
+                const data = board[row][col];
+                // 仅当格子已揭开且显示数字（包括0但有邻居）时触发 chord
+                if (data.revealed && (data.displayNum !== 0 || data.hasNeighbor)) {
+                    chord(row, col);
+                }
+                e.preventDefault();
+            }
+
             // ---------- 重置按钮 ----------
             function onResetClick(e) {
                 e.preventDefault();
@@ -1939,6 +1953,8 @@
 
                 gridEl.addEventListener('click', onCellClick);
                 gridEl.addEventListener('contextmenu', onCellRightClick);
+                // 绑定双击事件
+                gridEl.addEventListener('dblclick', onCellDoubleClick);
 
                 resetBtn.addEventListener('click', onResetClick);
                 resetBtn.addEventListener('touchstart', function(e) {
