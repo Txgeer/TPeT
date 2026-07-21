@@ -1,0 +1,1982 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>扫雷 · 正负雷</title>
+    <style>
+        /* ===== CSS 变量（默认配色） ===== */
+        :root {
+            --cell-bg: #b8c0cd;
+            --revealed-bg: #e9edf2;
+            --num1-color: #2c7be5;
+            --num2-color: #27ae60;
+            --num3-color: #e74c3c;
+            --num4-color: #1a237e;
+            --num5-color: #7f1d1d;
+            --num6-color: #00838f;
+            --num7-color: #1a1a2e;
+            --num8-color: #5d6d7e;
+            --neg-num1-color: #d94b8a;
+            --neg-num2-color: #d94b2a;
+            --neg-num3-color: #2b8fe7;
+            --neg-num4-color: #e7c82b;
+            --neg-num5-color: #2be7c8;
+            --neg-num6-color: #e72b8f;
+            --neg-num7-color: #8f2be7;
+            --neg-num8-color: #2b8fe7;
+            --zero-color: #ffffff;
+            --cell-size: 32px;
+            --gap-size: 3px;
+            --flag-pos1-color: #e74c3c;
+            --flag-pos2-color: #d35400;
+            --flag-neg1-color: #2c7be5;
+            --flag-neg2-color: #8e44ad;
+        }
+
+        /* ===== 全局重置 ===== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            font-family: -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #e8ecf1;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            touch-action: pan-y;
+        }
+
+        .game-container {
+            background: #ffffff;
+            border-radius: 28px;
+            padding: 20px 18px 24px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 420px;
+            transition: all 0.2s;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+            max-height: 90dvh;
+        }
+
+        .game-title {
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: #8e9aaf;
+            letter-spacing: 2px;
+            margin-bottom: 14px;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+
+        /* ===== 状态栏 ===== */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f0f3f7;
+            border-radius: 14px;
+            padding: 6px 10px;
+            margin-bottom: 14px;
+            font-weight: 600;
+            height: 52px;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .status-mines {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 8px;
+            flex: 1;
+            min-width: 0;
+            padding: 2px 0;
+        }
+        .mine-remain-item {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+        .mine-remain-item .label {
+            font-weight: 600;
+            font-size: 10px;
+        }
+        .mine-remain-item .num {
+            font-size: 13px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            min-width: 14px;
+            text-align: center;
+        }
+        .mine-remain-item.pos1 .label { color: var(--flag-pos1-color); }
+        .mine-remain-item.pos1 .num { color: var(--flag-pos1-color); }
+        .mine-remain-item.pos2 .label { color: var(--flag-pos2-color); }
+        .mine-remain-item.pos2 .num { color: var(--flag-pos2-color); }
+        .mine-remain-item.neg1 .label { color: var(--flag-neg1-color); }
+        .mine-remain-item.neg1 .num { color: var(--flag-neg1-color); }
+        .mine-remain-item.neg2 .label { color: var(--flag-neg2-color); }
+        .mine-remain-item.neg2 .num { color: var(--flag-neg2-color); }
+        .mine-remain-item .num.negative {
+            color: #e74c3c !important;
+        }
+
+        .status-buttons {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .reset-btn, .settings-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: none;
+            background: #ffffff;
+            font-size: 22px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            touch-action: manipulation;
+            flex-shrink: 0;
+        }
+        .reset-btn:active, .settings-btn:active {
+            transform: scale(0.88);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        }
+        .settings-btn {
+            font-size: 18px;
+        }
+        .reset-btn.game-over {
+            animation: pulse 0.6s ease 3;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .status-timer {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #2c3e50;
+            font-variant-numeric: tabular-nums;
+            flex-shrink: 0;
+            font-size: 14px;
+        }
+        .status-timer .icon {
+            font-size: 16px;
+            line-height: 1;
+        }
+        .status-timer .number {
+            min-width: 28px;
+            text-align: center;
+            background: #1a1a2e;
+            color: #f5426c;
+            padding: 1px 6px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* ===== 网格容器 ===== */
+        .grid-wrapper {
+            position: relative;
+            touch-action: pan-x pan-y;
+            border-radius: 12px;
+            overflow: auto;
+            background: #d1d6de;
+            padding: 3px;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.06);
+            flex: 1;
+            min-height: 0;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #b0b8c4 #d1d6de;
+        }
+        .grid-wrapper::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .grid-wrapper::-webkit-scrollbar-thumb {
+            background: #b0b8c4;
+            border-radius: 4px;
+        }
+        .grid-wrapper::-webkit-scrollbar-track {
+            background: #d1d6de;
+        }
+
+        .grid {
+            display: grid;
+            gap: var(--gap-size);
+            background: #d1d6de;
+            width: fit-content;
+            height: fit-content;
+        }
+
+        .cell {
+            background: var(--cell-bg);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: calc(var(--cell-size) * 0.6);
+            font-weight: 800;
+            cursor: pointer;
+            transition: background 0.1s ease, transform 0.1s ease, box-shadow 0.1s ease;
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12), inset 0 2px 0 rgba(255, 255, 255, 0.35);
+            color: #1a1a2e;
+            touch-action: none;
+            position: relative;
+            will-change: transform;
+            width: var(--cell-size);
+            height: var(--cell-size);
+            flex-shrink: 0;
+        }
+        .cell:active:not(.revealed):not(.flagged) {
+            transform: scale(0.92);
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+        }
+        .cell.revealed {
+            background: var(--revealed-bg);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
+            cursor: default;
+        }
+        .cell.revealed:active {
+            transform: none;
+        }
+        .cell.flagged {
+            background: var(--cell-bg);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12), inset 0 2px 0 rgba(255, 255, 255, 0.35);
+        }
+        .cell.flagged .flag-label {
+            font-size: calc(var(--cell-size) * 0.5);
+            font-weight: 700;
+            line-height: 1;
+        }
+        .cell.flagged .flag-label.pos1 { color: var(--flag-pos1-color); }
+        .cell.flagged .flag-label.pos2 { color: var(--flag-pos2-color); }
+        .cell.flagged .flag-label.neg1 { color: var(--flag-neg1-color); }
+        .cell.flagged .flag-label.neg2 { color: var(--flag-neg2-color); }
+
+        .cell.mine-exploded {
+            background: #f5426c !important;
+            box-shadow: inset 0 0 0 2px #c0392b !important;
+        }
+        .cell.mine-shown {
+            background: var(--revealed-bg);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
+        }
+        .cell.mine-shown .mine-icon {
+            font-size: calc(var(--cell-size) * 0.55);
+            line-height: 1;
+        }
+        .cell.flag-wrong {
+            background: #e9edf2;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
+        }
+        .cell.flag-wrong .wrong-icon {
+            font-size: calc(var(--cell-size) * 0.5);
+            color: #e74c3c;
+        }
+
+        .cell.n1 { color: var(--num1-color); }
+        .cell.n2 { color: var(--num2-color); }
+        .cell.n3 { color: var(--num3-color); }
+        .cell.n4 { color: var(--num4-color); }
+        .cell.n5 { color: var(--num5-color); }
+        .cell.n6 { color: var(--num6-color); }
+        .cell.n7 { color: var(--num7-color); }
+        .cell.n8 { color: var(--num8-color); }
+        .cell.nn1 { color: var(--neg-num1-color); }
+        .cell.nn2 { color: var(--neg-num2-color); }
+        .cell.nn3 { color: var(--neg-num3-color); }
+        .cell.nn4 { color: var(--neg-num4-color); }
+        .cell.nn5 { color: var(--neg-num5-color); }
+        .cell.nn6 { color: var(--neg-num6-color); }
+        .cell.nn7 { color: var(--neg-num7-color); }
+        .cell.nn8 { color: var(--neg-num8-color); }
+        .cell.zero { color: var(--zero-color); }
+
+        .cell.chord-highlight {
+            box-shadow: 0 0 0 3px #ffcc00, 0 0 12px #ffaa00 !important;
+            z-index: 2;
+            transition: box-shadow 0.15s ease;
+        }
+        .cell.revealed.chord-highlight {
+            box-shadow: 0 0 0 3px #ffcc00, 0 0 12px #ffaa00 !important;
+        }
+
+        .footer-hint {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            margin-top: 14px;
+            font-size: 12px;
+            color: #8e9aaf;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+        .footer-hint span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .footer-hint .hint-icon {
+            font-size: 16px;
+        }
+
+        .game-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 12px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            z-index: 10;
+            animation: fadeIn 0.35s ease;
+        }
+        .game-overlay.show {
+            display: flex;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .game-overlay .result-icon { font-size: 56px; line-height: 1; }
+        .game-overlay .result-text { font-size: 22px; font-weight: 700; color: #ffffff; text-shadow: 0 2px 12px rgba(0,0,0,0.2); }
+        .game-overlay .result-sub { font-size: 13px; color: rgba(255,255,255,0.75); margin-top: 2px; }
+
+        /* ===== 设置面板 ===== */
+        .settings-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+            animation: fadeIn 0.25s ease;
+        }
+        .settings-overlay.open {
+            display: flex;
+        }
+        .settings-panel {
+            background: #ffffff;
+            border-radius: 24px;
+            max-width: 420px;
+            width: 100%;
+            max-height: 85vh;
+            padding: 24px 20px 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideUp 0.25s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-shrink: 0;
+        }
+        .settings-header h2 { font-size: 18px; font-weight: 700; color: #1a1a2e; }
+        .settings-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            line-height: 1;
+            cursor: pointer;
+            color: #8e9aaf;
+            padding: 0 4px;
+            touch-action: manipulation;
+        }
+        .settings-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-shrink: 0;
+            border-bottom: 2px solid #eef0f2;
+            padding-bottom: 8px;
+        }
+        .settings-tabs button {
+            flex: 1;
+            padding: 8px 0;
+            border: none;
+            background: none;
+            font-size: 15px;
+            font-weight: 600;
+            color: #8e9aaf;
+            cursor: pointer;
+            transition: color 0.15s, border-color 0.15s;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -10px;
+            touch-action: manipulation;
+        }
+        .settings-tabs button.active {
+            color: #2c7be5;
+            border-bottom-color: #2c7be5;
+        }
+        .settings-tabs button:active {
+            transform: scale(0.96);
+        }
+        .settings-tab-content {
+            display: none;
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 4px;
+        }
+        .settings-tab-content.active {
+            display: block;
+        }
+
+        .settings-group { margin-bottom: 14px; }
+        .settings-group label { display: block; font-size: 13px; font-weight: 600; color: #2c3e50; margin-bottom: 4px; }
+        .settings-color-row { display: flex; align-items: center; gap: 12px; }
+        .settings-color-row input[type="color"] {
+            width: 44px; height: 44px; border: 2px solid #d1d6de; border-radius: 8px; padding: 2px;
+            cursor: pointer; background: transparent; flex-shrink: 0;
+        }
+        .settings-color-row input[type="text"] {
+            flex: 1; padding: 8px 10px; border: 1.5px solid #d1d6de; border-radius: 8px;
+            font-size: 14px; font-family: monospace; background: #f8f9fa; color: #1a1a2e;
+            outline: none; transition: border 0.15s;
+        }
+        .settings-color-row input[type="text"]:focus { border-color: #2c7be5; }
+
+        .config-group { margin-bottom: 16px; }
+        .config-group label { display: block; font-size: 13px; font-weight: 600; color: #2c3e50; margin-bottom: 4px; }
+        .config-group input[type="number"] {
+            width: 100%; padding: 10px 12px; border: 1.5px solid #d1d6de; border-radius: 8px;
+            font-size: 16px; background: #f8f9fa; color: #1a1a2e; outline: none; transition: border 0.15s;
+            -moz-appearance: textfield;
+        }
+        .config-group input[type="number"]:focus { border-color: #2c7be5; }
+        .config-group input[type="number"]::-webkit-outer-spin-button,
+        .config-group input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none; margin: 0;
+        }
+        .config-hint { font-size: 12px; color: #8e9aaf; margin-top: 4px; }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+        .preset-btn {
+            padding: 6px 4px;
+            border: 1.5px solid #d1d6de;
+            border-radius: 8px;
+            background: #f8f9fa;
+            font-size: 11px;
+            font-weight: 600;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, transform 0.1s;
+            touch-action: manipulation;
+            text-align: center;
+            line-height: 1.3;
+            min-height: 32px;
+        }
+        .preset-btn:active {
+            transform: scale(0.94);
+            background: #e9ecf0;
+        }
+        .preset-btn:hover {
+            border-color: #2c7be5;
+            background: #f0f4ff;
+        }
+        .preset-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .settings-actions {
+            display: flex; gap: 12px; margin-top: 16px; flex-shrink: 0;
+            padding-top: 12px; border-top: 1px solid #eef0f2;
+        }
+        .settings-actions button {
+            flex: 1; padding: 12px; border: none; border-radius: 12px;
+            font-size: 15px; font-weight: 600; cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.1s;
+            touch-action: manipulation;
+        }
+        .settings-actions button:active { transform: scale(0.96); }
+        .btn-reset-default { background: #f0f3f7; color: #2c3e50; }
+        .btn-save { background: #2c7be5; color: #ffffff; box-shadow: 0 4px 12px rgba(44,123,229,0.25); }
+        .btn-save:active { box-shadow: 0 2px 6px rgba(44,123,229,0.2); }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 400px) {
+            .game-container { padding: 14px 12px 18px; border-radius: 20px; }
+            .status-bar { padding: 4px 8px; height: 46px; border-radius: 10px; }
+            .status-mines { gap: 0 4px; }
+            .mine-remain-item { font-size: 9px; }
+            .mine-remain-item .num { font-size: 11px; min-width: 12px; }
+            .reset-btn, .settings-btn { width: 32px; height: 32px; font-size: 18px; }
+            .settings-btn { font-size: 15px; }
+            .status-timer { font-size: 12px; }
+            .status-timer .number { font-size: 13px; min-width: 24px; padding: 1px 4px; }
+            .footer-hint { font-size: 11px; gap: 12px; margin-top: 10px; }
+            .game-overlay .result-icon { font-size: 44px; }
+            .game-overlay .result-text { font-size: 18px; }
+            .settings-panel { padding: 20px 16px 16px; }
+            .settings-color-row input[type="color"] { width: 38px; height: 38px; }
+            :root { --cell-size: 28px; }
+            .preset-btn { font-size: 10px; padding: 4px 3px; min-height: 28px; }
+        }
+        @media (max-width: 360px) {
+            .game-container { padding: 10px 8px 14px; border-radius: 16px; }
+            .status-bar { padding: 3px 6px; height: 40px; border-radius: 8px; }
+            .status-mines { gap: 0 3px; }
+            .mine-remain-item { font-size: 8px; }
+            .mine-remain-item .num { font-size: 10px; min-width: 10px; }
+            .reset-btn, .settings-btn { width: 28px; height: 28px; font-size: 15px; }
+            .settings-btn { font-size: 13px; }
+            .status-timer { font-size: 10px; }
+            .status-timer .number { font-size: 11px; min-width: 20px; padding: 1px 3px; }
+            .footer-hint { font-size: 10px; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+            .game-overlay .result-icon { font-size: 36px; }
+            .game-overlay .result-text { font-size: 16px; }
+            .game-title { font-size: 11px; margin-bottom: 10px; }
+            .settings-panel { padding: 16px 12px 14px; }
+            .settings-color-row input[type="color"] { width: 34px; height: 34px; }
+            .settings-color-row input[type="text"] { font-size: 12px; padding: 6px 8px; }
+            :root { --cell-size: 24px; }
+            .preset-btn { font-size: 9px; padding: 3px 2px; min-height: 24px; }
+        }
+        @media (max-height: 500px) and (orientation: landscape) {
+            .game-container { padding: 10px 16px 14px; max-width: 380px; max-height: 95vh; }
+            .game-title { display: none; }
+            .status-bar { height: 36px; padding: 3px 8px; margin-bottom: 8px; }
+            .mine-remain-item { font-size: 8px; }
+            .mine-remain-item .num { font-size: 10px; min-width: 10px; }
+            .reset-btn, .settings-btn { width: 28px; height: 28px; font-size: 15px; }
+            .settings-btn { font-size: 13px; }
+            .status-timer { font-size: 10px; }
+            .status-timer .number { font-size: 11px; min-width: 20px; padding: 1px 3px; }
+            .footer-hint { margin-top: 6px; font-size: 10px; }
+            .settings-panel { max-height: 90vh; padding: 16px; }
+            :root { --cell-size: 24px; }
+            .preset-btn { font-size: 9px; padding: 3px 2px; min-height: 24px; }
+        }
+        @supports (padding: max(0px)) {
+            .game-container { padding-left: max(18px, env(safe-area-inset-left)); padding-right: max(18px, env(safe-area-inset-right)); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container" id="app">
+        <div class="game-title">💣 扫雷 · 正负雷</div>
+
+        <!-- ===== 状态栏 ===== -->
+        <div class="status-bar">
+            <div class="status-mines" id="statusMines">
+                <span class="mine-remain-item pos1"><span class="label">+1</span><span class="num" id="pos1Remain">0</span></span>
+                <span class="mine-remain-item pos2"><span class="label">+2</span><span class="num" id="pos2Remain">0</span></span>
+                <span class="mine-remain-item neg1"><span class="label">-1</span><span class="num" id="neg1Remain">0</span></span>
+                <span class="mine-remain-item neg2"><span class="label">-2</span><span class="num" id="neg2Remain">0</span></span>
+            </div>
+            <div class="status-buttons">
+                <button class="reset-btn" id="resetBtn" aria-label="重新开始">😊</button>
+                <button class="settings-btn" id="settingsBtn" aria-label="设置">⚙️</button>
+            </div>
+            <div class="status-timer">
+                <span class="icon">⏱</span>
+                <span class="number" id="timerDisplay">000</span>
+            </div>
+        </div>
+
+        <!-- ===== 网格 ===== -->
+        <div class="grid-wrapper" id="gridWrapper">
+            <div class="grid" id="grid"></div>
+            <div class="game-overlay" id="gameOverlay">
+                <div class="result-icon" id="resultIcon">💥</div>
+                <div class="result-text" id="resultText">游戏结束</div>
+                <div class="result-sub" id="resultSub">点击 😊 重新开始</div>
+            </div>
+        </div>
+
+        <div class="footer-hint">
+            <span><span class="hint-icon">👆</span> 点击揭开</span>
+            <span><span class="hint-icon">⏱</span> 长按切换标记：+1→+2→-1→-2→取消</span>
+            <span><span class="hint-icon">🔢</span> 长按数字翻开</span>
+        </div>
+    </div>
+
+    <!-- ===== 设置面板 ===== -->
+    <div class="settings-overlay" id="settingsOverlay">
+        <div class="settings-panel">
+            <div class="settings-header">
+                <h2>⚙️ 设置</h2>
+                <button class="settings-close" id="settingsClose">✕</button>
+            </div>
+            <div class="settings-tabs" id="settingsTabs">
+                <button class="active" data-tab="color">🎨 颜色</button>
+                <button data-tab="config">⚙️ 配置</button>
+            </div>
+            <div class="settings-tab-content active" id="tabColor">
+                <div id="settingsItems"></div>
+            </div>
+            <div class="settings-tab-content" id="tabConfig">
+                <div class="config-group" style="margin-bottom: 12px;">
+                    <span class="preset-label">📌 预设配置</span>
+                    <div class="preset-grid" id="presetGrid"></div>
+                </div>
+                <div class="config-group">
+                    <label for="configRows">高度（行数）</label>
+                    <input type="number" id="configRows" min="1" max="72" value="9">
+                    <div class="config-hint">1 ~ 72</div>
+                </div>
+                <div class="config-group">
+                    <label for="configCols">宽度（列数）</label>
+                    <input type="number" id="configCols" min="1" max="72" value="9">
+                    <div class="config-hint">1 ~ 72，且不能与高度同时为 1</div>
+                </div>
+                <div class="config-group">
+                    <label for="configMines">总雷数</label>
+                    <input type="number" id="configMines" min="1" value="10">
+                    <div class="config-hint" id="mineHint">最大 ≤ floor(行×列/2)</div>
+                </div>
+                <div class="config-group">
+                    <label for="configPosDouble">正双雷数量 (+2)</label>
+                    <input type="number" id="configPosDouble" min="0" value="0">
+                    <div class="config-hint">≥0，且 ≤ 总雷数</div>
+                </div>
+                <div class="config-group">
+                    <label for="configNegTotal">负雷总数 (-1 和 -2)</label>
+                    <input type="number" id="configNegTotal" min="0" value="0">
+                    <div class="config-hint" id="negTotalHint">≤ 总雷数 − 正双雷数</div>
+                </div>
+                <div class="config-group">
+                    <label for="configNegDouble">负双雷数量 (-2)</label>
+                    <input type="number" id="configNegDouble" min="0" value="0">
+                    <div class="config-hint">0 ~ 负雷总数</div>
+                </div>
+            </div>
+            <div class="settings-actions">
+                <button class="btn-reset-default" id="resetDefaultColors">重置默认</button>
+                <button class="btn-save" id="saveSettings">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  扫雷 · 正负雷版  —— 完整逻辑（含12种预设配置）
+        // ============================================================
+
+        (function() {
+            'use strict';
+
+            // ---------- 常量 ----------
+            const DEFAULT_ROWS = 9;
+            const DEFAULT_COLS = 9;
+            const DEFAULT_MINES = 10;
+            const DEFAULT_POS_DOUBLE = 0;
+            const DEFAULT_NEG_TOTAL = 0;
+            const DEFAULT_NEG_DOUBLE = 0;
+            const LONG_PRESS_MS = 450;
+
+            // ---------- 预设配置数据 ----------
+            const PRESET_DATA = [
+                { name: '初级', rows: 9, cols: 9, mines: 10, posDouble: 0, negTotal: 0, negDouble: 0 },
+                { name: '中级', rows: 16, cols: 16, mines: 40, posDouble: 0, negTotal: 0, negDouble: 0 },
+                { name: '专家', rows: 16, cols: 30, mines: 99, posDouble: 0, negTotal: 0, negDouble: 0 },
+                { name: '初级-双雷', rows: 9, cols: 9, mines: 10, posDouble: 3, negTotal: 0, negDouble: 0 },
+                { name: '中级-双雷', rows: 16, cols: 16, mines: 40, posDouble: 12, negTotal: 0, negDouble: 0 },
+                { name: '专家-双雷', rows: 16, cols: 30, mines: 99, posDouble: 39, negTotal: 0, negDouble: 0 },
+                { name: '初级-负雷', rows: 9, cols: 9, mines: 10, posDouble: 0, negTotal: 3, negDouble: 0 },
+                { name: '中级-负雷', rows: 16, cols: 16, mines: 40, posDouble: 0, negTotal: 12, negDouble: 0 },
+                { name: '专家-负雷', rows: 16, cols: 30, mines: 99, posDouble: 0, negTotal: 39, negDouble: 0 },
+                { name: '初级-负双雷', rows: 9, cols: 9, mines: 10, posDouble: 1, negTotal: 2, negDouble: 1 },
+                { name: '中级-负双雷', rows: 16, cols: 16, mines: 40, posDouble: 5, negTotal: 7, negDouble: 2 },
+                { name: '专家-负双雷', rows: 16, cols: 30, mines: 99, posDouble: 15, negTotal: 24, negDouble: 9 },
+            ];
+
+            // ---------- DOM 引用 ----------
+            const gridEl = document.getElementById('grid');
+            const timerDisplayEl = document.getElementById('timerDisplay');
+            const resetBtn = document.getElementById('resetBtn');
+            const overlay = document.getElementById('gameOverlay');
+            const resultIcon = document.getElementById('resultIcon');
+            const resultText = document.getElementById('resultText');
+            const resultSub = document.getElementById('resultSub');
+            const gridWrapper = document.getElementById('gridWrapper');
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsOverlay = document.getElementById('settingsOverlay');
+            const settingsClose = document.getElementById('settingsClose');
+            const settingsItems = document.getElementById('settingsItems');
+            const resetDefaultColorsBtn = document.getElementById('resetDefaultColors');
+            const saveSettingsBtn = document.getElementById('saveSettings');
+            const configRows = document.getElementById('configRows');
+            const configCols = document.getElementById('configCols');
+            const configMines = document.getElementById('configMines');
+            const configPosDouble = document.getElementById('configPosDouble');
+            const configNegTotal = document.getElementById('configNegTotal');
+            const configNegDouble = document.getElementById('configNegDouble');
+            const mineHint = document.getElementById('mineHint');
+            const negTotalHint = document.getElementById('negTotalHint');
+            const settingsTabs = document.getElementById('settingsTabs');
+            const presetGrid = document.getElementById('presetGrid');
+
+            const pos1RemainEl = document.getElementById('pos1Remain');
+            const pos2RemainEl = document.getElementById('pos2Remain');
+            const neg1RemainEl = document.getElementById('neg1Remain');
+            const neg2RemainEl = document.getElementById('neg2Remain');
+
+            // ---------- 颜色变量 ----------
+            const colorVars = {
+                '未揭开背景': '--cell-bg',
+                '已揭开背景': '--revealed-bg',
+                '数字1颜色': '--num1-color',
+                '数字2颜色': '--num2-color',
+                '数字3颜色': '--num3-color',
+                '数字4颜色': '--num4-color',
+                '数字5颜色': '--num5-color',
+                '数字6颜色': '--num6-color',
+                '数字7颜色': '--num7-color',
+                '数字8颜色': '--num8-color',
+                '负数字1颜色': '--neg-num1-color',
+                '负数字2颜色': '--neg-num2-color',
+                '负数字3颜色': '--neg-num3-color',
+                '负数字4颜色': '--neg-num4-color',
+                '负数字5颜色': '--neg-num5-color',
+                '负数字6颜色': '--neg-num6-color',
+                '负数字7颜色': '--neg-num7-color',
+                '负数字8颜色': '--neg-num8-color',
+                '数字0颜色': '--zero-color',
+                '+1标记颜色': '--flag-pos1-color',
+                '+2标记颜色': '--flag-pos2-color',
+                '-1标记颜色': '--flag-neg1-color',
+                '-2标记颜色': '--flag-neg2-color',
+            };
+
+            const defaultColors = {
+                '--cell-bg': '#b8c0cd',
+                '--revealed-bg': '#e9edf2',
+                '--num1-color': '#2c7be5',
+                '--num2-color': '#27ae60',
+                '--num3-color': '#e74c3c',
+                '--num4-color': '#1a237e',
+                '--num5-color': '#7f1d1d',
+                '--num6-color': '#00838f',
+                '--num7-color': '#1a1a2e',
+                '--num8-color': '#5d6d7e',
+                '--neg-num1-color': '#d94b8a',
+                '--neg-num2-color': '#d94b2a',
+                '--neg-num3-color': '#2b8fe7',
+                '--neg-num4-color': '#e7c82b',
+                '--neg-num5-color': '#2be7c8',
+                '--neg-num6-color': '#e72b8f',
+                '--neg-num7-color': '#8f2be7',
+                '--neg-num8-color': '#2b8fe7',
+                '--zero-color': '#ffffff',
+                '--flag-pos1-color': '#e74c3c',
+                '--flag-pos2-color': '#d35400',
+                '--flag-neg1-color': '#2c7be5',
+                '--flag-neg2-color': '#8e44ad',
+            };
+
+            // ---------- 游戏配置 ----------
+            let ROWS = DEFAULT_ROWS;
+            let COLS = DEFAULT_COLS;
+            let TOTAL_MINES = DEFAULT_MINES;
+            let POS_DOUBLE = DEFAULT_POS_DOUBLE;
+            let NEG_TOTAL = DEFAULT_NEG_TOTAL;
+            let NEG_DOUBLE = DEFAULT_NEG_DOUBLE;
+
+            let configPos1 = 0;
+            let configPos2 = 0;
+            let configNeg1 = 0;
+            let configNeg2 = 0;
+
+            // ---------- 游戏状态 ----------
+            let board = [];
+            let gameActive = false;
+            let gameOver = false;
+            let firstClick = true;
+            let flagCount = 0;
+            let revealedCount = 0;
+            let timerInterval = null;
+            let seconds = 0;
+            let timerStarted = false;
+
+            let touchState = {
+                cell: null,
+                row: -1,
+                col: -1,
+                timer: null,
+                startX: 0,
+                startY: 0,
+                isLongPress: false,
+            };
+
+            // ---------- 工具函数 ----------
+            function formatTime(sec) {
+                return String(Math.min(sec, 999)).padStart(3, '0');
+            }
+
+            // ---------- 颜色设置 ----------
+            function getCurrentColors() {
+                const colors = {};
+                for (const [label, varName] of Object.entries(colorVars)) {
+                    const val = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+                    colors[varName] = val || defaultColors[varName];
+                }
+                return colors;
+            }
+            function applyColors(colorMap) {
+                for (const [varName, hex] of Object.entries(colorMap)) {
+                    if (hex && hex.startsWith('#')) {
+                        document.documentElement.style.setProperty(varName, hex);
+                    }
+                }
+            }
+            function saveColorsToStorage(colorMap) {
+                try { localStorage.setItem('minesweeper-colors', JSON.stringify(colorMap)); } catch (_) {}
+            }
+            function loadColorsFromStorage() {
+                try {
+                    const data = localStorage.getItem('minesweeper-colors');
+                    if (data) {
+                        const parsed = JSON.parse(data);
+                        const valid = {};
+                        for (const [key, val] of Object.entries(parsed)) {
+                            if (defaultColors.hasOwnProperty(key) && val && val.startsWith('#')) {
+                                valid[key] = val;
+                            }
+                        }
+                        if (Object.keys(valid).length > 0) return valid;
+                    }
+                } catch (_) {}
+                return null;
+            }
+            function resetToDefaultColors() {
+                applyColors(defaultColors);
+                saveColorsToStorage(defaultColors);
+                buildSettingsItems();
+            }
+            function buildSettingsItems() {
+                const colors = getCurrentColors();
+                let html = '';
+                for (const [label, varName] of Object.entries(colorVars)) {
+                    const hex = colors[varName] || defaultColors[varName];
+                    html += `
+                        <div class="settings-group" data-var="${varName}">
+                            <label>${label}</label>
+                            <div class="settings-color-row">
+                                <input type="color" value="${hex}" data-var="${varName}">
+                                <input type="text" value="${hex}" data-var="${varName}" spellcheck="false">
+                            </div>
+                        </div>
+                    `;
+                }
+                settingsItems.innerHTML = html;
+                settingsItems.querySelectorAll('.settings-color-row').forEach(row => {
+                    const colorInput = row.querySelector('input[type="color"]');
+                    const textInput = row.querySelector('input[type="text"]');
+                    const varName = colorInput.dataset.var;
+                    colorInput.addEventListener('input', function() {
+                        textInput.value = this.value;
+                    });
+                    textInput.addEventListener('input', function() {
+                        const val = this.value.trim();
+                        if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+                            colorInput.value = val;
+                        }
+                    });
+                    textInput.addEventListener('blur', function() {
+                        const val = this.value.trim();
+                        if (!/^#[0-9a-fA-F]{6}$/.test(val)) {
+                            this.value = colorInput.value;
+                        }
+                    });
+                });
+            }
+
+            // ---------- 配置存储 ----------
+            function loadConfigFromStorage() {
+                try {
+                    const data = localStorage.getItem('minesweeper-config');
+                    if (data) {
+                        const parsed = JSON.parse(data);
+                        if (parsed.rows && parsed.cols && parsed.mines !== undefined &&
+                            parsed.posDouble !== undefined && parsed.negTotal !== undefined &&
+                            parsed.negDouble !== undefined) {
+                            return parsed;
+                        }
+                    }
+                } catch (_) {}
+                return null;
+            }
+            function saveConfigToStorage(rows, cols, mines, posDouble, negTotal, negDouble) {
+                try {
+                    localStorage.setItem('minesweeper-config', JSON.stringify({ rows, cols, mines, posDouble, negTotal,
+                            negDouble }));
+                } catch (_) {}
+            }
+
+            function calcConfigCounts() {
+                configPos1 = TOTAL_MINES - POS_DOUBLE - NEG_TOTAL;
+                configPos2 = POS_DOUBLE;
+                configNeg1 = NEG_TOTAL - NEG_DOUBLE;
+                configNeg2 = NEG_DOUBLE;
+                if (configPos1 < 0) configPos1 = 0;
+                if (configNeg1 < 0) configNeg1 = 0;
+            }
+
+            function applyConfig(rows, cols, mines, posDouble, negTotal, negDouble) {
+                ROWS = rows;
+                COLS = cols;
+                TOTAL_MINES = mines;
+                POS_DOUBLE = posDouble;
+                NEG_TOTAL = negTotal;
+                NEG_DOUBLE = negDouble;
+                calcConfigCounts();
+                // 更新输入框显示
+                configRows.value = rows;
+                configCols.value = cols;
+                configMines.value = mines;
+                configPosDouble.value = posDouble;
+                configNegTotal.value = negTotal;
+                configNegDouble.value = negDouble;
+                updateHints();
+                // 不立即更新剩余数量，等待 resetGame 后由 updateUI 刷新
+            }
+
+            function validateConfig() {
+                let rows = parseInt(configRows.value, 10);
+                let cols = parseInt(configCols.value, 10);
+                let mines = parseInt(configMines.value, 10);
+                let posDouble = parseInt(configPosDouble.value, 10);
+                let negTotal = parseInt(configNegTotal.value, 10);
+                let negDouble = parseInt(configNegDouble.value, 10);
+
+                if (isNaN(rows) || rows < 1) rows = 1;
+                if (isNaN(cols) || cols < 1) cols = 1;
+                if (rows > 72) rows = 72;
+                if (cols > 72) cols = 72;
+                if (rows === 1 && cols === 1) {
+                    alert('高度和宽度不能同时为 1，请至少增加一个维度。');
+                    return null;
+                }
+                const maxTotal = Math.floor((rows * cols) / 2);
+                if (isNaN(mines) || mines < 1) mines = 1;
+                if (mines > maxTotal) mines = maxTotal;
+
+                if (isNaN(posDouble) || posDouble < 0) posDouble = 0;
+                if (posDouble > mines) posDouble = mines;
+
+                if (isNaN(negTotal) || negTotal < 0) negTotal = 0;
+                if (negTotal > (mines - posDouble)) negTotal = mines - posDouble;
+
+                if (isNaN(negDouble) || negDouble < 0) negDouble = 0;
+                if (negDouble > negTotal) negDouble = negTotal;
+
+                configRows.value = rows;
+                configCols.value = cols;
+                configMines.value = mines;
+                configPosDouble.value = posDouble;
+                configNegTotal.value = negTotal;
+                configNegDouble.value = negDouble;
+                updateHints();
+                return { rows, cols, mines, posDouble, negTotal, negDouble };
+            }
+
+            function updateHints() {
+                const rows = parseInt(configRows.value) || 1;
+                const cols = parseInt(configCols.value) || 1;
+                const maxTotal = Math.floor((rows * cols) / 2);
+                const current = parseInt(configMines.value) || 1;
+                mineHint.textContent = `最大 ≤ ${maxTotal}（当前 ${Math.min(current, maxTotal)}）`;
+                if (current > maxTotal) configMines.value = maxTotal;
+                if (current < 1) configMines.value = 1;
+
+                const mines = parseInt(configMines.value) || 1;
+                const posDouble = parseInt(configPosDouble.value) || 0;
+                if (posDouble > mines) configPosDouble.value = mines;
+                const negTotal = parseInt(configNegTotal.value) || 0;
+                const maxNeg = mines - posDouble;
+                if (negTotal > maxNeg) configNegTotal.value = maxNeg;
+                if (negTotal < 0) configNegTotal.value = 0;
+                negTotalHint.textContent = `≤ 总雷数 − 正双雷数 = ${maxNeg}`;
+
+                const negDouble = parseInt(configNegDouble.value) || 0;
+                const negTotalVal = parseInt(configNegTotal.value) || 0;
+                if (negDouble > negTotalVal) configNegDouble.value = negTotalVal;
+                if (negDouble < 0) configNegDouble.value = 0;
+            }
+
+            function saveConfigAndApply() {
+                const cfg = validateConfig();
+                if (!cfg) return false;
+                saveConfigToStorage(cfg.rows, cfg.cols, cfg.mines, cfg.posDouble, cfg.negTotal, cfg.negDouble);
+                applyConfig(cfg.rows, cfg.cols, cfg.mines, cfg.posDouble, cfg.negTotal, cfg.negDouble);
+                resetGame();
+                return true;
+            }
+
+            // ---------- 预设应用 ----------
+            function buildPresetButtons() {
+                presetGrid.innerHTML = '';
+                PRESET_DATA.forEach((p, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'preset-btn';
+                    btn.dataset.index = idx;
+                    btn.textContent = p.name;
+                    presetGrid.appendChild(btn);
+                });
+            }
+
+            function applyPreset(index) {
+                const p = PRESET_DATA[index];
+                if (!p) return;
+
+                const maxTotal = Math.floor((p.rows * p.cols) / 2);
+                let mines = p.mines;
+                if (mines > maxTotal) {
+                    alert(`预设 "${p.name}" 的雷数 (${mines}) 超过了该棋盘的最大允许值 (${maxTotal})，已自动调整为 ${maxTotal}。`);
+                    mines = maxTotal;
+                }
+
+                let posDouble = p.posDouble;
+                let negTotal = p.negTotal;
+                let negDouble = p.negDouble;
+                if (posDouble > mines) posDouble = mines;
+                if (negTotal > (mines - posDouble)) negTotal = mines - posDouble;
+                if (negDouble > negTotal) negDouble = negTotal;
+
+                configRows.value = p.rows;
+                configCols.value = p.cols;
+                configMines.value = mines;
+                configPosDouble.value = posDouble;
+                configNegTotal.value = negTotal;
+                configNegDouble.value = negDouble;
+                updateHints();
+
+                const cfg = validateConfig();
+                if (cfg) {
+                    saveConfigToStorage(cfg.rows, cfg.cols, cfg.mines, cfg.posDouble, cfg.negTotal, cfg.negDouble);
+                    applyConfig(cfg.rows, cfg.cols, cfg.mines, cfg.posDouble, cfg.negTotal, cfg.negDouble);
+                    resetGame();
+                }
+            }
+
+            // ---------- 生成雷 ----------
+            function placeMines(board, safeRow, safeCol) {
+                const totalCells = ROWS * COLS;
+                const maxTotal = Math.floor(totalCells / 2);
+                if (TOTAL_MINES > maxTotal) TOTAL_MINES = maxTotal;
+                if (POS_DOUBLE > TOTAL_MINES) POS_DOUBLE = TOTAL_MINES;
+                if (NEG_TOTAL > (TOTAL_MINES - POS_DOUBLE)) NEG_TOTAL = TOTAL_MINES - POS_DOUBLE;
+                if (NEG_DOUBLE > NEG_TOTAL) NEG_DOUBLE = NEG_TOTAL;
+                calcConfigCounts();
+
+                const posSingle = configPos1;
+                const negSingle = configNeg1;
+
+                if (posSingle < 0 || negSingle < 0) {
+                    alert('配置不合理，请调整。');
+                    return false;
+                }
+
+                const positions = [];
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        positions.push([r, c]);
+                    }
+                }
+                const safeSet = new Set();
+                for (let dr = -1; dr <= 1; dr++) {
+                    for (let dc = -1; dc <= 1; dc++) {
+                        const nr = safeRow + dr;
+                        const nc = safeCol + dc;
+                        if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+                            safeSet.add(nr * COLS + nc);
+                        }
+                    }
+                }
+                const candidates = positions.filter(([r, c]) => !safeSet.has(r * COLS + c));
+
+                const weights = [];
+                for (let i = 0; i < posSingle; i++) weights.push(1);
+                for (let i = 0; i < POS_DOUBLE; i++) weights.push(2);
+                for (let i = 0; i < negSingle; i++) weights.push(-1);
+                for (let i = 0; i < NEG_DOUBLE; i++) weights.push(-2);
+
+                for (let i = weights.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [weights[i], weights[j]] = [weights[j], weights[i]];
+                }
+
+                for (let attempt = 0; attempt < 2000; attempt++) {
+                    const shuffled = [...candidates];
+                    for (let i = shuffled.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                    }
+                    if (shuffled.length < weights.length) continue;
+
+                    for (let r = 0; r < ROWS; r++) {
+                        for (let c = 0; c < COLS; c++) {
+                            board[r][c].weight = 0;
+                        }
+                    }
+
+                    for (let i = 0; i < weights.length; i++) {
+                        const [r, c] = shuffled[i];
+                        board[r][c].weight = weights[i];
+                    }
+
+                    let valid = true;
+                    for (let r = 0; r < ROWS && valid; r++) {
+                        for (let c = 0; c < COLS && valid; c++) {
+                            let sum = 0;
+                            let hasNeighbor = false;
+                            for (let dr = -1; dr <= 1; dr++) {
+                                for (let dc = -1; dc <= 1; dc++) {
+                                    if (dr === 0 && dc === 0) continue;
+                                    const nr = r + dr;
+                                    const nc = c + dc;
+                                    if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+                                        const w = board[nr][nc].weight;
+                                        if (w !== 0) hasNeighbor = true;
+                                        sum += w;
+                                    }
+                                }
+                            }
+                            if (hasNeighbor && Math.abs(sum) > 8) {
+                                valid = false;
+                                break;
+                            }
+                            board[r][c].displayNum = sum;
+                            board[r][c].hasNeighbor = hasNeighbor;
+                        }
+                    }
+                    if (valid) {
+                        return true;
+                    }
+                }
+
+                alert('无法生成满足相邻雷数绝对值≤8的布局，请减少雷数或调整正负雷比例。');
+                const newTotal = Math.floor(TOTAL_MINES * 0.8);
+                if (newTotal < 1) return false;
+                TOTAL_MINES = newTotal;
+                if (POS_DOUBLE > TOTAL_MINES) POS_DOUBLE = TOTAL_MINES;
+                if (NEG_TOTAL > (TOTAL_MINES - POS_DOUBLE)) NEG_TOTAL = TOTAL_MINES - POS_DOUBLE;
+                if (NEG_DOUBLE > NEG_TOTAL) NEG_DOUBLE = NEG_TOTAL;
+                calcConfigCounts();
+                return placeMines(board, safeRow, safeCol);
+            }
+
+            // ---------- 初始化棋盘 ----------
+            function createEmptyBoard() {
+                const b = [];
+                for (let r = 0; r < ROWS; r++) {
+                    b[r] = [];
+                    for (let c = 0; c < COLS; c++) {
+                        b[r][c] = {
+                            weight: 0,
+                            revealed: false,
+                            flagType: 0,
+                            displayNum: 0,
+                            hasNeighbor: false,
+                        };
+                    }
+                }
+                return b;
+            }
+
+            // ---------- 更新四种雷剩余数量 ----------
+            function updateMineRemaining() {
+                let markedPos1 = 0,
+                    markedPos2 = 0,
+                    markedNeg1 = 0,
+                    markedNeg2 = 0;
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        const ft = board[r][c].flagType;
+                        if (ft === 1) markedPos1++;
+                        else if (ft === 2) markedPos2++;
+                        else if (ft === 3) markedNeg1++;
+                        else if (ft === 4) markedNeg2++;
+                    }
+                }
+
+                const remainPos1 = configPos1 - markedPos1;
+                const remainPos2 = configPos2 - markedPos2;
+                const remainNeg1 = configNeg1 - markedNeg1;
+                const remainNeg2 = configNeg2 - markedNeg2;
+
+                pos1RemainEl.textContent = remainPos1;
+                pos2RemainEl.textContent = remainPos2;
+                neg1RemainEl.textContent = remainNeg1;
+                neg2RemainEl.textContent = remainNeg2;
+
+                [pos1RemainEl, pos2RemainEl, neg1RemainEl, neg2RemainEl].forEach(el => {
+                    const val = parseInt(el.textContent, 10);
+                    if (val < 0) el.classList.add('negative');
+                    else el.classList.remove('negative');
+                });
+            }
+
+            // ---------- 渲染 ----------
+            function render() {
+                gridEl.innerHTML = '';
+                gridEl.style.gridTemplateColumns = `repeat(${COLS}, var(--cell-size))`;
+                gridEl.style.gridTemplateRows = `repeat(${ROWS}, var(--cell-size))`;
+                gridEl.style.gap = 'var(--gap-size)';
+
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.dataset.row = r;
+                        cell.dataset.col = c;
+                        cell.dataset.revealed = 'false';
+                        gridEl.appendChild(cell);
+                    }
+                }
+                updateUI();
+            }
+
+            function getCellEl(row, col) {
+                return gridEl.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+            }
+
+            function updateUI() {
+                timerDisplayEl.textContent = formatTime(seconds);
+
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        const data = board[r][c];
+                        const el = getCellEl(r, c);
+                        if (!el) continue;
+
+                        el.className = 'cell';
+                        el.textContent = '';
+                        el.style.color = '';
+
+                        if (data.revealed) {
+                            el.classList.add('revealed');
+                            if (data.weight !== 0) {
+                                el.classList.add('mine-shown');
+                                const span = document.createElement('span');
+                                span.className = 'mine-icon';
+                                if (data.weight === 1) span.textContent = '💣';
+                                else if (data.weight === 2) span.textContent = '💥';
+                                else if (data.weight === -1) span.textContent = '❄️';
+                                else if (data.weight === -2) span.textContent = '🌀';
+                                el.appendChild(span);
+                            } else {
+                                const num = data.displayNum;
+                                if (num !== 0 || data.hasNeighbor) {
+                                    el.textContent = num;
+                                    if (num > 0) {
+                                        el.classList.add('n' + num);
+                                    } else if (num < 0) {
+                                        el.classList.add('nn' + Math.abs(num));
+                                    } else {
+                                        el.classList.add('zero');
+                                    }
+                                }
+                            }
+                        } else if (data.flagType > 0) {
+                            el.classList.add('flagged');
+                            const label = document.createElement('span');
+                            label.className = 'flag-label';
+                            if (data.flagType === 1) {
+                                label.textContent = '+1';
+                                label.classList.add('pos1');
+                            } else if (data.flagType === 2) {
+                                label.textContent = '+2';
+                                label.classList.add('pos2');
+                            } else if (data.flagType === 3) {
+                                label.textContent = '-1';
+                                label.classList.add('neg1');
+                            } else if (data.flagType === 4) {
+                                label.textContent = '-2';
+                                label.classList.add('neg2');
+                            }
+                            el.appendChild(label);
+                        }
+                    }
+                }
+
+                updateMineRemaining();
+
+                if (gameOver) {
+                    const isWin = checkWin();
+                    resetBtn.textContent = isWin ? '😎' : '😵';
+                    resetBtn.classList.add('game-over');
+                } else {
+                    resetBtn.textContent = '😊';
+                    resetBtn.classList.remove('game-over');
+                }
+            }
+
+            // ---------- chord ----------
+            function chord(row, col) {
+                const data = board[row][col];
+                if (!data.revealed) return;
+
+                let neighbors = [];
+                let totalWeight = 0;
+                let positiveWeight = 0;
+                let negativeWeight = 0;
+
+                for (let dr = -1; dr <= 1; dr++) {
+                    for (let dc = -1; dc <= 1; dc++) {
+                        if (dr === 0 && dc === 0) continue;
+                        const nr = row + dr;
+                        const nc = col + dc;
+                        if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+                            const neighbor = board[nr][nc];
+                            if (neighbor.flagType > 0) {
+                                let weight = 0;
+                                if (neighbor.flagType === 1) weight = 1;
+                                else if (neighbor.flagType === 2) weight = 2;
+                                else if (neighbor.flagType === 3) weight = -1;
+                                else if (neighbor.flagType === 4) weight = -2;
+                                totalWeight += weight;
+                                if (weight > 0) positiveWeight += weight;
+                                else if (weight < 0) negativeWeight += Math.abs(weight);
+                            }
+                            if (!neighbor.revealed && neighbor.flagType === 0) {
+                                neighbors.push({ row: nr, col: nc });
+                            }
+                        }
+                    }
+                }
+
+                const num = data.displayNum;
+                if (num === 0 && data.hasNeighbor) {
+                    if (positiveWeight === negativeWeight && positiveWeight + negativeWeight >= 2) {
+                        for (const n of neighbors) {
+                            revealCell(n.row, n.col);
+                            if (gameOver) break;
+                        }
+                        if (!gameOver && neighbors.length > 0) {
+                            const highlightEls = [];
+                            for (const n of neighbors) {
+                                const el = getCellEl(n.row, n.col);
+                                if (el) {
+                                    el.classList.add('chord-highlight');
+                                    highlightEls.push(el);
+                                }
+                            }
+                            setTimeout(() => {
+                                for (const el of highlightEls) {
+                                    el.classList.remove('chord-highlight');
+                                }
+                            }, 500);
+                        }
+                    }
+                } else if (num !== 0) {
+                    if (totalWeight === num) {
+                        for (const n of neighbors) {
+                            revealCell(n.row, n.col);
+                            if (gameOver) break;
+                        }
+                        if (!gameOver && neighbors.length > 0) {
+                            const highlightEls = [];
+                            for (const n of neighbors) {
+                                const el = getCellEl(n.row, n.col);
+                                if (el) {
+                                    el.classList.add('chord-highlight');
+                                    highlightEls.push(el);
+                                }
+                            }
+                            setTimeout(() => {
+                                for (const el of highlightEls) {
+                                    el.classList.remove('chord-highlight');
+                                }
+                            }, 500);
+                        }
+                    }
+                }
+            }
+
+            // ---------- 游戏逻辑 ----------
+            function revealCell(row, col) {
+                if (!gameActive || gameOver) return;
+                if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return;
+
+                const data = board[row][col];
+                if (data.revealed || data.flagType > 0) return;
+
+                if (data.weight !== 0) {
+                    data.revealed = true;
+                    const el = getCellEl(row, col);
+                    if (el) el.classList.add('mine-exploded');
+                    gameOver = true;
+                    gameActive = false;
+                    stopTimer();
+                    revealAllMines(row, col);
+                    const msg = data.weight > 0 ? (data.weight === 1 ? '踩到正雷！' : '踩到正双雷！') :
+                        (data.weight === -1 ? '踩到负雷！' : '踩到负双雷！');
+                    showOverlay(false, '💥', msg, '点击 😊 重新开始');
+                    updateUI();
+                    return;
+                }
+
+                data.revealed = true;
+                revealedCount++;
+
+                if (data.displayNum === 0 && !data.hasNeighbor) {
+                    const queue = [
+                        [row, col]
+                    ];
+                    const visited = new Set();
+                    visited.add(row * COLS + col);
+
+                    while (queue.length > 0) {
+                        const [r, c] = queue.shift();
+                        for (let dr = -1; dr <= 1; dr++) {
+                            for (let dc = -1; dc <= 1; dc++) {
+                                if (dr === 0 && dc === 0) continue;
+                                const nr = r + dr;
+                                const nc = c + dc;
+                                if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
+                                const key = nr * COLS + nc;
+                                if (visited.has(key)) continue;
+                                const neighbor = board[nr][nc];
+                                if (neighbor.revealed || neighbor.flagType > 0 || neighbor.weight !== 0) continue;
+                                neighbor.revealed = true;
+                                revealedCount++;
+                                visited.add(key);
+                                if (neighbor.displayNum === 0 && !neighbor.hasNeighbor) {
+                                    queue.push([nr, nc]);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                updateUI();
+
+                if (checkWin()) {
+                    gameOver = true;
+                    gameActive = false;
+                    stopTimer();
+                    updateUI();
+                    showOverlay(true, '🎉', '恭喜你赢了！', '点击 😊 再来一局');
+                }
+            }
+
+            function toggleFlag(row, col) {
+                if (!gameActive || gameOver) return;
+                if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return;
+
+                const data = board[row][col];
+                if (data.revealed) return;
+
+                const oldType = data.flagType;
+                let newType;
+                if (oldType === 0) newType = 1;
+                else if (oldType === 1) newType = 2;
+                else if (oldType === 2) newType = 3;
+                else if (oldType === 3) newType = 4;
+                else newType = 0;
+
+                if (newType === 0 && oldType !== 0) flagCount--;
+                else if (newType !== 0 && oldType === 0) flagCount++;
+
+                data.flagType = newType;
+                updateUI();
+            }
+
+            function revealAllMines(explodedRow, explodedCol) {
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        const data = board[r][c];
+                        const el = getCellEl(r, c);
+                        if (!el) continue;
+
+                        if (data.weight !== 0) {
+                            if (!data.revealed) {
+                                if (data.flagType === 0) {
+                                    data.revealed = true;
+                                    el.className = 'cell revealed mine-shown';
+                                    const span = document.createElement('span');
+                                    span.className = 'mine-icon';
+                                    if (data.weight === 1) span.textContent = '💣';
+                                    else if (data.weight === 2) span.textContent = '💥';
+                                    else if (data.weight === -1) span.textContent = '❄️';
+                                    else if (data.weight === -2) span.textContent = '🌀';
+                                    el.appendChild(span);
+                                } else {
+                                    el.className = 'cell flagged';
+                                    const label = document.createElement('span');
+                                    label.className = 'flag-label';
+                                    if (data.flagType === 1) {
+                                        label.textContent = '+1';
+                                        label.classList.add('pos1');
+                                    } else if (data.flagType === 2) {
+                                        label.textContent = '+2';
+                                        label.classList.add('pos2');
+                                    } else if (data.flagType === 3) {
+                                        label.textContent = '-1';
+                                        label.classList.add('neg1');
+                                    } else if (data.flagType === 4) {
+                                        label.textContent = '-2';
+                                        label.classList.add('neg2');
+                                    }
+                                    el.appendChild(label);
+                                }
+                            }
+                        } else {
+                            if (data.flagType > 0 && !data.revealed) {
+                                el.className = 'cell flag-wrong';
+                                const span = document.createElement('span');
+                                span.className = 'wrong-icon';
+                                span.textContent = '❌';
+                                el.appendChild(span);
+                            }
+                        }
+                    }
+                }
+
+                if (explodedRow !== undefined && explodedCol !== undefined) {
+                    const el = getCellEl(explodedRow, explodedCol);
+                    if (el) {
+                        el.className = 'cell revealed mine-exploded';
+                        el.textContent = '';
+                        const span = document.createElement('span');
+                        span.className = 'mine-icon';
+                        const data = board[explodedRow][explodedCol];
+                        if (data.weight === 1) span.textContent = '💣';
+                        else if (data.weight === 2) span.textContent = '💥';
+                        else if (data.weight === -1) span.textContent = '❄️';
+                        else if (data.weight === -2) span.textContent = '🌀';
+                        el.appendChild(span);
+                    }
+                }
+                updateUI();
+            }
+
+            function checkWin() {
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        const data = board[r][c];
+                        if (data.weight === 0 && !data.revealed) return false;
+                    }
+                }
+                return true;
+            }
+
+            // ---------- 计时器 ----------
+            function startTimer() {
+                if (timerStarted) return;
+                timerStarted = true;
+                seconds = 0;
+                timerDisplayEl.textContent = formatTime(0);
+                timerInterval = setInterval(() => {
+                    seconds++;
+                    if (seconds > 999) seconds = 999;
+                    timerDisplayEl.textContent = formatTime(seconds);
+                }, 1000);
+            }
+            function stopTimer() {
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                timerStarted = false;
+            }
+            function resetTimer() {
+                stopTimer();
+                seconds = 0;
+                timerDisplayEl.textContent = formatTime(0);
+                timerStarted = false;
+            }
+
+            // ---------- 遮罩 ----------
+            function showOverlay(isWin, icon, text, sub) {
+                resultIcon.textContent = icon;
+                resultText.textContent = text;
+                resultSub.textContent = sub;
+                overlay.classList.add('show');
+                overlay.style.animation = 'none';
+                requestAnimationFrame(() => {
+                    overlay.style.animation = 'fadeIn 0.35s ease';
+                });
+            }
+            function hideOverlay() {
+                overlay.classList.remove('show');
+            }
+
+            // ---------- 重置游戏 ----------
+            function resetGame() {
+                stopTimer();
+                resetTimer();
+                hideOverlay();
+                gameActive = true;
+                gameOver = false;
+                firstClick = true;
+                flagCount = 0;
+                revealedCount = 0;
+                board = createEmptyBoard();
+                render();
+                updateUI();
+                resetBtn.textContent = '😊';
+                resetBtn.classList.remove('game-over');
+                clearTouchState();
+                gridWrapper.scrollTop = 0;
+                gridWrapper.scrollLeft = 0;
+            }
+
+            // ---------- 首次点击 ----------
+            function handleFirstClick(row, col) {
+                if (!firstClick) return;
+                firstClick = false;
+                placeMines(board, row, col);
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        if (board[r][c].weight !== 0) continue;
+                        let sum = 0;
+                        let has = false;
+                        for (let dr = -1; dr <= 1; dr++) {
+                            for (let dc = -1; dc <= 1; dc++) {
+                                if (dr === 0 && dc === 0) continue;
+                                const nr = r + dr;
+                                const nc = c + dc;
+                                if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+                                    const w = board[nr][nc].weight;
+                                    if (w !== 0) has = true;
+                                    sum += w;
+                                }
+                            }
+                        }
+                        board[r][c].displayNum = sum;
+                        board[r][c].hasNeighbor = has;
+                    }
+                }
+                updateUI();
+                startTimer();
+                revealCell(row, col);
+            }
+
+            // ---------- 事件辅助 ----------
+            function getCellFromEvent(e) {
+                let target = e.target;
+                while (target && !target.classList.contains('cell')) {
+                    target = target.parentElement;
+                }
+                if (!target || !target.classList.contains('cell')) return null;
+                const row = parseInt(target.dataset.row, 10);
+                const col = parseInt(target.dataset.col, 10);
+                if (isNaN(row) || isNaN(col)) return null;
+                return { el: target, row, col };
+            }
+
+            // ---------- 触摸事件 ----------
+            function onTouchStart(e) {
+                if (!gameActive || gameOver) return;
+                const touch = e.touches[0];
+                if (!touch) return;
+
+                const result = getCellFromEvent({ target: document.elementFromPoint(touch.clientX, touch.clientY) });
+                if (!result) return;
+
+                e.preventDefault();
+
+                const { el, row, col } = result;
+                const data = board[row][col];
+                if (data.revealed && data.displayNum === 0 && !data.hasNeighbor) return;
+
+                touchState.cell = el;
+                touchState.row = row;
+                touchState.col = col;
+                touchState.startX = touch.clientX;
+                touchState.startY = touch.clientY;
+                touchState.isLongPress = false;
+
+                touchState.timer = setTimeout(() => {
+                    if (touchState.cell && gameActive && !gameOver) {
+                        touchState.isLongPress = true;
+                        if (navigator.vibrate) navigator.vibrate(12);
+
+                        const currentData = board[touchState.row][touchState.col];
+                        if (currentData.revealed) {
+                            chord(touchState.row, touchState.col);
+                        } else {
+                            toggleFlag(touchState.row, touchState.col);
+                        }
+                        clearTimeout(touchState.timer);
+                        touchState.timer = null;
+                    }
+                }, LONG_PRESS_MS);
+            }
+
+            function onTouchMove(e) {
+                if (!gameActive || gameOver) return;
+                if (!touchState.cell) return;
+
+                const touch = e.touches[0];
+                if (!touch) return;
+
+                const dx = touch.clientX - touchState.startX;
+                const dy = touch.clientY - touchState.startY;
+                if (Math.abs(dx) > 15 || Math.abs(dy) > 15) {
+                    clearTimeout(touchState.timer);
+                    touchState.timer = null;
+                    touchState.cell = null;
+                    e.preventDefault();
+                    return;
+                }
+
+                const el = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (el !== touchState.cell && !touchState.cell.contains(el)) {
+                    clearTimeout(touchState.timer);
+                    touchState.timer = null;
+                    touchState.cell = null;
+                    e.preventDefault();
+                    return;
+                }
+                e.preventDefault();
+            }
+
+            function onTouchEnd(e) {
+                if (touchState.timer) {
+                    clearTimeout(touchState.timer);
+                    touchState.timer = null;
+                }
+                if (touchState.isLongPress) {
+                    touchState.cell = null;
+                    touchState.isLongPress = false;
+                    if (e.cancelable) e.preventDefault();
+                    return;
+                }
+
+                if (touchState.cell && gameActive && !gameOver) {
+                    const { row, col } = touchState;
+                    const data = board[row][col];
+                    if (!data.revealed && data.flagType === 0) {
+                        if (firstClick) {
+                            handleFirstClick(row, col);
+                        } else {
+                            revealCell(row, col);
+                        }
+                    }
+                }
+                touchState.cell = null;
+                if (e.cancelable) e.preventDefault();
+            }
+
+            function onTouchCancel(e) {
+                clearTimeout(touchState.timer);
+                touchState.timer = null;
+                touchState.cell = null;
+                touchState.isLongPress = false;
+                if (e.cancelable) e.preventDefault();
+            }
+
+            function clearTouchState() {
+                clearTimeout(touchState.timer);
+                touchState.timer = null;
+                touchState.cell = null;
+                touchState.isLongPress = false;
+            }
+
+            // ---------- 鼠标事件 (PC) ----------
+            function onCellClick(e) {
+                if (!gameActive || gameOver) return;
+                const result = getCellFromEvent(e);
+                if (!result) return;
+                const { row, col } = result;
+                const data = board[row][col];
+                if (data.revealed || data.flagType > 0) return;
+
+                if (firstClick) {
+                    handleFirstClick(row, col);
+                } else {
+                    revealCell(row, col);
+                }
+                e.preventDefault();
+            }
+
+            function onCellRightClick(e) {
+                e.preventDefault();
+                if (!gameActive || gameOver) return;
+                const result = getCellFromEvent(e);
+                if (!result) return;
+                const { row, col } = result;
+                const data = board[row][col];
+                if (data.revealed) return;
+                toggleFlag(row, col);
+            }
+
+            // ---------- 重置按钮 ----------
+            function onResetClick(e) {
+                e.preventDefault();
+                resetGame();
+            }
+
+            // ---------- 设置面板事件 ----------
+            function initSettings() {
+                buildPresetButtons();
+                presetGrid.addEventListener('click', function(e) {
+                    const btn = e.target.closest('.preset-btn');
+                    if (!btn) return;
+                    const idx = parseInt(btn.dataset.index, 10);
+                    if (!isNaN(idx)) {
+                        applyPreset(idx);
+                    }
+                });
+
+                settingsTabs.addEventListener('click', function(e) {
+                    const btn = e.target.closest('button');
+                    if (!btn) return;
+                    const tab = btn.dataset.tab;
+                    if (!tab) return;
+                    settingsTabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.querySelectorAll('.settings-tab-content').forEach(el => el.classList.remove('active'));
+                    document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+                });
+
+                settingsBtn.addEventListener('click', function() {
+                    buildSettingsItems();
+                    configRows.value = ROWS;
+                    configCols.value = COLS;
+                    configMines.value = TOTAL_MINES;
+                    configPosDouble.value = POS_DOUBLE;
+                    configNegTotal.value = NEG_TOTAL;
+                    configNegDouble.value = NEG_DOUBLE;
+                    updateHints();
+                    settingsOverlay.classList.add('open');
+                });
+
+                settingsClose.addEventListener('click', function() {
+                    settingsOverlay.classList.remove('open');
+                });
+
+                settingsOverlay.addEventListener('click', function(e) {
+                    if (e.target === this) settingsOverlay.classList.remove('open');
+                });
+
+                resetDefaultColorsBtn.addEventListener('click', function() {
+                    resetToDefaultColors();
+                });
+
+                saveSettingsBtn.addEventListener('click', function() {
+                    const colorMap = {};
+                    settingsItems.querySelectorAll('.settings-group').forEach(group => {
+                        const varName = group.dataset.var;
+                        const textInput = group.querySelector('input[type="text"]');
+                        let val = textInput.value.trim();
+                        if (!/^#[0-9a-fA-F]{6}$/.test(val)) {
+                            const colorInput = group.querySelector('input[type="color"]');
+                            val = colorInput.value;
+                        }
+                        colorMap[varName] = val;
+                    });
+                    applyColors(colorMap);
+                    saveColorsToStorage(colorMap);
+
+                    saveConfigAndApply();
+                    settingsOverlay.classList.remove('open');
+                });
+
+                configRows.addEventListener('change', updateHints);
+                configCols.addEventListener('change', updateHints);
+                configMines.addEventListener('input', updateHints);
+                configPosDouble.addEventListener('input', updateHints);
+                configNegTotal.addEventListener('input', updateHints);
+                configNegDouble.addEventListener('input', updateHints);
+            }
+
+            // ---------- 初始化 ----------
+            function initEvents() {
+                gridWrapper.addEventListener('touchstart', onTouchStart, { passive: false });
+                gridWrapper.addEventListener('touchmove', onTouchMove, { passive: false });
+                gridWrapper.addEventListener('touchend', onTouchEnd, { passive: false });
+                gridWrapper.addEventListener('touchcancel', onTouchCancel, { passive: false });
+
+                gridEl.addEventListener('click', onCellClick);
+                gridEl.addEventListener('contextmenu', onCellRightClick);
+
+                resetBtn.addEventListener('click', onResetClick);
+                resetBtn.addEventListener('touchstart', function(e) {
+                    e.stopPropagation();
+                }, { passive: true });
+
+                initSettings();
+            }
+
+            function init() {
+                const savedColors = loadColorsFromStorage();
+                if (savedColors) {
+                    applyColors(savedColors);
+                } else {
+                    applyColors(defaultColors);
+                }
+
+                const savedConfig = loadConfigFromStorage();
+                if (savedConfig) {
+                    applyConfig(savedConfig.rows, savedConfig.cols, savedConfig.mines,
+                        savedConfig.posDouble, savedConfig.negTotal, savedConfig.negDouble);
+                } else {
+                    applyConfig(DEFAULT_ROWS, DEFAULT_COLS, DEFAULT_MINES,
+                        DEFAULT_POS_DOUBLE, DEFAULT_NEG_TOTAL, DEFAULT_NEG_DOUBLE);
+                }
+
+                resetGame();
+                initEvents();
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+        })();
+    </script>
+
+</body>
+</html>
