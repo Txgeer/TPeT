@@ -197,22 +197,44 @@
     function updateBadgeUI() {
         if (!badgeListEl || !totalScoreSpan) return;
         const format = (num) => num.toLocaleString();
-
+    
         totalScoreSpan.textContent = format(totalTP);
         if (currentScoreSpan) {
             currentScoreSpan.textContent = format(currentTP);
         }
+        // 清空列表
         badgeListEl.innerHTML = '';
-
+    
+        // 构建快速查找 Map: id -> BADGE_DEFS 对象
+        const defMap = new Map();
+        for (const def of BADGE_DEFS) {
+            defMap.set(def.id, def);
+        }
+    
         let badgesToShow = [];
-
+        let earnedSet = new Map(); // 快速查找已获得徽章
+        for (const b of earnedBadges) {
+            earnedSet.set(b.id, b);
+        }
+    
         if (showAllBadges) {
-            badgesToShow = earnedBadges.map(b => ({ ...b, isEarned: true }));
+            // 显示所有已获得的徽章
+            for (const badge of earnedBadges) {
+                const def = defMap.get(badge.id);
+                if (def) {
+                    badgesToShow.push({
+                        ...badge,
+                        def: def,
+                        isEarned: true
+                    });
+                }
+            }
         } else {
+            // 只显示当前数字触发的徽章
             if (currentNumberStr && currentNumberStr.length > 0) {
                 for (const def of BADGE_DEFS) {
                     if (def.check(currentNumberStr)) {
-                        const earned = earnedBadges.find(b => b.id === def.id);
+                        const earned = earnedSet.get(def.id);
                         badgesToShow.push({
                             id: def.id,
                             name: def.name,
@@ -220,17 +242,20 @@
                             score: def.score,
                             rarity: def.rarity,
                             count: earned ? earned.count : 0,
-                            isEarned: !!earned
+                            isEarned: !!earned,
+                            def: def
                         });
                     }
                 }
             }
         }
-
+    
+        // 按稀有度和分数筛选
         if (filterRarity !== 'all') {
             badgesToShow = badgesToShow.filter(b => b.rarity === filterRarity);
         }
-
+    
+        // 排序：新徽章优先，然后按分数降序
         badgesToShow.sort((a, b) => {
             const aNew = newBadgeIds.has(a.id);
             const bNew = newBadgeIds.has(b.id);
@@ -238,36 +263,38 @@
             if (!aNew && bNew) return 1;
             return (b.score || 0) - (a.score || 0);
         });
-
+    
+        // 使用 DocumentFragment 批量构建 DOM，减少回流
+        const fragment = document.createDocumentFragment();
+    
         for (const badge of badgesToShow) {
-            const def = BADGE_DEFS.find(d => d.id === badge.id);
+            const def = badge.def || defMap.get(badge.id);
             if (!def) continue;
-            // 在循环内部，构建 pill 时
+    
             const isActive = def.check(currentNumberStr);
             const isEarned = badge.isEarned !== undefined ? badge.isEarned : true;
             const isNew = newBadgeIds.has(badge.id);
-            
+    
             const activeClass = (isActive && isEarned) ? '' : 'badge-pill--inactive';
             const rarityClass = 'badge-pill--' + badge.rarity;
-            
-            // 得分类：活跃且已获得 → 金色
             const scoreClass = (isActive && isEarned) ? 'badge-score badge-score--active' : 'badge-score';
-            
+    
             const pill = document.createElement('span');
             pill.className = `badge-pill ${rarityClass} ${activeClass}`;
-            
+    
             const countDisplay = badge.count > 1 ? ` ×${badge.count}` : '';
             const newTag = isNew && isEarned ? `<span class="badge-new">新！</span>` : '';
             const scoreDisplay = isEarned ? `+${format(badge.score)}TP` : '';
-            
-            pill.innerHTML = `
-                <span class="badge-emoji">${badge.emoji}</span>
-                <span class="badge-name">${badge.name}${countDisplay}</span>
-                ${newTag}
-                <span class="badge-rarity">${badge.rarity}</span>
-                <span class="${scoreClass}">${scoreDisplay}</span>
-            `;
 
+            pill.innerHTML = `
+            <span class="badge-emoji">${badge.emoji}</span>
+            <span class="badge-name">${badge.name}${countDisplay}</span>
+            ${newTag}
+            <span class="badge-rarity">${badge.rarity}</span>
+            <span class="${scoreClass}">${scoreDisplay}</span>
+            `;
+    
+            // Tooltip 事件绑定...
             const tooltipContent = def.description || '获取条件未定义';
             pill.addEventListener('mouseenter', function(e) {
                 tooltip.textContent = tooltipContent;
@@ -278,16 +305,20 @@
             pill.addEventListener('mouseleave', function() {
                 tooltip.style.display = 'none';
             });
-
+    
             if (isNew && isEarned) {
                 pill.addEventListener('mouseenter', function() {
                     newBadgeIds.delete(badge.id);
-                    updateBadgeUI();
+                    // 更新 UI（延迟执行，避免重复触发）
+                    requestAnimationFrame(() => updateBadgeUI());
                 });
             }
-
-            badgeListEl.appendChild(pill);
+    
+            fragment.appendChild(pill);
         }
+    
+        // 一次性追加所有 DOM 元素
+        badgeListEl.appendChild(fragment);
     }
 
     // ---------- 检查并颁发徽章 ----------
@@ -413,9 +444,18 @@
             return result;
         },
         unlockAll: function() {
-            BADGE_DEFS.forEach(def => {
-                const existing = earnedBadges.find(b => b.id === def.id);
-                if (!existing) {
+            // 如果已经全部解锁，跳过
+            const allIds = new Set(BADGE_DEFS.map(d => d.id));
+            const earnedIds = new Set(earnedBadges.map(b => b.id));
+            if (allIds.size === earnedIds.size && allIds.size === earnedBadges.length) {
+                // 已经全部解锁
+                return;
+            }
+        
+            // 批量添加，避免频繁触发 UI 更新
+            let addedCount = 0;
+            for (const def of BADGE_DEFS) {
+                if (!earnedIds.has(def.id)) {
                     earnedBadges.push({
                         id: def.id,
                         name: def.name,
@@ -425,11 +465,18 @@
                         count: 1
                     });
                     totalTP += def.score;
+                    addedCount++;
                 }
-            });
-            newBadgeIds.clear();
-            updateBadgeUI();
-            saveData();
+            }
+        
+            if (addedCount > 0) {
+                newBadgeIds.clear();
+                saveData();
+                // 使用 requestAnimationFrame 延迟 UI 更新，避免阻塞主线程
+                requestAnimationFrame(() => {
+                    updateBadgeUI();
+                });
+            }
         },
         getFilterButtonLabel: function() {
             return this.getFilterRarity() === 'all' ? '全部' : this.getFilterRarity();
