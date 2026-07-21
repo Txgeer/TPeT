@@ -1384,7 +1384,7 @@
             emoji: '🏗',
             score: 1782,
             rarity: '稀有',
-            description: '有效数字位数不为10，且各位数码互不相同',
+            description: '有效数字位数不为10且各位数码互不相同',
             check: function(d) {
                 // 去除前导0，获取有效数字
                 const trimmed = d.replace(/^0+/, '');
@@ -1778,6 +1778,46 @@
                 const secondAllEven = secondHalf.split('').every(isEven);
                 // 前后部分必须完全相反：奇+偶 或 偶+奇
                 return (firstAllOdd && secondAllEven) || (firstAllEven && secondAllOdd);
+            }
+        },
+        {
+            id: 'finite',
+            name: '有限',
+            emoji: '🧵',
+            score: 25,
+            rarity: '普通',
+            description: '有效数字位数不为 10，且每一位数字都在 1 到该数字的位数之间',
+            check: function(d) {
+                const trimmed = d.replace(/^0+/, '');
+                const n = trimmed.length;
+                // 空串或位数为10时不通过
+                if (n === 0 || n === 10) return false;
+                for (let ch of trimmed) {
+                    const digit = parseInt(ch, 10);
+                    if (digit < 1 || digit > n) return false;
+                }
+                return true;
+            }
+        },
+        {
+            id: 'higher-finite',
+            name: '高阶有限',
+            emoji: '🧶',
+            score: 24444,
+            rarity: '史诗',
+            description: '有效数字位数不为 10，且每一位数字都在 1 到该数字的位数之间，且每个数字恰好出现一次',
+            check: function(d) {
+                const trimmed = d.replace(/^0+/, '');
+                const n = trimmed.length;
+                if (n === 0 || n === 10) return false;
+                const digits = trimmed.split('').map(Number);
+                const seen = new Set();
+                for (let digit of digits) {
+                    if (digit < 1 || digit > n) return false;
+                    if (seen.has(digit)) return false;
+                    seen.add(digit);
+                }
+                return seen.size === n;
             }
         }
     ];
