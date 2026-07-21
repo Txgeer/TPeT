@@ -295,6 +295,35 @@
         const root = (-b + sqrtDelta) / (2 * a);
         return Number.isInteger(root) && root >= 1;
     }
+    function isMersennePrime(n) {
+        if (n < 1) return false;
+        const m = n + 1;
+        // 检查 m 是否为 2 的幂
+        if ((m & (m - 1)) !== 0) return false;
+        // 计算指数 p
+        const p = Math.log2(m);
+        if (!Number.isInteger(p)) return false;
+        return isPrime(p);
+    }
+    function countHoles(digitsStr) {
+        const holeMap = {
+            '0': 1,
+            '1': 0,
+            '2': 0,
+            '3': 0,
+            '4': 1,
+            '5': 0,
+            '6': 1,
+            '7': 0,
+            '8': 2,
+            '9': 1
+        };
+        let total = 0;
+        for (let ch of digitsStr) {
+            total += (holeMap[ch] || 0);
+        }
+        return total;
+    }
 
     // 暴露到全局
     window.MathUtils = {
@@ -322,6 +351,8 @@
         isIntimatePrime,
         isPronic,
         isPowerOfBase,
-        isPolygonal
+        isPolygonal,
+        isMersennePrime,
+        countHoles
     };
 })();

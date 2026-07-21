@@ -1,4 +1,4 @@
-// app.js – 主应用逻辑（数字生成、揭示、按钮交互，含徽章显示切换 + 复制分享 + 历史最佳 + 筛选按钮 + 自动抽取 + 保存最后数字）
+// app.js – 主应用逻辑（数字生成、揭示、按钮交互，含徽章显示切换 + 复制分享 + 历史最佳 + 筛选按钮 + 自动抽取 + 保存最后数字 + 徽章进度）
 (function() {
     'use strict';
 
@@ -60,6 +60,17 @@
             filterBtnEl.classList.add('filter-all');
         } else {
             filterBtnEl.classList.add(`badge-pill--${rarity}`);
+        }
+    }
+
+    // ===== 更新徽章进度 =====
+    function updateBadgeProgress() {
+        const progressEl = document.getElementById('badgeProgress');
+        if (!progressEl) return;
+        if (window.Badges) {
+            const earned = window.Badges.getEarnedBadges().length;
+            const total = window.Badges.getTotalBadgeTypes ? window.Badges.getTotalBadgeTypes() : 0;
+            progressEl.textContent = `你有 ${earned}/${total} 个徽章`;
         }
     }
 
@@ -142,6 +153,7 @@
                 window.onTotalGenerationsChange(window.Badges.getTotalGenerations());
                 const best = window.Badges.getBest();
                 window.onBestChange(best);
+                updateBadgeProgress();
             } else {
                 console.warn('Badge UI elements missing, skipping badge initialization.');
             }
@@ -220,14 +232,12 @@
             const digits = numberStr.split('');
             const total = digits.length;
 
-            // 重置所有digit的样式
             digitEls.forEach(el => {
                 el.textContent = '?';
                 el.className = 'digit';
                 el.style.transform = '';
             });
 
-            // 直接填充数字
             const trimmed = numberStr.replace(/^0+/, '');
             const leadingZeroCount = numberStr.length - trimmed.length;
 
@@ -243,24 +253,22 @@
                 }
             }
 
-            // 添加卡片发光效果
             card.classList.add('number-card--glow');
             setTimeout(() => {
                 card.classList.remove('number-card--glow');
             }, 400);
 
-            // 卡片入场动画
             card.classList.remove('card-enter');
             void card.offsetWidth;
             card.classList.add('card-enter');
 
-            // 更新徽章UI显示当前数字的得分（不修改存储）
             if (window.Badges && typeof window.Badges.setCurrentNumberOnly === 'function') {
                 window.Badges.setCurrentNumberOnly(numberStr);
             }
 
             window.__currentNumber = numberStr;
             lastCompletedNumber = numberStr;
+            updateBadgeProgress();
         }
 
         // ---------- 逐位揭示 ----------
@@ -366,6 +374,7 @@
                 const best = window.Badges.getBest();
                 if (window.onBestChange) window.onBestChange(best);
                 updateFilterButton();
+                updateBadgeProgress();
             } else {
                 console.warn('Badges module not available');
             }
@@ -420,6 +429,7 @@
                     const best = window.Badges.getBest();
                     if (window.onBestChange) window.onBestChange(best);
                     updateFilterButton();
+                    updateBadgeProgress();
                 }
             });
         }
@@ -530,9 +540,7 @@
         const savedNumber = getLastNumber();
 
         if (savedNumber && savedNumber.length > 0) {
-            // 有保存的数字，直接显示
             displaySavedNumber(savedNumber);
-            // 更新最佳记录显示（徽章模块已从存储加载）
             if (window.onBestChange) {
                 const best = window.Badges.getBest();
                 window.onBestChange(best);
@@ -541,7 +549,6 @@
                 window.onTotalGenerationsChange(window.Badges.getTotalGenerations());
             }
         } else {
-            // 没有保存的数字，自动生成一次
             resetDigits();
             setTimeout(handleGenerate, 1000);
         }

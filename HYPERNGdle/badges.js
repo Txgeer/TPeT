@@ -500,6 +500,9 @@
             if (currentScoreSpan) {
                 currentScoreSpan.textContent = (currentTP || 0).toLocaleString();
             }
+        },
+        getTotalBadgeTypes: function() {
+            return BADGE_DEFS.length;
         }
     };
 })();
