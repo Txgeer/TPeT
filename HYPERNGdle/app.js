@@ -446,7 +446,7 @@
                 text += `\n本数字总 TP：${totalScore.toLocaleString()}`;
                 const totalTP = window.Badges.getTotalTP ? window.Badges.getTotalTP() : 0;
                 text += `\n历史总 TP：${totalTP.toLocaleString()}`;
-                text += `\n\n🔗 在 HYPERNGdle 试试你的运气：https://txgeer.github.io/TPeT/HYPERNGdle/HYPERNGdle.html`;
+                text += `\n\n🔗 在 HYPERNGdle 试试你的运气：https://txgeer.github.io/TPeT/HYPERNGdle`;
         
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     navigator.clipboard.writeText(text).then(() => {
