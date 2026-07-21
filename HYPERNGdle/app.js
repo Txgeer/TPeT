@@ -1,4 +1,4 @@
-// app.js – 主应用逻辑（数字生成、揭示、按钮交互，含徽章显示切换 + 复制分享 + 历史最佳 + 筛选按钮）
+// app.js – 主应用逻辑（数字生成、揭示、按钮交互，含徽章显示切换 + 复制分享 + 历史最佳 + 筛选按钮 + 自动抽取）
 (function() {
     'use strict';
 
@@ -49,9 +49,7 @@
     function updateFilterButton() {
         const filterBtnEl = document.getElementById('filterBtn');
         if (!filterBtnEl) return;
-        // 重置类
         filterBtnEl.className = 'btn-toggle-badges btn-filter';
-        // 通过全局 Badges 对象获取当前筛选值
         const rarity = window.Badges.getFilterRarity();
         const label = rarity === 'all' ? '全部' : rarity;
         filterBtnEl.textContent = `🔍 ${label}`;
@@ -89,7 +87,38 @@
         const bestNumberSpan = document.getElementById('bestNumber');
         const bestScoreSpan = document.getElementById('bestScore');
 
-        // ---------- 初始化徽章模块 ----------
+        // ---------- 自动抽取相关 ----------
+        const autoBtn = document.getElementById('autoGenerateBtn');
+        let isAutoGenerate = false;
+        let autoTimer = null;
+
+        function toggleAutoGenerate() {
+            isAutoGenerate = !isAutoGenerate;
+            if (isAutoGenerate) {
+                autoBtn.textContent = '自动抽取: 开';
+                // 如果当前没有生成进行，立即触发一次生成
+                if (!isGenerating) {
+                    // 清除可能残留的定时器
+                    if (autoTimer) {
+                        clearTimeout(autoTimer);
+                        autoTimer = null;
+                    }
+                    handleGenerate();
+                }
+            } else {
+                autoBtn.textContent = '自动抽取: 关';
+                if (autoTimer) {
+                    clearTimeout(autoTimer);
+                    autoTimer = null;
+                }
+            }
+        }
+
+        if (autoBtn) {
+            autoBtn.addEventListener('click', toggleAutoGenerate);
+        }
+
+        // ---------- 徽章模块初始化 ----------
         if (window.Badges && typeof window.Badges.initBadgeUI === 'function') {
             if (badgeList && totalScoreSpan) {
                 window.Badges.initBadgeUI(badgeList, totalScoreSpan, currentScoreSpan);
@@ -122,7 +151,6 @@
         // ---------- 筛选按钮 ----------
         const filterBtn = document.getElementById('filterBtn');
         if (filterBtn && window.Badges) {
-            // 初始更新
             updateFilterButton();
             filterBtn.addEventListener('click', function() {
                 if (window.Badges) {
@@ -130,11 +158,9 @@
                     updateFilterButton();
                 }
             });
-            // 当徽章列表变化时，刷新按钮状态（例如硬重置后）
-            // 通过 MutationObserver 或自定义事件，但简单起见，在硬重置后手动调用
-            // 在硬重置中我们会调用 updateFilterButton
         }
 
+        // ---------- 数字生成相关 ----------
         const TOTAL_DIGITS = 10;
         let digitEls = createDigitSpans(TOTAL_DIGITS);
         let isGenerating = false;
@@ -167,7 +193,6 @@
             });
             card.classList.remove('number-card--glow');
             card.style.borderColor = '';
-            // 移除卡片入场动画类，以便下一次重新触发
             card.classList.remove('card-enter');
         }
 
@@ -244,6 +269,12 @@
         async function handleGenerate() {
             if (isGenerating) return;
 
+            // 如果自动抽取开启，先清除之前的定时器（防止多个循环堆积）
+            if (isAutoGenerate && autoTimer) {
+                clearTimeout(autoTimer);
+                autoTimer = null;
+            }
+
             isGenerating = true;
             btn.disabled = true;
             btn.classList.add('is-loading');
@@ -257,7 +288,6 @@
 
             // ---- 卡片入场动画 ----
             card.classList.remove('card-enter');
-            // 强制回流以重新触发动画
             void card.offsetWidth;
             card.classList.add('card-enter');
 
@@ -265,7 +295,6 @@
                 window.Badges.checkAndAwardBadges(numStr);
                 const best = window.Badges.getBest();
                 if (window.onBestChange) window.onBestChange(best);
-                // 刷新筛选按钮（可能稀有度列表变化）
                 updateFilterButton();
             } else {
                 console.warn('Badges module not available');
@@ -280,6 +309,14 @@
             isGenerating = false;
 
             if (navigator.vibrate) navigator.vibrate(12);
+
+            // ---- 自动抽取循环 ----
+            if (isAutoGenerate) {
+                // 设置下一次抽取（2秒后）
+                autoTimer = setTimeout(() => {
+                    handleGenerate();
+                }, 2000);
+            }
         }
 
         // ---------- 事件绑定 ----------
@@ -312,7 +349,6 @@
                     window.__currentNumber = '';
                     const best = window.Badges.getBest();
                     if (window.onBestChange) window.onBestChange(best);
-                    // 刷新筛选按钮
                     updateFilterButton();
                 }
             });
