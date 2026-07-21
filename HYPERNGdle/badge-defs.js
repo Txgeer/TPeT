@@ -1210,7 +1210,7 @@
             emoji: '☯',
             score: 5,
             rarity: '平庸',
-            description: '数字中低数字（0–4）和高数字（5–9）的个数相等',
+            description: '数字中低数字（0-4）和高数字（5-9）的个数相等',
             check: function(d) {
                 let low = 0, high = 0;
                 for (let ch of d) {
@@ -1285,7 +1285,7 @@
                 emoji: '😊',
             score: 1016157,
             rarity: '神话',
-            description: '每个数码仅出现一次，不含零，且不存在某个数字两边都大于它',
+            description: '每个数码仅出现一次，不含 0，且不存在某个数字两边都大于它',
             check: function(d) {
                 const digits = d.split('');
                 if (digits.length === 0) return false;
@@ -1354,28 +1354,28 @@
         {
             id: 'multiple-of-27',
             name: '27的倍数',
-            emoji: '➗2️⃣7️⃣',
+            emoji: '➗3️⃣9️⃣',
             score: 27,
             rarity: '普通',
-            description: '数字是 27 的倍数',
+            description: '数字能被 27 的整除',
             check: function(d) { return parseInt(d, 10) % 27 === 0; }
         },
         {
             id: 'multiple-of-49',
             name: '49的倍数',
-            emoji: '➗4️⃣9️⃣',
+            emoji: '➗7️⃣7️⃣',
             score: 49,
             rarity: '普通',
-            description: '数字是 49 的倍数',
+            description: '数字能被 49 的整除',
             check: function(d) { return parseInt(d, 10) % 49 === 0; }
         },
         {
             id: 'multiple-of-81',
             name: '81的倍数',
-            emoji: '➗8️⃣1️⃣',
+            emoji: '➗9️⃣9️⃣',
             score: 81,
             rarity: '普通',
-            description: '数字是 81 的倍数',
+            description: '数字能被 81 整除',
             check: function(d) { return parseInt(d, 10) % 81 === 0; }
         },
         {
@@ -1702,7 +1702,7 @@
             emoji: '🧬',
             score: 456,
             rarity: '罕见',
-            description: '相邻两位数字中高低数字交替出现',
+            description: '相邻两位数字中低数字（0-4）和高数字（5-9）交替出现',
             check: function(d) {
                 if (d.length <= 1) return true;
                 const isHigh = (ch) => {
@@ -1792,7 +1792,7 @@
             emoji: `➗${digits}`,
             score: p,
             rarity: '普通',
-            description: `数字是 ${p} 的倍数`,
+            description: `数字能被 ${p} 整除`,
             check: function(d) { return parseInt(d,10) % p === 0; }
         });
     }
