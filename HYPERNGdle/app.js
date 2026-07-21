@@ -416,24 +416,6 @@
             toggleBtn.textContent = window.Badges.getShowAllBadges() ? '只看当前' : '显示所有已获得';
         }
 
-        // ---------- 硬重置按钮 ----------
-        const resetBtn = document.getElementById('hardResetBtn');
-        if (resetBtn && window.Badges && typeof window.Badges.hardReset === 'function') {
-            resetBtn.addEventListener('click', function() {
-                if (confirm('确定要清除所有数据吗？此操作不可撤销！')) {
-                    window.Badges.hardReset();
-                    resetDigits();
-                    window.__currentNumber = '';
-                    lastCompletedNumber = '';
-                    localStorage.removeItem(LAST_NUMBER_KEY);
-                    const best = window.Badges.getBest();
-                    if (window.onBestChange) window.onBestChange(best);
-                    updateFilterButton();
-                    updateBadgeProgress();
-                }
-            });
-        }
-
         // ---------- 复制分享功能 ----------
         const shareBtn = document.getElementById('shareBtn');
         if (shareBtn) {
@@ -444,28 +426,28 @@
                 } else {
                     numberStr = window.__currentNumber || '';
                 }
-
+        
                 if (!numberStr) {
                     showToast('请先生成一个数字！');
                     return;
                 }
-
+        
                 const badges = window.Badges.getBadgesForNumber ? window.Badges.getBadgesForNumber(numberStr) : [];
                 const totalScore = badges.reduce((sum, b) => sum + b.score, 0);
-
+        
                 let text = `🎲 HYPERNGdle\n数字：${numberStr}\n`;
                 if (badges.length === 0) {
                     text += '（未获得任何徽章）\n';
                 } else {
                     badges.forEach(b => {
-                        text += `  ${b.emoji} ${b.name}  +${b.score.toLocaleString()} TP\n`;
+                        text += `  ${b.emoji} ${b.name} (${b.rarity})  +${b.score.toLocaleString()} TP\n`;
                     });
                 }
                 text += `\n本数字总 TP：${totalScore.toLocaleString()}`;
                 const totalTP = window.Badges.getTotalTP ? window.Badges.getTotalTP() : 0;
                 text += `\n历史总 TP：${totalTP.toLocaleString()}`;
                 text += `\n\n🔗 在 HYPERNGdle 试试你的运气：https://txgeer.github.io/TPeT/HYPERNGdle/HYPERNGdle.html`;
-
+        
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     navigator.clipboard.writeText(text).then(() => {
                         showToast('已复制到剪贴板！');
@@ -477,29 +459,6 @@
                 }
             });
         }
-
-        function fallbackCopy(text) {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            textarea.style.left = '-9999px';
-            textarea.style.top = '-9999px';
-            document.body.appendChild(textarea);
-            textarea.select();
-            try {
-                const success = document.execCommand('copy');
-                if (success) {
-                    showToast('已复制到剪贴板！');
-                } else {
-                    alert('复制失败，请手动复制以下内容：\n\n' + text);
-                }
-            } catch (e) {
-                alert('复制失败，请手动复制以下内容：\n\n' + text);
-            }
-            document.body.removeChild(textarea);
-        }
-
         let toastTimer = null;
         function showToast(msg) {
             const old = document.querySelector('.custom-toast');
