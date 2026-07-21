@@ -1,7 +1,9 @@
-// app.js – 主应用逻辑（数字生成、揭示、按钮交互，含徽章显示切换 + 复制分享 + 历史最佳 + 筛选按钮 + 自动抽取）
-// 修复：分享时如果正在生成，则使用上次已完成的数字
+// app.js – 主应用逻辑（数字生成、揭示、按钮交互，含徽章显示切换 + 复制分享 + 历史最佳 + 筛选按钮 + 自动抽取 + 保存最后数字）
 (function() {
     'use strict';
+
+    // ===== 常量 =====
+    const LAST_NUMBER_KEY = 'hyperngdle_last_number';
 
     // ===== 主题管理 =====
     function initTheme() {
@@ -163,7 +165,7 @@
         const TOTAL_DIGITS = 10;
         let digitEls = createDigitSpans(TOTAL_DIGITS);
         let isGenerating = false;
-        let lastCompletedNumber = '';   // 新增：保存上次完整生成的数字
+        let lastCompletedNumber = '';   // 保存上次完整生成的数字
 
         function createDigitSpans(count) {
             const frag = document.createDocumentFragment();
@@ -194,7 +196,71 @@
             card.classList.remove('number-card--glow');
             card.style.borderColor = '';
             card.classList.remove('card-enter');
-            // 注意：不重置 lastCompletedNumber，保留上次完整数字
+        }
+
+        // ===== 保存最后数字 =====
+        function saveLastNumber(numberStr) {
+            try {
+                localStorage.setItem(LAST_NUMBER_KEY, numberStr);
+            } catch (e) {
+                // ignore
+            }
+        }
+
+        function getLastNumber() {
+            try {
+                return localStorage.getItem(LAST_NUMBER_KEY) || '';
+            } catch (e) {
+                return '';
+            }
+        }
+
+        // ===== 直接显示已保存的数字（无动画） =====
+        function displaySavedNumber(numberStr) {
+            const digits = numberStr.split('');
+            const total = digits.length;
+
+            // 重置所有digit的样式
+            digitEls.forEach(el => {
+                el.textContent = '?';
+                el.className = 'digit';
+                el.style.transform = '';
+            });
+
+            // 直接填充数字
+            const trimmed = numberStr.replace(/^0+/, '');
+            const leadingZeroCount = numberStr.length - trimmed.length;
+
+            for (let i = 0; i < total; i++) {
+                const el = digitEls[i];
+                const char = digits[i];
+                el.textContent = char;
+                if (i < leadingZeroCount) {
+                    el.className = 'digit digit--leading-zero';
+                    el.style.transform = 'scale(0.92)';
+                } else {
+                    el.className = 'digit digit--revealed';
+                }
+            }
+
+            // 添加卡片发光效果
+            card.classList.add('number-card--glow');
+            setTimeout(() => {
+                card.classList.remove('number-card--glow');
+            }, 400);
+
+            // 卡片入场动画
+            card.classList.remove('card-enter');
+            void card.offsetWidth;
+            card.classList.add('card-enter');
+
+            // 更新徽章UI显示当前数字的得分（不修改存储）
+            if (window.Badges && typeof window.Badges.setCurrentNumberOnly === 'function') {
+                window.Badges.setCurrentNumberOnly(numberStr);
+            }
+
+            window.__currentNumber = numberStr;
+            lastCompletedNumber = numberStr;
         }
 
         // ---------- 逐位揭示 ----------
@@ -283,11 +349,12 @@
             await new Promise(resolve => setTimeout(resolve, 200));
 
             const numStr = generateRandom10Digit();
-            window.__currentNumber = numStr;   // 仍在揭示中，但可获取
+            window.__currentNumber = numStr;
             await revealNumber(numStr);
 
-            // ---- 揭示完成，更新上次完整数字 ----
+            // ---- 揭示完成，更新上次完整数字并保存 ----
             lastCompletedNumber = numStr;
+            saveLastNumber(numStr);
 
             // ---- 卡片入场动画 ----
             card.classList.remove('card-enter');
@@ -348,7 +415,8 @@
                     window.Badges.hardReset();
                     resetDigits();
                     window.__currentNumber = '';
-                    lastCompletedNumber = '';   // 重置上次完整数字
+                    lastCompletedNumber = '';
+                    localStorage.removeItem(LAST_NUMBER_KEY);
                     const best = window.Badges.getBest();
                     if (window.onBestChange) window.onBestChange(best);
                     updateFilterButton();
@@ -356,21 +424,17 @@
             });
         }
 
-        // ---------- 复制分享功能（修复） ----------
+        // ---------- 复制分享功能 ----------
         const shareBtn = document.getElementById('shareBtn');
         if (shareBtn) {
             shareBtn.addEventListener('click', function() {
-                // 决定使用哪个数字：如果正在生成，则用上次已完成的；否则用当前数字
                 let numberStr;
                 if (isGenerating) {
-                    // 正在生成中，使用上次已完成的数字
                     numberStr = lastCompletedNumber;
                 } else {
-                    // 未在生成，使用当前显示的数字（即 window.__currentNumber）
                     numberStr = window.__currentNumber || '';
                 }
 
-                // 如果还是没有数字（例如页面刚加载且从未生成过），则提示
                 if (!numberStr) {
                     showToast('请先生成一个数字！');
                     return;
@@ -460,8 +524,26 @@
             }, 2000);
         }
 
-        // 初始加载后自动生成一次
-        resetDigits();
-        setTimeout(handleGenerate, 1000);
+        // ============================================
+        // ===== 初始化：尝试恢复上次的数字 =====
+        // ============================================
+        const savedNumber = getLastNumber();
+
+        if (savedNumber && savedNumber.length > 0) {
+            // 有保存的数字，直接显示
+            displaySavedNumber(savedNumber);
+            // 更新最佳记录显示（徽章模块已从存储加载）
+            if (window.onBestChange) {
+                const best = window.Badges.getBest();
+                window.onBestChange(best);
+            }
+            if (window.onTotalGenerationsChange) {
+                window.onTotalGenerationsChange(window.Badges.getTotalGenerations());
+            }
+        } else {
+            // 没有保存的数字，自动生成一次
+            resetDigits();
+            setTimeout(handleGenerate, 1000);
+        }
     });
 })();

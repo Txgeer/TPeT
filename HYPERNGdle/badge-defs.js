@@ -1370,6 +1370,127 @@
                     return (first === '9' && (last === '0' || last === '1')) ||
                            (first === '1' && last === '9');
                 }
+            },
+            // 在 BADGE_DEFS 数组末尾添加：
+            {
+                id: 'multiple-of-27',
+                name: '27的倍数',
+                emoji: '➗2️⃣7️⃣',
+                score: 27,
+                rarity: '普通',
+                description: '数字是 27 的倍数',
+                check: function(d) { return parseInt(d, 10) % 27 === 0; }
+            },
+            {
+                id: 'multiple-of-49',
+                name: '49的倍数',
+                emoji: '➗4️⃣9️⃣',
+                score: 49,
+                rarity: '普通',
+                description: '数字是 49 的倍数',
+                check: function(d) { return parseInt(d, 10) % 49 === 0; }
+            },
+            {
+                id: 'multiple-of-81',
+                name: '81的倍数',
+                emoji: '➗8️⃣1️⃣',
+                score: 81,
+                rarity: '普通',
+                description: '数字是 81 的倍数',
+                check: function(d) { return parseInt(d, 10) % 81 === 0; }
+            },
+            {
+                id: 'tower',
+                name: '高塔',
+                emoji: '🏗',
+                score: 1782,
+                rarity: '稀有',
+                description: '有效数字位数不为10，且各位数码互不相同',
+                check: function(d) {
+                    // 去除前导0，获取有效数字
+                    const trimmed = d.replace(/^0+/, '');
+                    if (trimmed.length === 0) return false;
+                    // 有效数字位数不为10
+                    if (trimmed.length === 10) return false;
+                    // 所有数码互不相同（没有重复数字）
+                    const digits = trimmed.split('');
+                    const unique = new Set(digits);
+                    return unique.size === digits.length;
+                }
+            },
+            {
+                id: 'palindrome-shape-flow',
+                name: '回文形意顺',
+                emoji: '🍕⭕',
+                score: 1332,
+                rarity: '稀有',
+                description: '数字包含子串 "1221" 或 "22122"',
+                check: function(d) {
+                    return d.includes('1221') || d.includes('22122');
+                }
+            },
+            {
+                id: 'advanced-palindrome-shape-flow',
+                name: '高阶回文形意顺',
+                emoji: '🍕🍕⭕',
+                score: 500000000,
+                rarity: '终结',
+                description: '数字包含子串 "122333221"',
+                check: function(d) {
+                    return d.includes('122333221');
+                }
+            },
+            // 在 BADGE_DEFS 数组末尾添加：
+            {
+                id: 'fractal',
+                name: '分形',
+                emoji: '💯',
+                score: 98924,
+                rarity: '史诗',
+                description: '数字可由某个长度≥2的子串重复拼接而成（如 37392 重复两次 → 3739237392）',
+                check: function(d) {
+                    const len = d.length;
+                    // 至少需要 4 位（子串长度 2，重复 2 次）
+                    if (len < 4) return false;
+                    // 遍历可能的子串长度，从 2 到 len/2
+                    for (let L = 2; L <= Math.floor(len / 2); L++) {
+                        if (len % L !== 0) continue;
+                        const sub = d.slice(0, L);
+                        // 检查 d 是否等于 sub 重复 len/L 次
+                        if (sub.repeat(len / L) === d) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            },
+            {
+                id: 'broken-fractal',
+                name: '破碎分形',
+                emoji: '💯〽',
+                score: 48691,
+                rarity: '史诗',
+                description: '数字可由某个长度≥2的子串或其翻转版本重复拼接而成（如 173173371 = 173 + 173 + 371，56/65/65/56）',
+                check: function(d) {
+                    const len = d.length;
+                    if (len < 4) return false;
+                    // 遍历可能的块长度，从 2 到 len/2
+                    for (let L = 2; L <= Math.floor(len / 2); L++) {
+                        if (len % L !== 0) continue;
+                        const firstBlock = d.slice(0, L);
+                        const revFirst = firstBlock.split('').reverse().join('');
+                        let valid = true;
+                        for (let i = 0; i < len; i += L) {
+                            const block = d.slice(i, i + L);
+                            if (block !== firstBlock && block !== revFirst) {
+                                valid = false;
+                                break;
+                            }
+                        }
+                        if (valid) return true;
+                    }
+                    return false;
+                }
             }
     ];
 

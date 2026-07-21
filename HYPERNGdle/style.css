@@ -632,3 +632,10 @@ body {
 .card-enter {
     animation: card-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
+
+/* 活跃徽章的得分金色高亮 */
+.badge-score--active {
+    color: #fbbf24 !important;
+    border-color: #fbbf24 !important;
+    background: rgba(251, 191, 36, 0.15) !important;
+}

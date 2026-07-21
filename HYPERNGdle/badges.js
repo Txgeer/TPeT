@@ -242,24 +242,30 @@
         for (const badge of badgesToShow) {
             const def = BADGE_DEFS.find(d => d.id === badge.id);
             if (!def) continue;
+            // 在循环内部，构建 pill 时
             const isActive = def.check(currentNumberStr);
             const isEarned = badge.isEarned !== undefined ? badge.isEarned : true;
             const isNew = newBadgeIds.has(badge.id);
+            
             const activeClass = (isActive && isEarned) ? '' : 'badge-pill--inactive';
             const rarityClass = 'badge-pill--' + badge.rarity;
-
+            
+            // 得分类：活跃且已获得 → 金色
+            const scoreClass = (isActive && isEarned) ? 'badge-score badge-score--active' : 'badge-score';
+            
             const pill = document.createElement('span');
             pill.className = `badge-pill ${rarityClass} ${activeClass}`;
+            
             const countDisplay = badge.count > 1 ? ` ×${badge.count}` : '';
             const newTag = isNew && isEarned ? `<span class="badge-new">新！</span>` : '';
             const scoreDisplay = isEarned ? `+${format(badge.score)}TP` : '';
-
+            
             pill.innerHTML = `
                 <span class="badge-emoji">${badge.emoji}</span>
                 <span class="badge-name">${badge.name}${countDisplay}</span>
                 ${newTag}
                 <span class="badge-rarity">${badge.rarity}</span>
-                <span class="badge-score">${scoreDisplay}</span>
+                <span class="${scoreClass}">${scoreDisplay}</span>
             `;
 
             const tooltipContent = def.description || '获取条件未定义';
@@ -431,6 +437,22 @@
         getFilterButtonClass: function() {
             const rarity = this.getFilterRarity();
             return rarity === 'all' ? 'filter-all' : 'badge-pill--' + rarity;
+        },
+        // ===== 新增：仅设置当前数字，不修改存储 =====
+        setCurrentNumberOnly: function(numberStr) {
+            currentNumberStr = numberStr || '';
+            currentTP = 0;
+            if (numberStr && numberStr.length > 0) {
+                for (const def of BADGE_DEFS) {
+                    if (def.check(numberStr)) {
+                        currentTP += def.score;
+                    }
+                }
+            }
+            updateBadgeUI();
+            if (currentScoreSpan) {
+                currentScoreSpan.textContent = (currentTP || 0).toLocaleString();
+            }
         }
     };
 })();
