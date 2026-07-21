@@ -182,7 +182,7 @@
     }
 
     function isTetrahedral(n) {
-        if (n < 0) return false;
+        if (n <= 0) return false;
         let i = 0;
         while (true) {
             const tetra = i * (i + 1) * (i + 2) / 6;
@@ -193,7 +193,7 @@
     }
 
     function isSquarePyramidal(n) {
-        if (n < 0) return false;
+        if (n <= 0) return false;
         let i = 0;
         while (true) {
             const pyramid = i * (i + 1) * (2 * i + 1) / 6;
