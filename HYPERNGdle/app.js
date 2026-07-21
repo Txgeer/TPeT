@@ -1,4 +1,5 @@
 // app.js – 主应用逻辑（数字生成、揭示、按钮交互，含徽章显示切换 + 复制分享 + 历史最佳 + 筛选按钮 + 自动抽取）
+// 修复：分享时如果正在生成，则使用上次已完成的数字
 (function() {
     'use strict';
 
@@ -96,9 +97,7 @@
             isAutoGenerate = !isAutoGenerate;
             if (isAutoGenerate) {
                 autoBtn.textContent = '自动抽取: 开';
-                // 如果当前没有生成进行，立即触发一次生成
                 if (!isGenerating) {
-                    // 清除可能残留的定时器
                     if (autoTimer) {
                         clearTimeout(autoTimer);
                         autoTimer = null;
@@ -164,6 +163,7 @@
         const TOTAL_DIGITS = 10;
         let digitEls = createDigitSpans(TOTAL_DIGITS);
         let isGenerating = false;
+        let lastCompletedNumber = '';   // 新增：保存上次完整生成的数字
 
         function createDigitSpans(count) {
             const frag = document.createDocumentFragment();
@@ -194,6 +194,7 @@
             card.classList.remove('number-card--glow');
             card.style.borderColor = '';
             card.classList.remove('card-enter');
+            // 注意：不重置 lastCompletedNumber，保留上次完整数字
         }
 
         // ---------- 逐位揭示 ----------
@@ -269,7 +270,6 @@
         async function handleGenerate() {
             if (isGenerating) return;
 
-            // 如果自动抽取开启，先清除之前的定时器（防止多个循环堆积）
             if (isAutoGenerate && autoTimer) {
                 clearTimeout(autoTimer);
                 autoTimer = null;
@@ -283,8 +283,11 @@
             await new Promise(resolve => setTimeout(resolve, 200));
 
             const numStr = generateRandom10Digit();
-            window.__currentNumber = numStr;
+            window.__currentNumber = numStr;   // 仍在揭示中，但可获取
             await revealNumber(numStr);
+
+            // ---- 揭示完成，更新上次完整数字 ----
+            lastCompletedNumber = numStr;
 
             // ---- 卡片入场动画 ----
             card.classList.remove('card-enter');
@@ -310,9 +313,7 @@
 
             if (navigator.vibrate) navigator.vibrate(12);
 
-            // ---- 自动抽取循环 ----
             if (isAutoGenerate) {
-                // 设置下一次抽取（2秒后）
                 autoTimer = setTimeout(() => {
                     handleGenerate();
                 }, 2000);
@@ -347,6 +348,7 @@
                     window.Badges.hardReset();
                     resetDigits();
                     window.__currentNumber = '';
+                    lastCompletedNumber = '';   // 重置上次完整数字
                     const best = window.Badges.getBest();
                     if (window.onBestChange) window.onBestChange(best);
                     updateFilterButton();
@@ -354,11 +356,21 @@
             });
         }
 
-        // ---------- 复制分享功能 ----------
+        // ---------- 复制分享功能（修复） ----------
         const shareBtn = document.getElementById('shareBtn');
         if (shareBtn) {
             shareBtn.addEventListener('click', function() {
-                const numberStr = window.__currentNumber || '';
+                // 决定使用哪个数字：如果正在生成，则用上次已完成的；否则用当前数字
+                let numberStr;
+                if (isGenerating) {
+                    // 正在生成中，使用上次已完成的数字
+                    numberStr = lastCompletedNumber;
+                } else {
+                    // 未在生成，使用当前显示的数字（即 window.__currentNumber）
+                    numberStr = window.__currentNumber || '';
+                }
+
+                // 如果还是没有数字（例如页面刚加载且从未生成过），则提示
                 if (!numberStr) {
                     showToast('请先生成一个数字！');
                     return;

@@ -8,8 +8,9 @@
             isCullen, isWoodall, isProth, isMoran, isIntimatePrime, isPronic,
             isPowerOfBase, isPolygonal } = MU;
 
+    // ========== 徽章定义（含 description） ==========
     const BADGE_DEFS = [
-        // ----- 位数徽章 -----
+        // 位数徽章
         {
             id: 'nine-digits',
             name: '九位数',
@@ -92,7 +93,7 @@
             check: d => getEffectiveLength(d) === 1
         },
 
-        // ----- 条件徽章（部分示例，其余与原代码一致） -----
+        // 条件徽章
         {
             id: 'multiple-of-three',
             name: '3的倍数',
@@ -115,10 +116,1261 @@
                 return trimmed[0] === trimmed[trimmed.length - 1];
             }
         },
-        // ... 此处省略其他 100+ 个徽章定义，但请务必保留原 `BADGE_DEFS` 的完整内容（从原 `badges.js` 中剪切过来）
-        // 原文件从 `const BADGE_DEFS = [` 开始，一直到 `// 批量添加质数倍数徽章` 之前的所有对象，
-        // 以及之后所有通过循环 push 的代码，全部放在这里。
-        // 由于篇幅限制，我在回答中只展示了开头部分，实际使用时请将原 `badges.js` 中从 `const BADGE_DEFS = [` 到 `const BADGE_DEFS` 结束的全部内容粘贴于此。
+        {
+            id: 'semiprime',
+            name: '半质数',
+            emoji: '➗🤵',
+            score: 5,
+            rarity: '平庸',
+            description: '数字是两个质数的乘积',
+            check: d => isSemiprime(parseInt(d, 10))
+        },
+        {
+            id: 'prime',
+            name: '质数',
+            emoji: '🤵',
+            score: 22,
+            rarity: '普通',
+            description: '数字只能被 1 和自身整除',
+            check: d => isPrime(parseInt(d, 10))
+        },
+        {
+            id: 'abundant',
+            name: '盈数',
+            emoji: '🟥🟨🟩🟦',
+            score: 5,
+            rarity: '平庸',
+            description: '数字的所有真因子之和大于数字本身',
+            check: d => isAbundant(parseInt(d, 10))
+        },
+        {
+            id: 'no-zero',
+            name: '攻',
+            emoji: '⚔',
+            score: 3,
+            rarity: '平庸',
+            description: '数字中不包含 0',
+            check: d => !d.includes('0')
+        },
+        {
+            id: 'no-one',
+            name: '受',
+            emoji: '🎪',
+            score: 3,
+            rarity: '平庸',
+            description: '数字中不包含 1',
+            check: d => !d.includes('1')
+        },
+        {
+            id: 'no-one-has-zero',
+            name: '受受',
+            emoji: '🎪🎪',
+            score: 5,
+            rarity: '平庸',
+            description: '数字中不包含 1，但包含至少一个 0',
+            check: function(d) { return !d.includes('1') && d.includes('0'); }
+        },
+        {
+            id: 'multiple-of-9',
+            name: '9的倍数',
+            emoji: '➗9️⃣',
+            score: 9,
+            rarity: '平庸',
+            description: '各位数字之和能被 9 整除',
+            check: function(d) {
+                let sum = 0;
+                for (let ch of d) sum += parseInt(ch, 10);
+                return sum % 9 === 0;
+            }
+        },
+        {
+            id: 'multiple-of-7',
+            name: '7的倍数',
+            emoji: '➗7️⃣',
+            score: 7,
+            rarity: '平庸',
+            description: '数字能被 7 整除',
+            check: function(d) {
+                if (d.length === 0) return false;
+                const last = parseInt(d[d.length - 1], 10);
+                const remaining = d.slice(0, -1);
+                const num = remaining === '' ? 0 : parseInt(remaining, 10);
+                return (num - 2 * last) % 7 === 0;
+            }
+        },
+        {
+            id: 'harshad',
+            name: '哈沙德数',
+            emoji: '🤣',
+            score: 19,
+            rarity: '普通',
+            description: '数字能被其各位数字之和整除',
+            check: function(d) {
+                let sum = 0;
+                for (let ch of d) sum += parseInt(ch, 10);
+                const num = parseInt(d, 10);
+                return sum > 0 && num % sum === 0;
+            }
+        },
+        {
+            id: 'lucky-ticket',
+            name: '幸运票',
+            emoji: '🎟',
+            score: 26,
+            rarity: '普通',
+            description: '数字长度为偶数，且前半部分数字和等于后半部分数字和',
+            check: function(d) {
+                const len = d.length;
+                if (len % 2 !== 0) return false;
+                const half = len / 2;
+                let sumFirst = 0, sumSecond = 0;
+                for (let i = 0; i < half; i++) {
+                    sumFirst += parseInt(d[i], 10);
+                    sumSecond += parseInt(d[half + i], 10);
+                }
+                return sumFirst === sumSecond;
+            }
+        },
+        {
+            id: 'happy-number',
+            name: '快乐数',
+            emoji: '😀',
+            score: 7,
+            rarity: '平庸',
+            description: '将数字各位平方和反复计算，最终能变为 1',
+            check: function(d) { return isHappyNumber(parseInt(d, 10)); }
+        },
+        {
+            id: 'narcissistic',
+            name: '水仙',
+            emoji: '💧',
+            score: 312500000,
+            rarity: '终结',
+            description: '数字是水仙花数（各位数字的位数次方之和等于本身）',
+            check: function(d) { return [0,1,2,3,4,5,6,7,8,9,153,370,371,407,1634,8208,9474,54748,92727,93084,548834,1741725,4210818,9800817,9926315,24678050,24678051,88593477,146511208, 472335975,534494836,912985153,4679307774].includes(parseInt(d,10)); }
+        },
+        {
+            id: 'automorphic',
+            name: '自守数',
+            emoji: '🛡',
+            score: 500000000,
+            rarity: '终结',
+            description: '数字的平方末尾仍然等于该数字本身',
+            check: function(d) { return [0,1,5,6,25,76,376,625,9376,90625,109376,890625,2890625,7109376,12890625,87109376,212890625,787109376,1787109376,8212890625].includes(parseInt(d,10)); }
+        },
+        {
+            id: 'heegner-number',
+            name: '黑格纳数',
+            emoji: '⬛',
+            score: 1111111112,
+            rarity: '无尽',
+            description: '数字是黑格纳数（1,2,3,7,11,19,43,67,163）',
+            check: function(d) { return [1,2,3,7,11,19,43,67,163].includes(parseInt(d,10)); }
+        },
+        {
+            id: 'power-tower',
+            name: '幂塔',
+            emoji: '🐝🐝',
+            score: 714285715,
+            rarity: '终结',
+            description: '数字是 n（任意个^n) 形式',
+            check: function(d) {
+                const list = [1,4,16,27,256,3125,19683,46656,65536,823543,16777216,387420489,4294967296];
+                return list.includes(parseInt(d,10));
+            }
+        },
+        {
+            id: 'double-factorial',
+            name: '双阶乘',
+            emoji: '‼',
+            score: 500000000,
+            rarity: '终结',
+            description: '数字是某个整数的双阶乘（n!!）',
+            check: function(d) { return isDoubleFactorial(parseInt(d,10)); }
+        },
+        {
+            id: 'factorial',
+            name: '阶乘',
+            emoji: '❗',
+            score: 769230770,
+            rarity: '终结',
+            description: '数字是某个整数的阶乘（n!）',
+            check: function(d) { return isFactorial(parseInt(d,10)); }
+        },
+        {
+            id: 'mersenne',
+            name: '计算机',
+            emoji: '🖥',
+            score: 303030304,
+            rarity: '终结',
+            description: '数字是梅森数（2^n - 1）',
+            check: function(d) { return isMersenneNumber(parseInt(d,10)); }
+        },
+        {
+            id: 'fermat-number',
+            name: '费马数',
+            emoji: '🐴',
+            score: 1666666667,
+            rarity: '无尽',
+            description: '数字是费马数（2^2^n + 1）',
+            check: function(d) { return [3,5,17,257,65537,4294967297].includes(parseInt(d,10)); }
+        },
+        {
+            id: 'constructible',
+            name: '尺规作图',
+            emoji: '📏',
+            score: 21929824,
+            rarity: '超越',
+            description: '数字是尺规可作图正多边形的边数',
+            check: function(d) { return isConstructible(parseInt(d,10)); }
+        },
+        {
+            id: 'omnipotent',
+            name: '全能',
+            emoji: '⚡',
+            score: 3062,
+            rarity: '稀有',
+            description: '10 位数字中 0–9 每个数字恰好出现一次',
+            check: function(d) {
+                if (d.length !== 10) return false;
+                const counts = new Array(10).fill(0);
+                for (let ch of d) {
+                    const digit = parseInt(ch, 10);
+                    if (isNaN(digit)) return false;
+                    counts[digit]++;
+                    if (counts[digit] > 1) return false;
+                }
+                return counts.every(c => c === 1);
+            }
+        },
+        {
+            id: 'kaprekar',
+            name: '雷劈数',
+            emoji: '⚡💔',
+            score: 172413794,
+            rarity: '终结',
+            description: '将数字分成两部分，其和的平方等于原数',
+            check: function(d) { return isKaprekar(d); }
+        },
+        {
+            id: 'perfect-number',
+            name: '完全数',
+            emoji: '💠',
+            score: 1666666667,
+            rarity: '无尽',
+            description: '数字是完全数（6,28,496,8128,33550336,8589869056）',
+            check: function(d) { return [6,28,496,8128,33550336,8589869056].includes(parseInt(d,10)); }
+        },
+        {
+            id: 'black-hole-number',
+            name: '黑洞数',
+            emoji: '🕳',
+            score: 3333333334,
+            rarity: '无尽',
+            description: '数字是黑洞数（123, 495, 6174）',
+            check: function(d) { return [123,495,6174].includes(parseInt(d,10)); }
+        },
+        {
+            id: 'self-referential',
+            name: '自指',
+            emoji: '💅',
+            score: 1250000000,
+            rarity: '无尽',
+            description: '数字是外观数列的某一项（1,11,21,1211,111221,312211,13112221,1113213211）',
+            check: function(d) { return [1,11,21,1211,111221,312211,13112221,1113213211].includes(parseInt(d,10)); }
+        },
+        {
+            id: 'fibonacci',
+            name: '斐波那契',
+            emoji: '🌬',
+            score: 200000000,
+            rarity: '终结',
+            description: '数字是斐波那契数列中的一项',
+            check: function(d) { return isFibonacci(parseInt(d,10)); }
+        },
+        {
+            id: 'lucas',
+            name: '吕卡',
+            emoji: '🧱',
+            score: 208333333,
+            rarity: '终结',
+            description: '数字是卢卡斯数列中的一项',
+            check: function(d) { return isLucas(parseInt(d,10)); }
+        },
+        {
+            id: 'pell',
+            name: '佩尔',
+            emoji: '🪐',
+            score: 357142857,
+            rarity: '终结',
+            description: '数字是佩尔数列中的一项',
+            check: function(d) { return isPell(parseInt(d,10)); }
+        },
+        {
+            id: 'palindrome',
+            name: '回文数',
+            emoji: '⭕',
+            score: 50001,
+            rarity: '史诗',
+            description: '数字正着读和反着读相同',
+            check: function(d) { return d === d.split('').reverse().join(''); }
+        },
+        {
+            id: 'rotatable',
+            name: '中心对称数',
+            emoji: '💫',
+            score: 1024,
+            rarity: '稀有',
+            description: '数字只包含 0,1,6,8,9（旋转后仍为数字）',
+            check: function(d) {
+                const valid = new Set(['0','1','6','8','9']);
+                for (let ch of d) if (!valid.has(ch)) return false;
+                return true;
+            }
+        },
+        {
+            id: 'rotational-palindrome',
+            name: '中心对称回文数',
+            emoji: '💫⭕',
+            score: 1600257,
+            rarity: '神话',
+            description: '数字只包含 0,1,6,8,9 且正着读和反着读相同',
+            check: function(d) {
+                const valid = new Set(['0','1','6','8','9']);
+                for (let ch of d) if (!valid.has(ch)) return false;
+                return d === d.split('').reverse().join('');
+            }
+        },
+        {
+            id: 'tetrahedral',
+            name: '四面体数',
+            emoji: '😶😶😶😶',
+            score: 2501251,
+            rarity: '神话',
+            description: '数字是四面体数（第 n 个四面体数）',
+            check: function(d) { return isTetrahedral(parseInt(d,10)); }
+        },
+        {
+            id: 'square-pyramidal',
+            name: '四棱锥数',
+            emoji: '✒✒✒✒',
+            score: 3219576,
+            rarity: '神话',
+            description: '数字是四棱锥数（平方和）',
+            check: function(d) { return isSquarePyramidal(parseInt(d,10)); }
+        },
+        {
+            id: 'all-odd',
+            name: '大奇',
+            emoji: '🐔',
+            score: 13,
+            rarity: '普通',
+            description: '数字包含所有奇数至少一次',
+            check: function(d) {
+                const required = ['1','3','5','7','9'];
+                for (let r of required) if (!d.includes(r)) return false;
+                return true;
+            }
+        },
+        {
+            id: 'all-even',
+            name: '大偶',
+            emoji: '⚙',
+            score: 15,
+            rarity: '普通',
+            description: '数字包含所有偶数至少一次',
+            check: function(d) {
+                const required = ['2','4','6','8','0'];
+                for (let r of required) if (!d.includes(r)) return false;
+                return true;
+            }
+        },
+        {
+            id: 'pure-odd',
+            name: '纯奇',
+            emoji: '🐔🛑',
+            score: 820,
+            rarity: '罕见',
+            description: '每一位数字都是奇数',
+            check: function(d) {
+                for (let ch of d) if (parseInt(ch,10) % 2 === 0) return false;
+                return true;
+            }
+        },
+        {
+            id: 'pure-even',
+            name: '纯偶',
+            emoji: '⚙🛑',
+            score: 1024,
+            rarity: '稀有',
+            description: '每一位数字都是偶数',
+            check: function(d) {
+                for (let ch of d) if (parseInt(ch,10) % 2 !== 0) return false;
+                return true;
+            }
+        },
+        {
+            id: 'super-prime',
+            name: '超质数',
+            emoji: '💎',
+            score: 7153,
+            rarity: '稀有',
+            description: '每一位数字都是质数（2,3,5,7）',
+            check: function(d) {
+                const allowed = new Set(['2','3','5','7']);
+                for (let ch of d) if (!allowed.has(ch)) return false;
+                return true;
+            }
+        },
+        {
+            id: 'super-composite',
+            name: '超合数',
+            emoji: '☢',
+            score: 7153,
+            rarity: '稀有',
+            description: '每一位数字都是合数（4,6,8,9）',
+            check: function(d) {
+                const allowed = new Set(['4','6','8','9']);
+                for (let ch of d) if (!allowed.has(ch)) return false;
+                return true;
+            }
+        },
+        {
+            id: 'cullen',
+            name: '卡伦数',
+            emoji: '🔨',
+            score: 357142858,
+            rarity: '终结',
+            description: '数字是卡伦数（n·2^n + 1）',
+            check: function(d) { return isCullen(d); }
+        },
+        {
+            id: 'woodall',
+            name: '胡道尔数',
+            emoji: '🌅',
+            score: 370370371,
+            rarity: '终结',
+            description: '数字是胡道尔数（n·2^n - 1）',
+            check: function(d) { return isWoodall(d); }
+        },
+        {
+            id: 'taxicab',
+            name: '的士数',
+            emoji: '🚕',
+            score: 3333333334,
+            rarity: '无尽',
+            description: '数字是能以 n 种不同方法表示成两个正立方数之和的最小正整数（2,1729,87539319）',
+            check: function(d) { return [2,1729,87539319].includes(parseInt(d,10)); }
+        },
+        {
+            id: 'dedekind',
+            name: '戴德金数',
+            emoji: '🎖',
+            score: 1428571429,
+            rarity: '无尽',
+            description: '数字是戴德金数（2,3,6,20,168,7581,7828354）',
+            check: function(d) { return [2,3,6,20,168,7581,7828354].includes(parseInt(d,10)); }
+        },
+        {
+            id: 'all-harshad',
+            name: '全哈沙德数',
+            emoji: '⚡🤣',
+            score: 2500000000,
+            rarity: '无尽',
+            description: '数字是1,2,4,6（所有都是哈沙德数）',
+            check: function(d) { return [1,2,4,6].includes(parseInt(d,10)); }
+        },
+        {
+            id: 'highly-composite',
+            name: '高合成数',
+            emoji: '🗿',
+            score: 133333334,
+            rarity: '终结',
+            description: '数字是高合成数（因数个数比所有更小的数都多）',
+            check: function(d) {
+                const list = [1,2,4,6,12,24,36,48,60,120,180,240,360,720,840,1260,1680,2520,5040,7560,10080,15120,20160,25200,27720,45360,50400,55440,83160,110880,166320,221760,277200,332640,498960,554400,665280,720720,1081080,1441440,2162160,2882880,3603600,4324320,6486480,7207200,8648640,10810800,14414400,17297280,21621600,32432400,36756720,43243200,61261200,73513440,110270160,122522400,147026880,183783600,232792560,279351072,367567200,465585120,698377680,735134400,1102701600,1396755360,2095133040,2327925600,2793510720,3491888400,4655851200,5587021440,6983776800];
+                return list.includes(parseInt(d,10));
+            }
+        },
+        {
+            id: 'emirp',
+            name: '可交换质数',
+            emoji: '💨',
+            score: 454545455,
+            rarity: '终结',
+            description: '数字是质数，且其反序数也是质数（可交换质数）',
+            check: function(d) {
+                const list = [2,3,5,7,11,13,17,31,37,71,73,79,97,113,131,199,311,337,373,733,919,991];
+                return list.includes(parseInt(d,10));
+            }
+        },
+        {
+            id: 'wagstaff',
+            name: '瓦格斯塔夫数',
+            emoji: '🏚',
+            score: 1000000000,
+            rarity: '终结',
+            description: '数字是瓦格斯塔夫数（(2^p + 1)/3）',
+            check: function(d) {
+                const list = [3,11,43,683,2731,43691,174763,2796203,178956971,715827883];
+                return list.includes(parseInt(d,10));
+            }
+        },
+        {
+            id: 'pythagorean-prime',
+            name: '毕达哥拉斯质数',
+            emoji: '✏',
+            score: 44,
+            rarity: '普通',
+            description: '数字是质数且形如 4n+1',
+            check: function(d) {
+                const num = parseInt(d,10);
+                return isPrime(num) && num % 4 === 1;
+            }
+        },
+        {
+            id: 'factorial-prime',
+            name: '阶乘质数',
+            emoji: '⁉',
+            score: 1111111112,
+            rarity: '无尽',
+            description: '数字是阶乘质数（n! ± 1）',
+            check: function(d) {
+                const list = [2,3,5,7,23,719,5039,39916801,479001599];
+                return list.includes(parseInt(d,10));
+            }
+        },
+        {
+            id: 'thanks',
+            name: '拜谢',
+            emoji: '🎎',
+            score: 126,
+            rarity: '罕见',
+            description: '数字包含子串 "297"',
+            check: function(d) { return d.includes('297'); }
+        },
+        {
+            id: 'extreme',
+            name: '极值',
+            emoji: '☄',
+            score: 126,
+            rarity: '罕见',
+            description: '数字包含子串 "308"',
+            check: function(d) { return d.includes('308'); }
+        },
+        {
+            id: 'divine',
+            name: '神明',
+            emoji: '🧙‍♂️',
+            score: 1429,
+            rarity: '稀有',
+            description: '数字包含子串 "6365"',
+            check: function(d) { return d.includes('6365'); }
+        },
+        {
+            id: 'disorder',
+            name: '无序',
+            emoji: '💱',
+            score: 16667,
+            rarity: '史诗',
+            description: '数字包含子串 "19728"',
+            check: function(d) { return d.includes('19728'); }
+        },
+        {
+            id: 'brain-bubble',
+            name: '脑泡',
+            emoji: '🧠',
+            score: 16668,
+            rarity: '史诗',
+            description: '数字包含子串 "66686"',
+            check: function(d) { return d.includes('66686'); }
+        },
+        {
+            id: 'shape-flow',
+            name: '形意顺',
+            emoji: '🍕',
+            score: 67,
+            rarity: '普通',
+            description: '数字包含子串 "122" 或 "221"',
+            check: function(d) { return d.includes('122') || d.includes('221'); }
+        },
+        {
+            id: 'advanced-shape-flow',
+            name: '高阶形意顺',
+            emoji: '🍕🍕',
+            score: 100022,
+            rarity: '传说',
+            description: '数字包含子串 "122333" 或 "333221"',
+            check: function(d) { return d.includes('122333') || d.includes('333221'); }
+        },
+        {
+            id: 'big-sawtooth',
+            name: '大锯齿',
+            emoji: '🤐',
+            score: 12345680,
+            rarity: '超越',
+            description: '数字由两种数字交替组成',
+            check: function(d) {
+                if (d.length < 2) return false;
+                const a = d[0], b = d[1];
+                for (let i = 0; i < d.length; i++) {
+                    if (i % 2 === 0) { if (d[i] !== a) return false; }
+                    else { if (d[i] !== b) return false; }
+                }
+                return true;
+            }
+        },
+        {
+            id: 'two-pairs',
+            name: '两对',
+            emoji: '✔✔',
+            score: 16,
+            rarity: '普通',
+            description: '数字中包含连续的两对相同数字',
+            check: function(d) {
+                for (let i = 0; i <= d.length - 4; i++) {
+                    const sub = d.slice(i, i+4);
+                    if (sub[0] === sub[1] && sub[2] === sub[3]) return true;
+                }
+                return false;
+            }
+        },
+        {
+            id: 'three-pairs',
+            name: '三对',
+            emoji: '✔✔✔',
+            score: 218,
+            rarity: '罕见',
+            description: '数字中包含连续的三对相同数字',
+            check: function(d) {
+                for (let i = 0; i <= d.length - 6; i++) {
+                    const sub = d.slice(i, i+6);
+                    if (sub[0]===sub[1] && sub[2]===sub[3] && sub[4]===sub[5]) return true;
+                }
+                return false;
+            }
+        },
+        {
+            id: 'four-pairs',
+            name: '四对',
+            emoji: '✔✔✔✔',
+            score: 3573,
+            rarity: '稀有',
+            description: '数字中包含连续的四对相同数字',
+            check: function(d) {
+                for (let i = 0; i <= d.length - 8; i++) {
+                    const sub = d.slice(i, i+8);
+                    if (sub[0]===sub[1] && sub[2]===sub[3] && sub[4]===sub[5] && sub[6]===sub[7]) return true;
+                }
+                return false;
+            }
+        },
+        {
+            id: 'five-pairs',
+            name: '五对',
+            emoji: '✔✔✔✔✔',
+            score: 111112,
+            rarity: '传说',
+            description: '数字中包含连续的五对相同数字',
+            check: function(d) {
+                for (let i = 0; i <= d.length - 10; i++) {
+                    const sub = d.slice(i, i+10);
+                    if (sub[0]===sub[1] && sub[2]===sub[3] && sub[4]===sub[5] && sub[6]===sub[7] && sub[8]===sub[9]) return true;
+                }
+                return false;
+            }
+        },
+        {
+            id: 'two-triples',
+            name: '两三条',
+            emoji: '🌿🌿',
+            score: 2071,
+            rarity: '稀有',
+            description: '数字中包含连续的两个三连号',
+            check: function(d) {
+                for (let i = 0; i <= d.length - 6; i++) {
+                    const sub = d.slice(i, i+6);
+                    if (sub[0]===sub[1] && sub[1]===sub[2] && sub[3]===sub[4] && sub[4]===sub[5]) return true;
+                }
+                return false;
+            }
+        },
+        {
+            id: 'three-triples',
+            name: '三三条',
+            emoji: '🌿🌿🌿',
+            score: 529353,
+            rarity: '传说',
+            description: '数字中包含连续的三个三连号',
+            check: function(d) {
+                for (let i = 0; i <= d.length - 9; i++) {
+                    const sub = d.slice(i, i+9);
+                    if (sub[0]===sub[1] && sub[1]===sub[2] && sub[3]===sub[4] && sub[4]===sub[5] && sub[6]===sub[7] && sub[7]===sub[8]) return true;
+                }
+                return false;
+            }
+        },
+        {
+            id: 'two-quads',
+            name: '两四条',
+            emoji: '🐍🐍',
+            score: 348420,
+            rarity: '传说',
+            description: '数字中包含连续的两个四连号',
+            check: function(d) {
+                for (let i = 0; i <= d.length - 8; i++) {
+                    const sub = d.slice(i, i+8);
+                    if (sub[0]===sub[1] && sub[1]===sub[2] && sub[2]===sub[3] && sub[4]===sub[5] && sub[5]===sub[6] && sub[6]===sub[7]) return true;
+                }
+                return false;
+            }
+        },
+        {
+            id: 'two-quints',
+            name: '两五条',
+            emoji: '🦑🦑',
+            score: 111111112,
+            rarity: '终结',
+            description: '数字中包含连续的两个五连号',
+            check: function(d) {
+                for (let i = 0; i <= d.length - 10; i++) {
+                    const sub = d.slice(i, i+10);
+                    if (sub[0]===sub[1] && sub[1]===sub[2] && sub[2]===sub[3] && sub[3]===sub[4] && sub[5]===sub[6] && sub[6]===sub[7] && sub[7]===sub[8] && sub[8]===sub[9]) return true;
+                }
+                return false;
+            }
+        },
+        {
+            id: 'parity-balance',
+            name: '合作协同',
+            emoji: '🕊',
+            score: 5,
+            rarity: '平庸',
+            description: '数字中奇数与偶数的个数相等',
+            check: function(d) {
+                let odd = 0, even = 0;
+                for (let ch of d) {
+                    if (parseInt(ch,10) % 2 === 0) even++; else odd++;
+                }
+                return odd === even;
+            }
+        },
+        {
+            id: 'bear-market',
+            name: '熊市',
+            emoji: '📉',
+            score: 1024,
+            rarity: '稀有',
+            description: '每一位数字都在 0–4 之间（低数字）',
+            check: function(d) {
+                for (let ch of d) {
+                    const digit = parseInt(ch,10);
+                    if (digit < 0 || digit > 4) return false;
+                }
+                return true;
+            }
+        },
+        {
+            id: 'bull-market',
+            name: '牛市',
+            emoji: '📈',
+            score: 820,
+            rarity: '罕见',
+            description: '每一位数字都在 5–9 之间（高数字）',
+            check: function(d) {
+                for (let ch of d) {
+                    const digit = parseInt(ch,10);
+                    if (digit < 5 || digit > 9) return false;
+                }
+                return true;
+            }
+        },
+        {
+            id: 'anti-aesthetic',
+            name: '反美学',
+            emoji: '👁‍🗨',
+            score: 7153,
+            rarity: '稀有',
+            description: '每一位数字只包含 4,6,7,9',
+            check: function(d) {
+                const allowed = new Set(['4','6','7','9']);
+                for (let ch of d) if (!allowed.has(ch)) return false;
+                return true;
+            }
+        },
+        {
+            id: 'proth',
+            name: '普罗斯数',
+            emoji: '🦐',
+            score: 70508,
+            rarity: '史诗',
+            description: '数字是普罗特数（k·2^n + 1，k为奇数）',
+            check: function(d) { return isProth(d); }
+        },
+        {
+            id: 'moran',
+            name: '莫兰数',
+            emoji: '💐',
+            score: 259,
+            rarity: '罕见',
+            description: '数字能被各位数字之和整除，且商是质数',
+            check: function(d) { return isMoran(d); }
+        },
+        {
+            id: 'parity-alternating',
+            name: '奇偶和谐',
+            emoji: '♻',
+            score: 456,
+            rarity: '罕见',
+            description: '相邻两位数字奇偶性交替出现',
+            check: function(d) {
+                if (d.length <= 1) return true;
+                for (let i = 0; i < d.length - 1; i++) {
+                    const a = parseInt(d[i],10), b = parseInt(d[i+1],10);
+                    if ((a % 2) === (b % 2)) return false;
+                }
+                return true;
+            }
+        },
+        {
+            id: 'left-truncatable-prime',
+            name: '可左截短质数',
+            emoji: '➰',
+            score: 3727172,
+            rarity: '神话',
+            description: '数字本身及其逐次删去左侧数字后仍为质数',
+            check: function(d) {
+                const num = parseInt(d,10);
+                if (!isPrime(num)) return false;
+                for (let i = 1; i < d.length; i++) {
+                    const sub = d.slice(i);
+                    if (sub[0] === '0') return false;
+                    if (!isPrime(parseInt(sub,10))) return false;
+                }
+                return true;
+            }
+        },
+        {
+            id: 'right-truncatable-prime',
+            name: '可右截短质数',
+            emoji: '➰➰',
+            score: 120481928,
+            rarity: '终结',
+            description: '数字本身及其逐次删去右侧数字后仍为质数',
+            check: function(d) {
+                const num = parseInt(d,10);
+                if (!isPrime(num)) return false;
+                for (let i = d.length - 1; i > 0; i--) {
+                    const sub = d.slice(0, i);
+                    if (!isPrime(parseInt(sub,10))) return false;
+                }
+                return true;
+            }
+        },
+        {
+            id: 'both-truncatable-prime',
+            name: '可双向截短质数',
+            emoji: '➰➰➰',
+            score: 666666667,
+            rarity: '终结',
+            description: '数字本身及左右截断后均为质数的数',
+            check: function(d) {
+                const list = [2,3,5,7,23,37,53,73,313,317,373,797,3137,3797,739397];
+                return list.includes(parseInt(d,10));
+            }
+        },
+        {
+            id: 'intimate-prime',
+            name: '亲密质数',
+            emoji: '💞',
+            score: 696428,
+            rarity: '传说',
+            description: '质数 p 满足 4p+5 是完全平方数',
+            check: function(d) { return isIntimatePrime(parseInt(d,10)); }
+        },
+        {
+            id: 'palindromic-prime',
+            name: '回文质数',
+            emoji: 'Ⓜ',
+            score: 1679826,
+            rarity: '神话',
+            description: '数字是质数，且正着读和反着读相同',
+            check: function(d) {
+                const num = parseInt(d,10);
+                return isPrime(num) && d === d.split('').reverse().join('');
+            }
+        },
+        {
+            id: 'author-qq',
+            name: '作者的QQ',
+            emoji: '🐧',
+            score: 500000000,
+            rarity: '终结',
+            description: '数字包含子串 "879893737"',
+            check: function(d) { return d.includes('879893737'); }
+        },
+        {
+            id: 'progress-bar',
+            name: '进度条',
+            emoji: '〰',
+            score: 3227,
+            rarity: '稀有',
+            description: '数字奇数位相同或偶数位相同',
+            check: function(d) {
+                if (d.length <= 1) return false;
+                const first = d[0];
+                let oddSame = true;
+                for (let i = 2; i < d.length; i += 2) {
+                    if (d[i] !== first) {
+                        oddSame = false;
+                        break;
+                    }
+                }
+                if (oddSame) return true;
+                if (d.length < 2) return false;
+                const second = d[1];
+                let evenSame = true;
+                for (let i = 3; i < d.length; i += 2) {
+                    if (d[i] !== second) {
+                        evenSame = false;
+                        break;
+                    }
+                }
+                return evenSame;
+            }
+        },
+        {
+            id: 'cyber-harshad',
+            name: '赛博哈沙德数',
+            emoji: '🤣🤖',
+            score: 48,
+            rarity: '普通',
+            description: '数字能被七段数码管显示所需笔画数之和整除',
+            check: function(d) {
+                const num = parseInt(d,10);
+                if (num <= 0) return false;
+                const segments = {
+                    '0': 6, '1': 2, '2': 5, '3': 5, '4': 4,
+                    '5': 5, '6': 6, '7': 3, '8': 7, '9': 6
+                };
+                let sum = 0;
+                for (let ch of d) {
+                    sum += segments[ch];
+                }
+                return num % sum === 0;
+            }
+        },
+        {
+            id: 'neutral',
+            name: '中立',
+            emoji: '➕',
+            score: 26,
+            rarity: '普通',
+            description: '数字各位和等于 4.5 × 位数',
+            check: function(d) {
+                if (d.length === 0) return false;
+                let sum = 0;
+                for (let ch of d) {
+                    sum += parseInt(ch, 10);
+                }
+                return 2 * sum === 9 * d.length;
+            }
+        },
+        {
+            id: 'pronic',
+            name: '普洛尼克数',
+            emoji: '🦊',
+            score: 100000,
+            rarity: '史诗',
+            description: '数字是两个连续整数的乘积（n·(n+1)）',
+            check: function(d) { return isPronic(parseInt(d,10)); }
+        },
+        {
+            id: 'close-enough',
+            name: '那是接近的',
+            emoji: '🌀',
+            score: 6,
+            rarity: '平庸',
+            description: '有效数字的首位和末位相差 1',
+            check: function(d) {
+                if (d.length <= 1) return true;
+                const first = parseInt(d[0], 10);
+                const last = parseInt(d[d.length - 1], 10);
+                return Math.abs(first - last) === 1;
+            }
+        },
+        {
+            id: 'twin-prime',
+            name: '孪生质数',
+            emoji: '⛰',
+            score: 183,
+            rarity: '罕见',
+            description: '数字是质数，且与相邻的质数相差 2',
+            check: function(d) {
+                const num = parseInt(d,10);
+                if (!isPrime(num)) return false;
+                return isPrime(num - 2) || isPrime(num + 2);
+            }
+        },
+        {
+            id: 'triplet-prime',
+            name: '三胞胎质数',
+            emoji: '🏔',
+            score: 1284,
+            rarity: '稀有',
+            description: '数字是质数，且与相邻两个质数构成三胞胎质数组',
+            check: function(d) {
+                const num = parseInt(d,10);
+                if (!isPrime(num)) return false;
+                if (num >= 2) {
+                    if (isPrime(num - 2) && isPrime(num + 4)) return true;
+                    if (isPrime(num - 4) && isPrime(num + 2)) return true;
+                }
+                return false;
+            }
+        },
+        {
+            id: 'quadruplet-prime',
+            name: '四胞胎质数',
+            emoji: '🏞',
+            score: 332592,
+            rarity: '传说',
+            description: '数字是质数，且与相邻三个质数构成四胞胎质数组',
+            check: function(d) {
+                const num = parseInt(d,10);
+                if (!isPrime(num)) return false;
+                if (num >= 2) {
+                    if (isPrime(num) && isPrime(num + 2) && isPrime(num + 6) && isPrime(num + 8)) return true;
+                    if (isPrime(num - 2) && isPrime(num) && isPrime(num + 4) && isPrime(num + 6)) return true;
+                    if (isPrime(num - 6) && isPrime(num - 4) && isPrime(num) && isPrime(num + 2)) return true;
+                }
+                return false;
+            }
+        },
+        {
+            id: 'detective',
+            name: '侦探',
+            emoji: '🕵️‍♂️',
+            score: 16778524,
+            rarity: '超越',
+            description: '各位数字之和等于各位数字之积',
+            check: function(d) {
+                if (d.length === 0) return false;
+                let sum = 0, product = 1;
+                for (let ch of d) {
+                    const digit = parseInt(ch, 10);
+                    sum += digit;
+                    product *= digit;
+                }
+                return sum === product;
+            }
+        },
+        {
+            id: 'neutral-3456',
+            name: '中性',
+            emoji: '💤',
+            score: 7153,
+            rarity: '稀有',
+            description: '每一位数字只包含 3,4,5,6',
+            check: function(d) {
+                const allowed = new Set(['3', '4', '5', '6']);
+                for (let ch of d) {
+                    if (!allowed.has(ch)) return false;
+                }
+                return true;
+            }
+        },
+        {
+            id: 'unstable',
+            name: '欠稳定性',
+            emoji: '💥',
+            score: 9537,
+            rarity: '稀有',
+            description: '每一位数字只包含 0,1,8,9',
+            check: function(d) {
+                const allowed = new Set(['0', '1', '8', '9']);
+                for (let ch of d) {
+                    if (!allowed.has(ch)) return false;
+                }
+                return true;
+            }
+        },
+        {
+            id: 'higher-neutral',
+            name: '高阶中性',
+            emoji: '💤💤',
+            score: 4887586,
+            rarity: '神话',
+            description: '每一位数字只包含 4,5',
+            check: function(d) {
+                const allowed = new Set(['4', '5']);
+                for (let ch of d) {
+                    if (!allowed.has(ch)) return false;
+                }
+                return true;
+            }
+        },
+        {
+            id: 'higher-unstable',
+            name: '高阶欠稳定性',
+            emoji: '💥💥',
+            score: 9765625,
+            rarity: '神话',
+            description: '每一位数字只包含 0,9',
+            check: function(d) {
+                const allowed = new Set(['0', '9']);
+                for (let ch of d) {
+                    if (!allowed.has(ch)) return false;
+                }
+                return true;
+            }
+        },
+        {
+            id: 'high-low-balance',
+            name: '高低平衡',
+            emoji: '☯',
+            score: 5,
+            rarity: '平庸',
+            description: '数字中低数字（0–4）和高数字（5–9）的个数相等',
+            check: function(d) {
+                let low = 0, high = 0;
+                for (let ch of d) {
+                    const dgt = parseInt(ch, 10);
+                    if (dgt <= 4) low++;
+                    else high++;
+                }
+                return low === high;
+            }
+        },
+        {
+            id: 'air-ticket',
+            name: '飞机票',
+            emoji: '🎟🛩',
+            score: 8,
+            rarity: '平庸',
+            description: '数字长度为偶数，且前半部分数字积等于后半部分数字积',
+            check: function(d) {
+                const trimmed = d.replace(/^0+/, '') || '0';
+                const len = trimmed.length;
+                if (len % 2 !== 0 || len > 10) return false;
+                const half = len / 2;
+                let prodLeft = 1, prodRight = 1;
+                for (let i = 0; i < half; i++) {
+                    prodLeft *= parseInt(trimmed[i], 10);
+                    prodRight *= parseInt(trimmed[half + i], 10);
+                }
+                return prodLeft === prodRight;
+            }
+        },
+        {
+            id: 'air-ticket-premium',
+            name: '客机票',
+            emoji: '✈🎟',
+            score: 993,
+            rarity: '罕见',
+            description: '数字长度为偶数，前半部分数字积等于后半部分数字积，且两侧数字均不含 0',
+            check: function(d) {
+                const trimmed = d.replace(/^0+/, '') || '0';
+                const len = trimmed.length;
+                if (len % 2 !== 0 || len > 10) return false;
+                const half = len / 2;
+                let prodLeft = 1, prodRight = 1;
+                for (let i = 0; i < half; i++) {
+                    const leftDigit = parseInt(trimmed[i], 10);
+                    const rightDigit = parseInt(trimmed[half + i], 10);
+                    if (leftDigit === 0 || rightDigit === 0) return false;
+                    prodLeft *= leftDigit;
+                    prodRight *= rightDigit;
+                }
+                return prodLeft === prodRight;
+            }
+        },
+        // ===== 新增：琪露诺 =====
+            {
+                id: 'cirno',
+                name: '琪露诺',
+                emoji: '🧊',
+                score: 168,
+                rarity: '罕见',
+                description: '最大数位超过数字长度',
+                check: function(d) {
+                    const digits = d.split('').map(Number);
+                    const maxDigit = Math.max(...digits);
+                    const len = d.length;
+                    return maxDigit > len;
+                }
+            },
+            {
+                id: 'good-number',
+                name: '好数',
+                emoji: '😊',
+                score: 1016157,
+                rarity: '神话',
+                description: '每个数码仅出现一次，不含零，且每个内部数字均不小于其相邻数字（局部峰值或持平）',
+                check: function(d) {
+                    // 检查重复数字和零
+                    const digits = d.split('');
+                    if (digits.length === 0) return false;
+                    const seen = new Set();
+                    for (let ch of digits) {
+                        if (ch === '0') return false;
+                        if (seen.has(ch)) return false;
+                        seen.add(ch);
+                    }
+                    // 检查每个内部位置：digit[i] >= digit[i-1] 且 digit[i] >= digit[i+1]
+                    for (let i = 1; i < digits.length - 1; i++) {
+                        const current = parseInt(digits[i], 10);
+                        const left = parseInt(digits[i-1], 10);
+                        const right = parseInt(digits[i+1], 10);
+                        if (current < left || current < right) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            },
+            {
+                id: 'limit',
+                name: '极限',
+                emoji: '🔳',
+                score: 1000000000,
+                rarity: '终结',
+                description: '数字为 0 或全部由 9 组成',
+                check: function(d) {
+                    if (d === '0') return true;
+                    return /^9+$/.test(d);
+                }
+            },
+            {
+                id: 'elite',
+                name: '精英',
+                emoji: '🐳🦅',
+                score: 57294,
+                rarity: '史诗',
+                description: '最大数码不小于所有其他数码之和',
+                check: function(d) {
+                    const digits = d.split('').map(Number);
+                    if (digits.length === 0) return false;
+                    const maxDigit = Math.max(...digits);
+                    const sumOthers = digits.reduce((a, b) => a + b, 0) - maxDigit;
+                    return maxDigit >= sumOthers;
+                }
+            },
+            {
+                id: 'minmax',
+                name: '最小最大',
+                emoji: '❣',
+                score: 31,
+                rarity: '普通',
+                description: '首尾数字分别为 9 与 0/1，或 1 与 9',
+                check: function(d) {
+                    if (d.length < 2) return false;
+                    const first = d[0];
+                    const last = d[d.length - 1];
+                    return (first === '9' && (last === '0' || last === '1')) ||
+                           (first === '1' && last === '9');
+                }
+            }
     ];
 
     // ----- 批量添加质数倍数徽章 -----
