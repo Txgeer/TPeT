@@ -1072,7 +1072,7 @@
             rarity: '平庸',
             description: '有效数字的首位和末位相差 1',
             check: function(d) {
-                if (d.length <= 1) return true;
+                if (d.length < 2) return false;  // 修正：至少两位才判断
                 const first = parseInt(d[0], 10);
                 const last = parseInt(d[d.length - 1], 10);
                 return Math.abs(first - last) === 1;
