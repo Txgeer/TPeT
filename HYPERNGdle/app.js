@@ -517,7 +517,7 @@
                     text += '（未获得任何徽章）\n';
                 } else {
                     badges.forEach(b => {
-                        text += `  ${b.emoji} ${b.name}  +${b.score.toLocaleString()} TP\n`;
+                        text += `（${b.rarity}） ${b.emoji} ${b.name} +${b.score.toLocaleString()} TP\n`;
                     });
                 }
                 text += `\n本数字总 TP：${totalScore.toLocaleString()}`;
