@@ -1,9 +1,14 @@
-// app.js – 主应用逻辑（数字生成、揭示、按钮交互，含徽章显示切换 + 复制分享 + 历史最佳 + 筛选按钮 + 自动抽取 + 保存最后数字 + 徽章进度）
+// app.js – 主应用逻辑（数字生成、揭示、按钮交互，含徽章显示切换 + 复制分享 + 历史最佳 + 筛选按钮 + 自动抽取 + 保存最后数字 + 徽章进度 + 长按切换历史最佳）
 (function() {
     'use strict';
 
     // ===== 常量 =====
     const LAST_NUMBER_KEY = 'hyperngdle_last_number';
+    const LONG_PRESS_DELAY = 600; // 长按判定时间（毫秒）
+
+    // ===== 状态 =====
+    let isShowingBest = false;
+    let savedCurrentNumber = '';
 
     // ===== 主题管理 =====
     function initTheme() {
@@ -100,6 +105,8 @@
         const totalGenerationsSpan = document.getElementById('totalGenerations');
         const bestNumberSpan = document.getElementById('bestNumber');
         const bestScoreSpan = document.getElementById('bestScore');
+        const bestRecord = document.getElementById('bestRecord');
+        const progressEl = document.getElementById('badgeProgress');
 
         // ---------- 自动抽取相关 ----------
         const autoBtn = document.getElementById('autoGenerateBtn');
@@ -227,7 +234,48 @@
             }
         }
 
-        // ===== 直接显示已保存的数字（无动画） =====
+        // ===== 只显示数字（不保存，不修改lastCompletedNumber） =====
+        function displayNumberOnly(numberStr) {
+            const digits = numberStr.split('');
+            const total = digits.length;
+
+            digitEls.forEach(el => {
+                el.textContent = '?';
+                el.className = 'digit';
+                el.style.transform = '';
+            });
+
+            const trimmed = numberStr.replace(/^0+/, '');
+            const leadingZeroCount = numberStr.length - trimmed.length;
+
+            for (let i = 0; i < total; i++) {
+                const el = digitEls[i];
+                const char = digits[i];
+                el.textContent = char;
+                if (i < leadingZeroCount) {
+                    el.className = 'digit digit--leading-zero';
+                    el.style.transform = 'scale(0.92)';
+                } else {
+                    el.className = 'digit digit--revealed';
+                }
+            }
+
+            card.classList.add('number-card--glow');
+            setTimeout(() => {
+                card.classList.remove('number-card--glow');
+            }, 400);
+
+            card.classList.remove('card-enter');
+            void card.offsetWidth;
+            card.classList.add('card-enter');
+
+            if (window.Badges && typeof window.Badges.setCurrentNumberOnly === 'function') {
+                window.Badges.setCurrentNumberOnly(numberStr);
+            }
+            // 不修改 window.__currentNumber 和 lastCompletedNumber
+        }
+
+        // ===== 直接显示已保存的数字（用于恢复） =====
         function displaySavedNumber(numberStr) {
             const digits = numberStr.split('');
             const total = digits.length;
@@ -344,6 +392,12 @@
         async function handleGenerate() {
             if (isGenerating) return;
 
+            // 退出历史最佳模式
+            if (isShowingBest) {
+                isShowingBest = false;
+                savedCurrentNumber = '';
+            }
+
             if (isAutoGenerate && autoTimer) {
                 clearTimeout(autoTimer);
                 autoTimer = null;
@@ -416,38 +470,61 @@
             toggleBtn.textContent = window.Badges.getShowAllBadges() ? '只看当前' : '显示所有已获得';
         }
 
+        // ---------- 硬重置按钮 ----------
+        const resetBtn = document.getElementById('hardResetBtn');
+        if (resetBtn && window.Badges && typeof window.Badges.hardReset === 'function') {
+            resetBtn.addEventListener('click', function() {
+                if (confirm('确定要清除所有数据吗？此操作不可撤销！')) {
+                    window.Badges.hardReset();
+                    resetDigits();
+                    window.__currentNumber = '';
+                    lastCompletedNumber = '';
+                    isShowingBest = false;
+                    savedCurrentNumber = '';
+                    localStorage.removeItem(LAST_NUMBER_KEY);
+                    const best = window.Badges.getBest();
+                    if (window.onBestChange) window.onBestChange(best);
+                    updateFilterButton();
+                    updateBadgeProgress();
+                }
+            });
+        }
+
         // ---------- 复制分享功能 ----------
         const shareBtn = document.getElementById('shareBtn');
         if (shareBtn) {
             shareBtn.addEventListener('click', function() {
                 let numberStr;
-                if (isGenerating) {
+                if (isShowingBest) {
+                    const best = window.Badges.getBest();
+                    numberStr = best.number || '';
+                } else if (isGenerating) {
                     numberStr = lastCompletedNumber;
                 } else {
                     numberStr = window.__currentNumber || '';
                 }
-        
+
                 if (!numberStr) {
                     showToast('请先生成一个数字！');
                     return;
                 }
-        
+
                 const badges = window.Badges.getBadgesForNumber ? window.Badges.getBadgesForNumber(numberStr) : [];
                 const totalScore = badges.reduce((sum, b) => sum + b.score, 0);
-        
+
                 let text = `🎲 HYPERNGdle\n数字：${numberStr}\n`;
                 if (badges.length === 0) {
                     text += '（未获得任何徽章）\n';
                 } else {
                     badges.forEach(b => {
-                        text += `  ${b.emoji} ${b.name} (${b.rarity})  +${b.score.toLocaleString()} TP\n`;
+                        text += `  ${b.emoji} ${b.name}  +${b.score.toLocaleString()} TP\n`;
                     });
                 }
                 text += `\n本数字总 TP：${totalScore.toLocaleString()}`;
                 const totalTP = window.Badges.getTotalTP ? window.Badges.getTotalTP() : 0;
                 text += `\n历史总 TP：${totalTP.toLocaleString()}`;
                 text += `\n\n🔗 在 HYPERNGdle 试试你的运气：https://txgeer.github.io/TPeT/HYPERNGdle`;
-        
+
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     navigator.clipboard.writeText(text).then(() => {
                         showToast('已复制到剪贴板！');
@@ -459,6 +536,30 @@
                 }
             });
         }
+
+        function fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            textarea.style.left = '-9999px';
+            textarea.style.top = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                const success = document.execCommand('copy');
+                if (success) {
+                    showToast('已复制到剪贴板！');
+                } else {
+                    alert('复制失败，请手动复制以下内容：\n\n' + text);
+                }
+            } catch (e) {
+                alert('复制失败，请手动复制以下内容：\n\n' + text);
+            }
+            document.body.removeChild(textarea);
+        }
+
+        // ---------- Toast 提示 ----------
         let toastTimer = null;
         function showToast(msg) {
             const old = document.querySelector('.custom-toast');
@@ -493,9 +594,87 @@
             }, 2000);
         }
 
-        // ============================================
+        // ============================================================
+        // ===== 长按切换历史最佳 =====
+        // ============================================================
+        let longPressTimer = null;
+
+        function handleLongPress() {
+            // 检查自动抽取
+            if (isAutoGenerate) {
+                showToast('请先关闭自动抽取！');
+                return;
+            }
+
+            // 检查是否正在生成
+            if (isGenerating) {
+                showToast('请先生成一个数字！');
+                return;
+            }
+
+            const best = window.Badges.getBest();
+            if (!best.number) {
+                showToast('请先生成一个数字！');
+                return;
+            }
+
+            if (isShowingBest) {
+                // 切回当前数字
+                if (savedCurrentNumber) {
+                    displayNumberOnly(savedCurrentNumber);
+                    isShowingBest = false;
+                    savedCurrentNumber = '';
+                } else {
+                    showToast('没有可恢复的数字');
+                }
+            } else {
+                // 保存当前数字并切换到历史最佳
+                const currentNum = window.__currentNumber || '';
+                if (!currentNum) {
+                    showToast('请先生成一个数字！');
+                    return;
+                }
+                savedCurrentNumber = currentNum;
+                displayNumberOnly(best.number);
+                isShowingBest = true;
+            }
+        }
+
+        function handlePointerDown(e) {
+            if (e.button !== 0) return; // 只响应左键
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+            longPressTimer = setTimeout(() => {
+                longPressTimer = null;
+                handleLongPress();
+            }, LONG_PRESS_DELAY);
+        }
+
+        function handlePointerUp(e) {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        }
+
+        function handlePointerLeave(e) {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        }
+
+        if (bestRecord) {
+            bestRecord.addEventListener('pointerdown', handlePointerDown);
+            bestRecord.addEventListener('pointerup', handlePointerUp);
+            bestRecord.addEventListener('pointerleave', handlePointerLeave);
+        }
+
+        // ============================================================
         // ===== 初始化：尝试恢复上次的数字 =====
-        // ============================================
+        // ============================================================
         const savedNumber = getLastNumber();
 
         if (savedNumber && savedNumber.length > 0) {
