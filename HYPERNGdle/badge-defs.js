@@ -100,7 +100,7 @@
             emoji: '➗3️⃣',
             score: 3,
             rarity: '平庸',
-            description: '各位数字之和能被 3 整除',
+            description: '各位数码之和能被 3 整除',
             check: d => parseInt(d, 10) % 3 === 0
         },
         {
@@ -176,7 +176,7 @@
             emoji: '➗9️⃣',
             score: 9,
             rarity: '平庸',
-            description: '各位数字之和能被 9 整除',
+            description: '各位数码之和能被 9 整除',
             check: function(d) {
                 let sum = 0;
                 for (let ch of d) sum += parseInt(ch, 10);
@@ -198,7 +198,7 @@
             emoji: '🤣',
             score: 19,
             rarity: '普通',
-            description: '数字能被其各位数字之和整除',
+            description: '数字能被其各位数码之和整除',
             check: function(d) {
                 let sum = 0;
                 for (let ch of d) sum += parseInt(ch, 10);
@@ -231,7 +231,7 @@
             emoji: '😀',
             score: 7,
             rarity: '平庸',
-            description: '将数字各位平方和反复计算，最终能变为 1',
+            description: '将数字各位数码平方和反复计算，最终能变为 1',
             check: function(d) { return isHappyNumber(parseInt(d, 10)); }
         },
         {
@@ -240,7 +240,7 @@
             emoji: '💧',
             score: 303030304,
             rarity: '终结',
-            description: '数字是水仙花数（各位数字的位数次方之和等于本身）',
+            description: '数字是水仙花数（各码数字的位数次方之和等于本身）',
             check: function(d) { return [0,1,2,3,4,5,6,7,8,9,153,370,371,407,1634,8208,9474,54748,92727,93084,548834,1741725,4210818,9800817,9926315,24678050,24678051,88593477,146511208,472335975,534494836,912985153,4679307774].includes(parseInt(d,10)); }
         },
         {
@@ -267,7 +267,7 @@
             emoji: '🐝🐝',
             score: 714285715,
             rarity: '终结',
-            description: '数字是 n（任意个^n) 形式',
+            description: '数字是 n（任意个^n） 形式',
             check: function(d) {
                 const list = [1,4,16,27,256,3125,19683,46656,65536,823543,16777216,387420489,4294967296];
                 return list.includes(parseInt(d,10));
@@ -568,10 +568,10 @@
         {
             id: 'all-harshad',
             name: '全哈沙德数',
-            emoji: '⚡🤣',
+            emoji: '🤣⚡',
             score: 2500000000,
             rarity: '无尽',
-            description: '数字是1,2,4,6（所有都是哈沙德数）',
+            description: '数字在任何进制下都能被其各位数码之和整除（1,2,4,6）',
             check: function(d) { return [1,2,4,6].includes(parseInt(d,10)); }
         },
         {
@@ -892,7 +892,7 @@
             emoji: '💐',
             score: 259,
             rarity: '罕见',
-            description: '数字能被各位数字之和整除，且商是质数',
+            description: '数字能被各位数码之和整除，且商是质数',
             check: function(d) { return isMoran(d); }
         },
         {
@@ -1024,7 +1024,7 @@
             emoji: '🤣🤖',
             score: 48,
             rarity: '普通',
-            description: '数字能被七段数码管显示所需笔画数之和整除',
+            description: '数字能被其七段数码管显示所需笔画数之和整除',
             check: function(d) {
                 const num = parseInt(d,10);
                 if (num <= 0) return false;
@@ -1045,7 +1045,7 @@
             emoji: '➕',
             score: 26,
             rarity: '普通',
-            description: '数字各位和等于 4.5 × 位数',
+            description: '数字各位数码之和等于 4.5 × 位数',
             check: function(d) {
                 if (d.length === 0) return false;
                 let sum = 0;
@@ -1132,7 +1132,7 @@
             emoji: '🕵️‍♂️',
             score: 16778524,
             rarity: '超越',
-            description: '各位数字之和等于各位数字之积',
+            description: '各位数码之和等于各位数码之积',
             check: function(d) {
                 if (d.length === 0) return false;
                 let sum = 0, product = 1;
@@ -1818,6 +1818,42 @@
                     seen.add(digit);
                 }
                 return seen.size === n;
+            }
+        },
+        {
+            id: 'matrix',
+            name: '母体',
+            emoji: '🎡',
+            score: 5,
+            rarity: '平庸',
+            description: '各位数字之和为质数',
+            check: function(d) {
+                if (d.length === 0) return false;
+                let sum = 0;
+                for (let ch of d) {
+                    sum += parseInt(ch, 10);
+                }
+                return window.MathUtils.isPrime(sum);
+            }
+        },
+        {
+            id: 'product-harshad',
+            name: '积哈沙德数',
+            emoji: '🤣🐔',
+            score: 456705,
+            rarity: '传说',
+            description: '数字各位数码之积不为0且能被其各位数码之积整除',
+            check: function(d) {
+                const num = parseInt(d, 10);
+                if (num <= 0) return false;
+                let product = 1;
+                for (let ch of d) {
+                    const digit = parseInt(ch, 10);
+                    if (digit === 0) return false;
+                    product *= digit;
+                    if (product > Number.MAX_SAFE_INTEGER) return false;
+                }
+                return num % product === 0;
             }
         }
     ];
