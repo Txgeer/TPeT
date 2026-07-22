@@ -20,6 +20,7 @@
     let earnedBadges = [];
     let totalTP = 0;
     let currentTP = 0;
+    let currentBadgeCount = 0;          // 新增：当前数字触发的徽章数量
     let currentNumberStr = '';
     let newBadgeIds = new Set();
     let totalGenerations = 0;
@@ -118,7 +119,7 @@
         return showAllBadges;
     }
 
-    // ===== 自定义 Tooltip（修复版） =====
+    // ===== 自定义 Tooltip =====
     const tooltip = document.createElement('div');
     tooltip.className = 'badge-tooltip';
     tooltip.style.cssText = `
@@ -202,6 +203,12 @@
         if (currentScoreSpan) {
             currentScoreSpan.textContent = format(currentTP);
         }
+        // 更新当前徽章数
+        const badgeCountEl = document.getElementById('currentBadgeCount');
+        if (badgeCountEl) {
+            badgeCountEl.textContent = currentBadgeCount || 0;
+        }
+
         // 清空列表
         badgeListEl.innerHTML = '';
     
@@ -294,7 +301,7 @@
             <span class="${scoreClass}">${scoreDisplay}</span>
             `;
     
-            // Tooltip 事件绑定...
+            // Tooltip 事件绑定
             const tooltipContent = def.description || '获取条件未定义';
             pill.addEventListener('mouseenter', function(e) {
                 tooltip.textContent = tooltipContent;
@@ -309,7 +316,6 @@
             if (isNew && isEarned) {
                 pill.addEventListener('mouseenter', function() {
                     newBadgeIds.delete(badge.id);
-                    // 更新 UI（延迟执行，避免重复触发）
                     requestAnimationFrame(() => updateBadgeUI());
                 });
             }
@@ -317,7 +323,6 @@
             fragment.appendChild(pill);
         }
     
-        // 一次性追加所有 DOM 元素
         badgeListEl.appendChild(fragment);
     }
 
@@ -325,11 +330,13 @@
     function checkAndAwardBadges(numberStr) {
         currentNumberStr = numberStr;
         currentTP = 0;
+        currentBadgeCount = 0;
         const newlyEarnedIds = [];
 
         for (const def of BADGE_DEFS) {
             if (def.check(numberStr)) {
                 currentTP += def.score;
+                currentBadgeCount++;
                 const existing = earnedBadges.find(b => b.id === def.id);
                 if (existing) {
                     existing.count += 1;
@@ -384,6 +391,7 @@
         earnedBadges = [];
         totalTP = 0;
         currentTP = 0;
+        currentBadgeCount = 0;
         currentNumberStr = '';
         newBadgeIds.clear();
         totalGenerations = 0;
@@ -402,6 +410,7 @@
         earnedBadges = [];
         totalTP = 0;
         currentTP = 0;
+        currentBadgeCount = 0;
         currentNumberStr = '';
         newBadgeIds.clear();
         filterRarity = 'all';
@@ -444,15 +453,11 @@
             return result;
         },
         unlockAll: function() {
-            // 如果已经全部解锁，跳过
             const allIds = new Set(BADGE_DEFS.map(d => d.id));
             const earnedIds = new Set(earnedBadges.map(b => b.id));
             if (allIds.size === earnedIds.size && allIds.size === earnedBadges.length) {
-                // 已经全部解锁
                 return;
             }
-        
-            // 批量添加，避免频繁触发 UI 更新
             let addedCount = 0;
             for (const def of BADGE_DEFS) {
                 if (!earnedIds.has(def.id)) {
@@ -468,11 +473,9 @@
                     addedCount++;
                 }
             }
-        
             if (addedCount > 0) {
                 newBadgeIds.clear();
                 saveData();
-                // 使用 requestAnimationFrame 延迟 UI 更新，避免阻塞主线程
                 requestAnimationFrame(() => {
                     updateBadgeUI();
                 });
@@ -485,14 +488,16 @@
             const rarity = this.getFilterRarity();
             return rarity === 'all' ? 'filter-all' : 'badge-pill--' + rarity;
         },
-        // ===== 新增：仅设置当前数字，不修改存储 =====
+        // 新增：仅设置当前数字，不修改存储
         setCurrentNumberOnly: function(numberStr) {
             currentNumberStr = numberStr || '';
             currentTP = 0;
+            currentBadgeCount = 0;
             if (numberStr && numberStr.length > 0) {
                 for (const def of BADGE_DEFS) {
                     if (def.check(numberStr)) {
                         currentTP += def.score;
+                        currentBadgeCount++;
                     }
                 }
             }
@@ -500,6 +505,7 @@
             if (currentScoreSpan) {
                 currentScoreSpan.textContent = (currentTP || 0).toLocaleString();
             }
+            // 徽章数已在 updateBadgeUI 中更新
         },
         getTotalBadgeTypes: function() {
             return BADGE_DEFS.length;
