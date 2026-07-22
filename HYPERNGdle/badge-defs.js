@@ -654,7 +654,7 @@
         },
         {
             id: 'divine',
-            name: '神明',
+            name: '天神',
             emoji: '🧙‍♂️',
             score: 1429,
             rarity: '稀有',
