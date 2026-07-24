@@ -295,6 +295,7 @@
         const root = (-b + sqrtDelta) / (2 * a);
         return Number.isInteger(root) && root >= 1;
     }
+
     function isMersennePrime(n) {
         if (n < 1) return false;
         const m = n + 1;
@@ -305,6 +306,7 @@
         if (!Number.isInteger(p)) return false;
         return isPrime(p);
     }
+
     function countHoles(digitsStr) {
         const holeMap = {
             '0': 1,
@@ -324,6 +326,117 @@
         }
         return total;
     }
+
+    function isABANumber(n) {
+        if (n < 8) return false; // 最小为 2*2^2=8
+        // a 最大约 log2(n)，但为了安全，设上限为 60（对于10位数足够）
+        for (let a = 2; a <= 60; a++) {
+            if (n % a !== 0) continue;
+            const target = n / a;
+            // 检查 target 是否恰好是某个整数的 a 次幂
+            let b = Math.round(Math.pow(target, 1 / a));
+            // 由于浮点误差，检查 b 附近的整数
+            for (let delta = -2; delta <= 2; delta++) {
+                const bCandidate = b + delta;
+                if (bCandidate > 1 && Math.pow(bCandidate, a) === target) {
+                   return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    function prevPrime(n) {
+        if (n <= 3) return null;
+        let p = n - 1;
+        // 如果 p 是偶数且大于2，减1变成奇数
+        if (p % 2 === 0) p--;
+        while (p >= 3) {
+            if (isPrime(p)) return p;
+            p -= 2; // 跳过偶数
+        }
+        return null;
+    }
+    
+    function nextPrime(n) {
+        if (n < 2) return 2;
+        let p = n + 1;
+        if (p % 2 === 0) p++;
+        while (true) {
+            if (isPrime(p)) return p;
+            p += 2;
+        }
+    }
+    
+    function isBalancedPrime(n) {
+        if (n < 3) return false;
+        if (!isPrime(n)) return false;
+        const prev = prevPrime(n);
+        if (prev === null) return false;
+        const next = nextPrime(n);
+        return (n - prev) === (next - n);
+    }
+
+
+    function isCenteredPolygonal(num, s) {
+        if (num < 1) return false;
+        // 解方程: (s * n^2 - (s-4) * n) / 2 = num
+        // => s*n^2 - (s-4)*n - 2*num = 0
+        const a = s;
+        const b = -(s - 4);
+        const c = -2 * num;
+        const discriminant = b * b - 4 * a * c;
+        if (discriminant < 0) return false;
+        const sqrtD = Math.sqrt(discriminant);
+        if (sqrtD !== Math.floor(sqrtD)) return false;
+        const n = (-b + sqrtD) / (2 * a);
+        return Number.isInteger(n) && n >= 1;
+    }
+
+// 在 math-utils.js 的 MathUtils 对象中添加
+function rotateDigits(str) {
+    const map = {
+        '0': '0',
+        '1': '1',
+        '6': '9',
+        '8': '8',
+        '9': '6'
+    };
+    let result = '';
+    for (let i = str.length - 1; i >= 0; i--) {
+        const ch = str[i];
+        if (!(ch in map)) return null;
+        result += map[ch];
+    }
+    return result;
+}
+
+function isBiDirectionalPalindromicPrime(n) {
+    if (n < 2) return false;
+    const str = String(n);
+    // 检查是否只包含合法字符
+    const valid = new Set(['0', '1', '6', '8', '9']);
+    for (let ch of str) {
+        if (!valid.has(ch)) return false;
+    }
+    // 原数是质数
+    if (!isPrime(n)) return false;
+    // 倒序
+    const revStr = str.split('').reverse().join('');
+    const revNum = parseInt(revStr, 10);
+    if (!isPrime(revNum)) return false;
+    // 旋转180°
+    const rotStr = rotateDigits(str);
+    if (rotStr === null) return false;
+    const rotNum = parseInt(rotStr, 10);
+    if (!isPrime(rotNum)) return false;
+    // 旋转180°后再倒序（等同于倒序后再旋转）
+    const rotRevStr = rotateDigits(revStr);
+    if (rotRevStr === null) return false;
+    const rotRevNum = parseInt(rotRevStr, 10);
+    if (!isPrime(rotRevNum)) return false;
+    return true;
+}
 
     // 暴露到全局
     window.MathUtils = {
@@ -353,6 +466,12 @@
         isPowerOfBase,
         isPolygonal,
         isMersennePrime,
-        countHoles
+        countHoles,
+        isABANumber,
+        prevPrime,
+        nextPrime,
+        isBalancedPrime,
+        isBiDirectionalPalindromicPrime,
+        isCenteredPolygonal
     };
 })();

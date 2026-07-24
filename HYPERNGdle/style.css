@@ -42,6 +42,7 @@
     --rarity-神话: #34d399;
     --rarity-超越: #60a5fa;
     --rarity-终结: #f87171;
+    --rarity-无尽: #ff6b6b; /* 会被彩虹覆盖 */
 
     /* 内部阴影 & 发光 */
     --card-glow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -280,7 +281,7 @@ body {
     transform: scale(0.92) !important;
 }
 
-/* ===== 生成按钮 ===== */
+/* ===== 生成按钮（原版彩虹边框 + 呼吸） ===== */
 .btn-generate {
     width: 100%;
     padding: 18px 12px;
@@ -291,7 +292,7 @@ body {
     font-weight: 900;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    border: 1px solid var(--outline);
+    border: 2px solid transparent;
     border-radius: var(--radius);
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -299,13 +300,21 @@ body {
     overflow: hidden;
     user-select: none;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    /* 原版彩虹边框效果 */
+    background: linear-gradient(var(--surface), var(--surface)) padding-box,
+                linear-gradient(100deg, #ec4899, #a855f7, #3b82f6, #10b981, #f97316, #ec4899) border-box;
+    background-size: 200% 200%;
+    animation: cta-rarity-cycle 14s linear infinite, cta-breathe 2.8s ease-in-out infinite;
 }
 [data-theme="light"] .btn-generate {
-    background: linear-gradient(180deg, #f1f3f5 0%, #e9ecef 100%);
+    background: linear-gradient(#ffffff, #f1f3f5) padding-box,
+                linear-gradient(100deg, #ec4899, #a855f7, #3b82f6, #10b981, #f97316, #ec4899) border-box;
+    background-size: 200% 200%;
     color: #1f2937;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
+/* 按钮内发光层 */
 .btn-generate::before {
     content: '';
     position: absolute;
@@ -316,13 +325,11 @@ body {
 }
 
 .btn-generate:hover:not(:disabled) {
-    background: linear-gradient(180deg, #2e2e2e 0%, #1a1a1a 100%);
-    border-color: var(--outline-strong);
     transform: scale(1.015);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    animation-play-state: running, paused;
 }
 [data-theme="light"] .btn-generate:hover:not(:disabled) {
-    background: linear-gradient(180deg, #ffffff 0%, #f1f3f5 100%);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
@@ -337,6 +344,7 @@ body {
     cursor: not-allowed;
     transform: none;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    animation-play-state: paused, paused;
 }
 
 .btn-generate .btn__text {
@@ -367,6 +375,17 @@ body {
 
 @keyframes spin {
     to { transform: rotate(360deg); }
+}
+
+/* 彩虹渐变边框动画 */
+@keyframes cta-rarity-cycle {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+@keyframes cta-breathe {
+    0%, 100% { opacity: 0.9; transform: scale(1); }
+    50%     { opacity: 1;   transform: scale(1.01); }
 }
 
 /* ===== 徽章区域 ===== */
@@ -959,4 +978,15 @@ body {
         font-size: 0.4rem;
         padding: 0 6px;
     }
+}
+
+.footer.footer-gold {
+    color: #fbbf24 !important;
+    text-shadow: 0 0 12px rgba(251, 191, 36, 0.5), 0 0 30px rgba(251, 191, 36, 0.2);
+    font-weight: 700;
+    transition: all 0.5s ease;
+}
+.footer.footer-gold > div {
+    color: inherit;
+    text-shadow: inherit;
 }

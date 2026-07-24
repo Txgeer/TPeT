@@ -193,6 +193,7 @@
         if (window.onBestChange) {
             window.onBestChange({ number: bestNumber, score: bestScore });
         }
+        window.Badges.updateFooterStyle();
     }
 
     function updateBadgeUI() {
@@ -509,6 +510,17 @@
         },
         getTotalBadgeTypes: function() {
             return BADGE_DEFS.length;
-        }
+        },
+        updateFooterStyle: function() {
+            const footer = document.querySelector('.footer');
+            if (!footer) return;
+            const earned = earnedBadges.length;
+            const total = BADGE_DEFS.length;
+            if (earned > total / 2) {
+                footer.classList.add('footer-gold');
+            } else {
+                footer.classList.remove('footer-gold');
+            }
+        },
     };
 })();

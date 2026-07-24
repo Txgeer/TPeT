@@ -79,9 +79,68 @@
         }
     }
 
+    function initCard3D() {
+        const card = document.getElementById('numberCard');
+        if (!card) return;
+    
+        // 仅当设备支持悬停（桌面）时启用
+        if (!window.matchMedia('(hover: hover)').matches) return;
+    
+        // 为父容器设置透视，让 3D 效果更明显
+        const parent = card.parentElement;
+        if (parent) {
+            parent.style.perspective = '800px';
+        }
+        card.style.transformStyle = 'preserve-3d';
+        card.style.willChange = 'transform';
+    
+        let timeoutId = null;
+    
+        const handleMove = (e) => {
+            // 取消之前的延迟复位（如果有）
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+    
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            // 倾斜角度范围：±10 度
+            const rotateX = ((y - centerY) / centerY) * -10;
+            const rotateY = ((x - centerX) / centerX) * 10;
+            const shadowX = rotateY * 0.5;
+            const shadowY = rotateX * 0.5;
+
+            card.style.boxShadow = `${shadowX}px ${shadowY}px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)`;
+            card.style.transition = 'transform 0.08s ease-out';
+            card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        };
+    
+        const handleLeave = () => {
+            // 延迟复位，避免移出时突然跳转
+            timeoutId = setTimeout(() => {
+                card.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                card.style.transform = 'rotateX(0deg) rotateY(0deg)';
+                timeoutId = null;
+            }, 80);
+        };
+    
+        card.addEventListener('mousemove', handleMove);
+        card.addEventListener('mouseleave', handleLeave);
+        
+            // 可选：点击卡片时复位（防止点击时卡片歪斜）
+            card.addEventListener('mousedown', () => {
+            card.style.transition = 'transform 0.15s ease-out';
+            card.style.transform = 'rotateX(0deg) rotateY(0deg)';
+        });
+    }
+
+
     // ===== 主流程 =====
     document.addEventListener('DOMContentLoaded', function() {
-        const cleanupTheme = initTheme();
         setupThemeButtons();
 
         const container = document.getElementById('digitsContainer');
@@ -695,5 +754,7 @@
             resetDigits();
             setTimeout(handleGenerate, 1000);
         }
+        initCard3D();
+        
     });
 })();
