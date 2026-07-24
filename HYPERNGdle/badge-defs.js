@@ -2308,7 +2308,7 @@
             name: '雅各布斯塔尔数',
             emoji: '⭐',
             score: 29411765,
-            rarity: '终结',
+            rarity: '超越',
             description: '可以写作 [2ⁿ - (-1)ⁿ] / 3 的形式，其中 n 为正整数',
             check: function(d) {
                 const num = parseInt(d, 10);
@@ -3613,10 +3613,10 @@
         { s: 14, emoji: '🔟🩺🩺🩺🩺🩺', score: 244948, rarity: '传说', name: '十四边形数', desc: '数字是十四边形数（n(6n-5)）' },
         { s: 15, emoji: '🔟5️⃣🩺', score: 254953, rarity: '传说', name: '十五边形数', desc: '数字是十五边形数（n(13n-11)/2）' },
         { s: 16, emoji: '🔟5️⃣🩺🩺', score: 264578, rarity: '传说', name: '十六边形数', desc: '数字是十六边形数（n(7n-6)）' },
-        { s: 17, emoji: '1️⃣7️⃣🩺', score: 273861, rarity: '传说', name: '十七边形数', desc: '数字是十七边形数（n(15n-13)/2）' },
-        { s: 18, emoji: '1️⃣8️⃣🩺', score: 282846, rarity: '传说', name: '十八边形数', desc: '数字是十八边形数（n(8n-7)）' },
-        { s: 19, emoji: '1️⃣9️⃣🩺', score: 291548, rarity: '传说', name: '十九边形数', desc: '数字是十九边形数（n(17n-15)/2）' },
-        { s: 20, emoji: '2️⃣0️⃣🩺', score: 300000, rarity: '传说', name: '二十边形数', desc: '数字是二十边形数（n(9n-8)）' }
+        { s: 17, emoji: '1️⃣5️⃣🩺🩺🩺', score: 273861, rarity: '传说', name: '十七边形数', desc: '数字是十七边形数（n(15n-13)/2）' },
+        { s: 18, emoji: '1️⃣5️⃣🩺🩺🩺🩺', score: 282846, rarity: '传说', name: '十八边形数', desc: '数字是十八边形数（n(8n-7)）' },
+        { s: 19, emoji: '1️⃣5️⃣🩺🩺🩺🩺🩺', score: 291548, rarity: '传说', name: '十九边形数', desc: '数字是十九边形数（n(17n-15)/2）' },
+        { s: 20, emoji: '🔟🔟🩺', score: 300000, rarity: '传说', name: '二十边形数', desc: '数字是二十边形数（n(9n-8)）' }
     ];
     for (let cfg of polyConfigs) {
         const s = cfg.s;
