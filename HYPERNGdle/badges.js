@@ -515,8 +515,7 @@
             const footer = document.querySelector('.footer');
             if (!footer) return;
             const earned = earnedBadges.length;
-            const total = BADGE_DEFS.length;
-            if (earned > total / 2) {
+            if (earned > 99) {
                 footer.classList.add('footer-gold');
             } else {
                 footer.classList.remove('footer-gold');
