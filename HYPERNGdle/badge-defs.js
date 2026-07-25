@@ -1357,7 +1357,7 @@
             emoji: '➗3️⃣9️⃣',
             score: 27,
             rarity: '普通',
-            description: '数字能被 27 的整除',
+            description: '数字能被 27 整除',
             check: function(d) { return parseInt(d, 10) % 27 === 0; }
         },
         {
@@ -1366,7 +1366,7 @@
             emoji: '➗7️⃣7️⃣',
             score: 49,
             rarity: '普通',
-            description: '数字能被 49 的整除',
+            description: '数字能被 49 整除',
             check: function(d) { return parseInt(d, 10) % 49 === 0; }
         },
         {
