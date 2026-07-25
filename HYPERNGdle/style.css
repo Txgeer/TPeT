@@ -823,11 +823,6 @@ body {
 }
 
 /* ===== 最佳记录 & 底部信息 ===== */
-.best-record {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
 .best-record .best-number {
     font-family: var(--font-mono);
     font-weight: 700;
@@ -837,9 +832,6 @@ body {
 .best-record .best-score {
     font-weight: 900;
     color: #fbbf24;
-}
-.best-record .best-label {
-    opacity: 0.7;
 }
 
 .footer {
@@ -936,6 +928,7 @@ body {
         font-size: 0.75rem;
         padding: 4px 12px;
         gap: 4px;
+        min-height: 30px; 
         flex-wrap: wrap;
         justify-content: center;
     }
@@ -956,7 +949,8 @@ body {
         font-size: 0.8rem;
     }
     .badge-pill .badge-rarity,
-    .badge-pill .badge-score {
+    .badge-pill .badge-score,
+    .badge-pill .badge-new {
         font-size: 0.45rem;
         padding: 1px 6px;
     }
@@ -969,19 +963,21 @@ body {
 
     .btn-toggle-badges,
     .btn-share {
-        font-size: 0.6rem;
-        padding: 4px 10px;
-        min-height: 32px;
+        font-size: 0.75rem;      /* 与 .badge-score-item 完全相同 */
+        padding: 4px 12px;
+        min-height: 30px;        /* 与统计信息一致 */
+        min-width: auto;         /* 宽度由内容决定，不强制固定 */
+        border-radius: 40px;     /* 保留按钮圆角 */
+        background: var(--surface);
+        border: 1px solid var(--outline);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
     }
 
     .btn-filter {
         min-width: 56px;
-    }
-
-    .best-record {
-        font-size: 0.75rem;
-        flex-wrap: wrap;
-        justify-content: center;
     }
 
     .footer {
@@ -1012,7 +1008,8 @@ body {
         gap: 0.1rem;
     }
     .badge-pill .badge-rarity,
-    .badge-pill .badge-score {
+    .badge-pill .badge-score,
+    .badge-pill .badge-new {
         font-size: 0.4rem;
         padding: 0 4px;
     }
