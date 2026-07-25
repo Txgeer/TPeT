@@ -914,72 +914,117 @@ body {
 }
 
 /* ===== 响应式 ===== */
+/* ===== 移动端额外优化 ===== */
 @media (max-width: 480px) {
-    .number-card {
-        padding: 22px 14px 20px;
-    }
-    .number-card__digits {
-        font-size: clamp(1.8rem, 12vw, 3.2rem);
-    }
-    .btn-generate {
-        font-size: 0.9rem;
-        padding: 16px 12px;
-        letter-spacing: 0.18em;
-    }
-    .title {
-        font-size: 1.1rem;
-        letter-spacing: 0.14em;
-    }
-    .badge-score-item {
-        font-size: 0.8rem;
-        padding: 4px 14px;
-    }
-    .badge-pill {
-        font-size: 0.7rem;
-        padding: 0.2rem 0.6rem 0.2rem 0.4rem;
-        gap: 0.2rem;
-    }
-    .badge-pill .badge-emoji {
-        font-size: 0.85rem;
-    }
-    .badge-pill .badge-rarity {
-        font-size: 0.45rem;
-        padding: 1px 8px;
-    }
-    .badge-pill .badge-score {
-        font-size: 0.5rem;
-        padding: 1px 8px;
-    }
     .app {
         gap: 20px;
+        padding: 0 12px;
     }
-    .theme-btn {
-        width: 30px;
-        height: 30px;
-        font-size: 0.85rem;
+
+    .number-card {
+        padding: 24px 16px 20px;
+        border-radius: var(--radius-lg);
     }
-    .btn-toggle-badges {
-        font-size: 0.6rem;
+
+    .number-card__digits {
+        font-size: clamp(2rem, 14vw, 3.4rem);
+        letter-spacing: 0.02em;
+        gap: 0.02em;
+    }
+
+    .btn-generate {
+        padding: 16px 14px;
+        font-size: 0.9rem;
+        letter-spacing: 0.15em;
+        border-radius: var(--radius-lg);
+    }
+
+    .badge-score-item {
+        font-size: 0.75rem;
         padding: 4px 12px;
+        gap: 4px;
+        flex-wrap: wrap;
+        justify-content: center;
     }
+
+    .badge-list {
+        gap: 6px;
+        padding: 0 4px;
+    }
+
+    .badge-pill {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.5rem 0.2rem 0.4rem;
+        gap: 0.2rem;
+        border-radius: 20px;
+    }
+
+    .badge-pill .badge-emoji {
+        font-size: 0.8rem;
+    }
+    .badge-pill .badge-rarity,
+    .badge-pill .badge-score {
+        font-size: 0.45rem;
+        padding: 1px 6px;
+    }
+
+    .badge-controls {
+        gap: 4px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .btn-toggle-badges,
+    .btn-share {
+        font-size: 0.6rem;
+        padding: 4px 10px;
+        min-height: 32px;
+    }
+
     .btn-filter {
         min-width: 56px;
     }
+
+    .best-record {
+        font-size: 0.75rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .footer {
+        font-size: 0.55rem;
+        gap: 1px;
+    }
+
+    /* 自动抽取按钮样式对齐 */
+    #autoGenerateBtn {
+        font-size: 0.6rem;
+        padding: 4px 12px;
+    }
 }
 
+/* 超小屏（< 380px）进一步压缩 */
 @media (max-width: 380px) {
     .number-card__digits {
-        font-size: clamp(1.4rem, 10vw, 2.4rem);
+        font-size: clamp(1.6rem, 12vw, 2.6rem);
     }
     .badge-pill {
-        font-size: 0.6rem;
-        padding: 0.15rem 0.5rem 0.15rem 0.3rem;
-        gap: 0.15rem;
+        font-size: 0.55rem;
+        padding: 0.15rem 0.4rem;
+        gap: 0.1rem;
     }
     .badge-pill .badge-rarity,
     .badge-pill .badge-score {
         font-size: 0.4rem;
-        padding: 0 6px;
+        padding: 0 4px;
+    }
+    .btn-generate {
+        font-size: 0.8rem;
+        padding: 14px 10px;
+    }
+    .badge-score-item {
+        font-size: 0.7rem;
+        padding: 3px 10px;
     }
 }
 
