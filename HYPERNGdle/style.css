@@ -671,8 +671,7 @@ body {
 }
 
 .btn-toggle-badges,
-.btn-share,
-#autoGenerateBtn {
+.btn-share {
     background: var(--surface);
     border: 1px solid var(--outline);
     color: var(--prose-2);
@@ -955,8 +954,7 @@ body {
     }
 
     .btn-toggle-badges,
-    .btn-share,
-    #autoGenerateBtn {
+    .btn-share {
         min-width: auto;         /* 宽度由内容决定，不强制固定 */
         border-radius: 40px;     /* 保留按钮圆角 */
         background: var(--surface);
