@@ -2925,7 +2925,7 @@
             name: '奥米斯顿',
             emoji: '🍛',
             score: 6584,
-            rarity: '超越',
+            rarity: '稀有',
             description: '数字在奥米斯顿数对中（即该数字为质数，且与其相邻的质数之一（上一个或下一个）拥有相同的数字集合，只是排列顺序不同）',
             check: function(d) {
                 const num = parseInt(d, 10);
