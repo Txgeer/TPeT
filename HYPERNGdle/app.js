@@ -84,7 +84,7 @@
         if (!card) return;
     
         // 仅当设备支持悬停（桌面）时启用
-        if (!window.matchMedia('(hover: hover)').matches) return;
+        if (!window.matchMedia('(hover: hover)').matches || window.matchMedia('(pointer: coarse)').matches) return;
     
         // 为父容器设置透视，让 3D 效果更明显
         const parent = card.parentElement;
@@ -576,17 +576,9 @@
                         text += `（${b.rarity}） ${b.emoji} ${b.name} +${b.score.toLocaleString()} TP\n`;
                     });
                 text += `\n本数字总 TP：${totalScore.toLocaleString()}`;
-                const totalTP = window.Badges.getTotalTP ? window.Badges.getTotalTP() : 0;
-                text += `\n历史总 TP：${totalTP.toLocaleString()}`;
-                const totalGen = window.Badges.getTotalGenerations ? window.Badges.getTotalGenerations() : 0;
-                text += `\n总次数：${totalGen.toLocaleString()}`;
                 const badgeCount = window.Badges.getBadgesForNumber(numberStr).length;
-                text += `\n当前徽章数：${badgeCount}`;
-                // 获取已获得徽章数量和总徽章定义数
-                const earnedBadges = window.Badges.getEarnedBadges ? window.Badges.getEarnedBadges() : [];
-                const earnedCount = earnedBadges.length;
                 const totalBadgeTypes = window.Badges.getTotalBadgeTypes();
-                text += `\n徽章进度：${earnedCount}/${totalBadgeTypes}`;  // 修改为进度格式
+                text += `\n当前徽章数：${badgeCount}/${totalBadgeTypes}`;
                 text += `\n\n🔗 在 HYPERNGdle 试试你的运气：https://txgeer.github.io/TPeT/HYPERNGdle`;
 
                 if (navigator.clipboard && navigator.clipboard.writeText) {

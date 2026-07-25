@@ -683,7 +683,7 @@
             id: 'shape-flow',
             name: '形意顺',
             emoji: '🍕',
-            score: 67,
+            score: 69,
             rarity: '普通',
             description: '数字包含子串 "122" 或 "221"',
             check: function(d) { return d.includes('122') || d.includes('221'); }
@@ -3392,6 +3392,28 @@
                     }
                 }
                 return true;
+            }
+        },
+        {
+            id: 'pi-substring',
+            name: '圆周率',
+            emoji: '🎯',
+            score: 69,
+            rarity: '普通',
+            description: '数字包含子串“722”或“227”',
+            check: function(d) {
+                return d.includes('722') || d.includes('227');
+            }
+        },
+        {
+            id: 'zu-chongzhi-substring',
+            name: '祖冲之',
+            emoji: '🧿',
+            score: 100000,
+            rarity: '史诗',
+            description: '数字包含子串“355113”或“113355”（祖冲之约率 355/113 的两种排列）',
+            check: function(d) {
+                return d.includes('355113') || d.includes('113355');
             }
         }
 
