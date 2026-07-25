@@ -928,7 +928,6 @@ body {
         font-size: 0.75rem;
         padding: 4px 12px;
         gap: 4px;
-        min-height: 30px; 
         flex-wrap: wrap;
         justify-content: center;
     }
@@ -965,7 +964,6 @@ body {
     .btn-share {
         font-size: 0.75rem;      /* 与 .badge-score-item 完全相同 */
         padding: 4px 12px;
-        min-height: 30px;        /* 与统计信息一致 */
         min-width: auto;         /* 宽度由内容决定，不强制固定 */
         border-radius: 40px;     /* 保留按钮圆角 */
         background: var(--surface);
@@ -989,11 +987,6 @@ body {
     #autoGenerateBtn {
         font-size: 0.6rem;
         padding: 4px 12px;
-    }
-
-    .badge-new {
-        font-size: 0.55rem;
-        padding: 4px 10px;
     }
 }
 
