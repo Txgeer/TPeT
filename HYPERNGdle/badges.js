@@ -368,6 +368,7 @@
         newBadgeIds = new Set(newlyEarnedIds);
         updateBadgeUI();
         saveData();
+        window.Badges.updateFooterStyle();
     }
 
     // ---------- 生成计数 ----------
@@ -405,6 +406,7 @@
         updateBadgeUI();
         if (window.onTotalGenerationsChange) window.onTotalGenerationsChange(0);
         if (window.onBestChange) window.onBestChange({ number: '', score: 0 });
+        window.Badges.updateFooterStyle();
     }
 
     function resetBadges() {
@@ -417,6 +419,7 @@
         filterRarity = 'all';
         updateFilterButton();
         updateBadgeUI();
+        window.Badges.updateFooterStyle();
     }
 
     // ---------- 对外接口 ----------
@@ -480,6 +483,7 @@
                 requestAnimationFrame(() => {
                     updateBadgeUI();
                 });
+                window.Badges.updateFooterStyle();
             }
         },
         getFilterButtonLabel: function() {
