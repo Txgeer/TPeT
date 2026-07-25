@@ -82,11 +82,9 @@
     function initCard3D() {
         const card = document.getElementById('numberCard');
         if (!card) return;
+        if (!window.matchMedia('(hover: hover)').matches) return;
     
-        // 仅当设备支持悬停（桌面）时启用
-        if (!window.matchMedia('(hover: hover)').matches || window.matchMedia('(pointer: coarse)').matches) return;
-    
-        // 为父容器设置透视，让 3D 效果更明显
+        const MAX_ANGLE = 1;
         const parent = card.parentElement;
         if (parent) {
             parent.style.perspective = '800px';
@@ -97,30 +95,26 @@
         let timeoutId = null;
     
         const handleMove = (e) => {
-            // 取消之前的延迟复位（如果有）
             if (timeoutId) {
                 clearTimeout(timeoutId);
                 timeoutId = null;
             }
-    
             const rect = card.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
             const centerX = rect.width / 2;
             const centerY = rect.height / 2;
-            // 倾斜角度范围：±10 度
-            const rotateX = ((y - centerY) / centerY) * -10;
-            const rotateY = ((x - centerX) / centerX) * 10;
-            const shadowX = rotateY * 0.5;
-            const shadowY = rotateX * 0.5;
-
-            card.style.boxShadow = `${shadowX}px ${shadowY}px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)`;
+            const rotateX = ((y - centerY) / centerY) * -MAX_ANGLE;
+            const rotateY = ((x - centerX) / centerX) * MAX_ANGLE;
+    
+            // 叠加变换：保留原有的 transform（如果有），在其后追加旋转
+            // 注意：此方法假设没有任何其他 transform 需要保留，但我们可以使用矩阵叠加。
+            // 更好的方式：将旋转放在前面，不影响缩放。
             card.style.transition = 'transform 0.08s ease-out';
             card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
         };
     
         const handleLeave = () => {
-            // 延迟复位，避免移出时突然跳转
             timeoutId = setTimeout(() => {
                 card.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
                 card.style.transform = 'rotateX(0deg) rotateY(0deg)';
@@ -130,12 +124,27 @@
     
         card.addEventListener('mousemove', handleMove);
         card.addEventListener('mouseleave', handleLeave);
-        
-            // 可选：点击卡片时复位（防止点击时卡片歪斜）
-            card.addEventListener('mousedown', () => {
+    
+        card.addEventListener('mousedown', () => {
             card.style.transition = 'transform 0.15s ease-out';
             card.style.transform = 'rotateX(0deg) rotateY(0deg)';
         });
+    }
+
+    function triggerCardEnter() {
+        const card = document.getElementById('numberCard');
+        if (!card) return;
+        // 移除旧类以重新触发动画
+        card.classList.remove('card-enter');
+        // 强制回流重置动画
+        void card.offsetWidth;
+        card.classList.add('card-enter');
+        // 监听动画结束，移除类以释放 transform
+        const onEnd = () => {
+            card.classList.remove('card-enter');
+            card.removeEventListener('animationend', onEnd);
+        };
+        card.addEventListener('animationend', onEnd);
     }
 
 
@@ -324,7 +333,7 @@
                 card.classList.remove('number-card--glow');
             }, 400);
 
-            card.classList.remove('card-enter');
+            triggerCardEnter();
             void card.offsetWidth;
             card.classList.add('card-enter');
 
@@ -365,9 +374,7 @@
                 card.classList.remove('number-card--glow');
             }, 400);
 
-            card.classList.remove('card-enter');
-            void card.offsetWidth;
-            card.classList.add('card-enter');
+            triggerCardEnter();
 
             if (window.Badges && typeof window.Badges.setCurrentNumberOnly === 'function') {
                 window.Badges.setCurrentNumberOnly(numberStr);
@@ -478,10 +485,7 @@
             saveLastNumber(numStr);
 
             // ---- 卡片入场动画 ----
-            card.classList.remove('card-enter');
-            void card.offsetWidth;
-            card.classList.add('card-enter');
-
+            triggerCardEnter();
             if (window.Badges && typeof window.Badges.checkAndAwardBadges === 'function') {
                 window.Badges.checkAndAwardBadges(numStr);
                 const best = window.Badges.getBest();

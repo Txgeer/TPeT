@@ -279,7 +279,7 @@
             const def = badge.def || defMap.get(badge.id);
             if (!def) continue;
     
-            const isActive = def.check(currentNumberStr);
+            const isActive = currentNumberStr && currentNumberStr.length > 0 ? def.check(currentNumberStr) : false;
             const isEarned = badge.isEarned !== undefined ? badge.isEarned : true;
             const isNew = newBadgeIds.has(badge.id);
     
@@ -291,7 +291,7 @@
             pill.className = `badge-pill ${rarityClass} ${activeClass}`;
     
             const countDisplay = badge.count > 1 ? ` ×${badge.count}` : '';
-            const newTag = isNew && isEarned ? `<span class="badge-new">新！</span>` : '';
+            const newTag = isNew && isEarned ? `<span class="badge-new">NEW!</span>` : '';
             const scoreDisplay = isEarned ? `+${format(badge.score)}TP` : '';
 
             pill.innerHTML = `

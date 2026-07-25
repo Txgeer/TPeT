@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,700;14..32,900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="style.css" />
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
 </head>
 <body>
 
@@ -34,10 +35,6 @@
             <span class="btn__spinner"></span>
         </button>
 
-        <!-- ===== 新增：自动抽取开关 ===== -->
-        <div class="auto-generate-controls">
-            <button id="autoGenerateBtn" class="btn-toggle-badges">自动抽取: 关</button>
-        </div>
 
         <!-- 徽章 & 得分区域 -->
         <div class="badge-area" id="badgeArea">
@@ -47,6 +44,7 @@
                     <button id="filterBtn" class="btn-toggle-badges btn-filter">🔍 全部</button>
                     <button id="hardResetBtn" class="btn-toggle-badges btn-reset" style="color: #f87171; border-color: #f87171;">硬重置</button>
                     <button class="btn-share" id="shareBtn" aria-label="分享当前数字"><span>📤 分享</span></button>
+                    <button id="autoGenerateBtn" class="btn-toggle-badges">自动抽取: 关</button>
                 </div>
                 <div class="badge-score-item">
                     <span class="badge-score-label">总次数：</span>

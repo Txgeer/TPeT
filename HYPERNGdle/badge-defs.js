@@ -3400,7 +3400,7 @@
             emoji: '🎯',
             score: 69,
             rarity: '普通',
-            description: '数字包含子串“722”或“227”',
+            description: '数字包含子串“722”或“227（22/7 的两种排列）”',
             check: function(d) {
                 return d.includes('722') || d.includes('227');
             }
@@ -3414,6 +3414,20 @@
             description: '数字包含子串“355113”或“113355”（祖冲之约率 355/113 的两种排列）',
             check: function(d) {
                 return d.includes('355113') || d.includes('113355');
+            }
+        },
+        {
+            id: 'palindromic-semiprime',
+            name: '回文半质数',
+            emoji: '🌐',
+            score: 423406,
+            rarity: '传说',
+            description: '数字是半质数（两个质数的乘积，允许相同），且正着读和反着读相同（回文数）',
+            check: function(d) {
+                const num = parseInt(d, 10);
+                if (num < 4) return false;
+                if (!window.MathUtils.isSemiprime(num)) return false;
+                return d === d.split('').reverse().join('');
             }
         }
 
