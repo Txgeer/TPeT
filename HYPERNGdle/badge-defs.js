@@ -2412,7 +2412,7 @@
             name: '加拿大数',
             emoji: '🧉',
             score: 2500000000,
-            rarity: '终结',
+            rarity: '无尽',
             description: '数字正好是下列的其中一个数：125,581,8549,16999',
             check: function(d) {
                 const num = parseInt(d, 10);
