@@ -324,7 +324,7 @@
             emoji: '⚡',
             score: 3062,
             rarity: '稀有',
-            description: '10 位数字中 0–9 每个数字正好出现一次',
+            description: '数字是10位泛数字（0-9各一次）0',
             check: function(d) {
                 if (d.length !== 10) return false;
                 const counts = new Array(10).fill(0);
@@ -1384,7 +1384,7 @@
             emoji: '🏗',
             score: 1782,
             rarity: '稀有',
-            description: '有效数字位数不为10且各位数码互不相同',
+            description: '有效数字位数不为 10 且各位数码互不相同',
             check: function(d) {
                 // 去除前导0，获取有效数字
                 const trimmed = d.replace(/^0+/, '');
@@ -1426,7 +1426,7 @@
             emoji: '💯',
             score: 98924,
             rarity: '史诗',
-            description: '数字可由某个长度≥2的子串重复拼接而成（如 37392 重复两次 → 3739237392）',
+            description: '数字可由某个长度≥2的子串重复拼接而成',
             check: function(d) {
                 const len = d.length;
                 // 至少需要 4 位（子串长度 2，重复 2 次）
@@ -1449,7 +1449,7 @@
             emoji: '💯〽',
             score: 48691,
             rarity: '史诗',
-            description: '数字可由某个长度≥2的子串或其翻转版本重复拼接而成（如 173173371 = 173 + 173 + 371，56/65/65/56）',
+            description: '数字可由某个长度≥2的子串或其翻转版本重复拼接而成',
             check: function(d) {
                 const len = d.length;
                 if (len < 4) return false;
@@ -2098,11 +2098,11 @@
         },
         {
             id: 'reverse-prime',
-            name: '逆向质数',
+            name: '可逆质数',
             emoji: '🎠🎠',
             score: 521,
             rarity: '罕见',
-            description: '数字是质数，且反过来看还是质数（可逆质数）',
+            description: '数字是质数，且反过来看还是质数',
             check: function(d) {
                 const num = parseInt(d, 10);
                 if (!isPrime(num)) return false;
@@ -2134,7 +2134,7 @@
         },
         {
             id: 'reverse-semiprime',
-            name: '逆向半质数',
+            name: '可逆半质数',
             emoji: '🎠',
             score: 48,
             rarity: '普通',
@@ -2640,7 +2640,7 @@
             emoji: '⚡⚡',
             score: 26041667,
             rarity: '超越',
-            description: '数字是10位泛数字（0-9各一次），且存在一个大于1的整数倍数，其结果也是10位泛数字',
+            description: '数字是10位泛数字（0-9各一次）且存在一个大于1的整数倍数，其结果也是10位泛数字',
             check: function(d) {
                 // 检查是否为10位泛数字（0-9各一次）
                 if (d.length !== 10) return false;
@@ -2954,7 +2954,7 @@
             emoji: '🧈',
             score: 7867821,
             rarity: '神话',
-            description: '数字是滑动数，即存在正整数 a,b 和自然数 k，使得 n = a+b 且 1/a + 1/b = n / 10^k（等价于 a*b = 10^k）',
+            description: '数字是滑动数，即存在正整数 a,b 和自然数 k，使得 n = a+b 且（等价于 a*b = 10^k）',
             check: function(d) {
                 const num = parseInt(d, 10);
                 if (num < 2) return false;
@@ -3034,7 +3034,7 @@
         {
             id: 'triprime-number',
             name: '三合数',
-            emoji: '🗳',
+            emoji: '📮',
             score: 5,
             rarity: '平庸',
             description: '数字是三个质数的乘积',
@@ -3429,6 +3429,44 @@
                 if (!window.MathUtils.isSemiprime(num)) return false;
                 return d === d.split('').reverse().join('');
             }
+        },
+        {
+            id: 'twin',
+            name: '双生',
+            emoji: '🥢',
+            score: 339,
+            rarity: '罕见',
+            description: '数字中每个数码 n 的出现次数等于数码 9-n 的出现次数（如 781227，905409）',
+            check: function(d) {
+                const counts = {};
+                for (let ch of d) {
+                    counts[ch] = (counts[ch] || 0) + 1;
+                }
+                for (let n = 0; n <= 4; n++) {
+                    const c1 = counts[n] || 0;
+                    const c2 = counts[9 - n] || 0;
+                    if (c1 !== c2) return false;
+                }
+                return true;
+            }
+        },
+        {
+            id: 'ayane-nene',
+            name: '绫地宁宁',
+            emoji: '🥛',
+            score: 1699,
+            rarity: '稀有',
+            description: '数字包含子串 "0721"',
+            check: function(d) { return d.includes('0721'); }
+        },
+        {
+            id: 'dozen',
+            name: '一打',
+            emoji: '🍳',
+            score: 12,
+            rarity: '普通',
+            description: '数字能被 12 整除',
+            check: function(d) { return parseInt(d, 10) % 12 === 0; }
         }
 
     ];
