@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>扫雷^</title>
+    <!-- ===== 添加 favicon ===== -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <!-- 如果您使用的是 PNG 格式，请取消注释下面一行并注释上面一行 -->
+    <!-- <link rel="icon" href="favicon.png" type="image/png"> -->
     <style>
         :root {
             --cell-bg: #c0c0c0;
@@ -1967,7 +1971,7 @@
             gridEl.addEventListener('contextmenu', onCellRightClick);
             gridEl.addEventListener('dblclick', onCellDoubleClick);
 
-            // ===== 新增：右键按下与抬起效果 =====
+            // ===== 右键按下与抬起效果 =====
             gridEl.addEventListener('mousedown', function(e) {
                 if (e.button !== 2) return; // 仅处理右键
                 const result = getCellFromEvent(e);
@@ -1981,7 +1985,6 @@
                 result.el.classList.remove('right-pressed');
             });
             gridEl.addEventListener('mouseleave', function(e) {
-                // 鼠标离开棋盘时清除所有右键按压残留
                 document.querySelectorAll('.cell.right-pressed').forEach(el => {
                     el.classList.remove('right-pressed');
                 });
