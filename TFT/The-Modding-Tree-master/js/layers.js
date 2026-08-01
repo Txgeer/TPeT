@@ -7,6 +7,15 @@ function getVisibleLayerCount() {
     }
     return count;
 }
+function getTotalUpgradeCount() {
+    let count = 0;
+    for (let layer of LAYERS) {
+        if (player[layer] && Array.isArray(player[layer].upgrades)) {
+            count++;
+        }
+    }
+    return count;
+}
 addLayer("a", {
     name: "成就", // This is optional, only used in a few places, If absent it just uses the layer id.
     symbol: "A", // This appears on the layer's node. Default is the id with the first letter capitalized
@@ -36,6 +45,11 @@ addLayer("a", {
         name: "开拓者",
         tooltip: "要求：获得 5 田地。<br>奖励：解锁5个新的农业升级。",
         done() {return player.f.points.gte(5)},
+    },
+    12: {
+        name: "70 Billions",
+        tooltip: "要求：获得 14 人力。<br>奖励：解锁畜牧业。",
+        done() {return player.m.points.gte(14)},
     },
     },
     tabFormat:{
@@ -81,9 +95,11 @@ addLayer("f", {
     exponent: 0.5,
     gainMult() {
         let mult = new Decimal(1);
-        if (player.f.rice.gt(0)) mult = mult.div(player.f.rice.add(1).log10())
-        if (hasUpgrade('m', 11)) mult = mult.div(upgradeEffect('m', 11))
-        if (hasUpgrade('m', 12)) mult = mult.div(upgradeEffect('m', 12))
+        if (player.f.rice.gt(0)) mult = mult.div(player.f.rice.add(1).log10()) 
+        if (hasUpgrade('m', 11)) mult = mult.div(upgradeEffect('m', 11)) 
+        if (hasUpgrade('m', 12)) mult = mult.div(upgradeEffect('m', 12)) 
+        if (hasUpgrade('m', 13)) mult = mult.div(upgradeEffect('m', 13)) 
+        if (hasUpgrade('m', 13)) mult = mult.div(upgradeEffect('m', 14)) 
         return mult;
     },
     gainExp() {
@@ -163,17 +179,17 @@ addLayer("f", {
             ]
         },
         "科学": {
-    content: function() {
-        let components = [
-            ['infobox', 'wheat'], 
-        ]; 
-        if (hasUpgrade("f", 12)) components.push(['infobox', 'rice']);
-        return components;
-    },
-    unlocked() {
-        return hasUpgrade("f", 11);
-    }
-    }
+            content: function() {
+                let components = [
+                    ['infobox', 'wheat'], 
+                ]; 
+                if (hasUpgrade("f", 12)) components.push(['infobox', 'rice']);
+                return components;
+            },
+            unlocked() {
+                return hasUpgrade("f", 11);
+            }
+        }
     },
     upgrades: {
         11: {
@@ -320,6 +336,8 @@ addLayer("f", {
             if (hasUpgrade("f", 32)) player.f.wheatGainRate = player.f.wheatGainRate.times(upgradeEffect("f", 32));  
             if (hasUpgrade("m", 11)) player.f.wheatGainRate = player.f.wheatGainRate.times(upgradeEffect("m", 11)); 
             if (hasUpgrade("m", 12)) player.f.wheatGainRate = player.f.wheatGainRate.times(upgradeEffect("m", 12)); 
+            if (hasUpgrade("m", 13)) player.f.wheatGainRate = player.f.wheatGainRate.times(upgradeEffect("m", 13)); 
+            if (hasUpgrade("m", 14)) player.f.wheatGainRate = player.f.wheatGainRate.times(upgradeEffect("m", 14)); 
             player.f.wheat = player.f.wheat.add(player.f.wheatGainRate.times(diff));
         }
         if (hasUpgrade("f", 12) && player.f.activeCrop === "rice") {
@@ -329,6 +347,8 @@ addLayer("f", {
             if (hasUpgrade("f", 31)) player.f.riceGainRate = player.f.riceGainRate.times(upgradeEffect("f", 31));  
             if (hasUpgrade("m", 11)) player.f.riceGainRate = player.f.riceGainRate.times(upgradeEffect("m", 11)); 
             if (hasUpgrade("m", 12)) player.f.riceGainRate = player.f.riceGainRate.times(upgradeEffect("m", 12)); 
+            if (hasUpgrade("m", 13)) player.f.riceGainRate = player.f.riceGainRate.times(upgradeEffect("m", 13)); 
+            if (hasUpgrade("m", 14)) player.f.riceGainRate = player.f.riceGainRate.times(upgradeEffect("m", 14)); 
             player.f.rice = player.f.rice.add(player.f.riceGainRate.times(diff));
         }
     },
@@ -359,7 +379,7 @@ addLayer("f", {
 addLayer("m", {
     name: "人力",
     symbol: "M",
-    position: 0,
+    position: 1,
     startData() {
         return {
             unlocked: true,
@@ -385,9 +405,6 @@ addLayer("m", {
     hotkeys: [
         { key: "m", description: "F: 进行一次人力重置", onPress() { if (canReset(this.layer)) doReset(this.layer); } },
     ],
-    doReset(resettingLayer) {
-        let keep = [];
-    },
     tabFormat: {
         "人力": {
             content: [
@@ -399,7 +416,6 @@ addLayer("m", {
         },
         "里程碑": {
             content: [
-                ['infobox', 'story'],
                 'main-display',
                 'prestige-button',
                 'milestones',
@@ -436,6 +452,35 @@ addLayer("m", {
             return "1.00x";
             },// Add formatting to the effect
         },
+        13: {
+            title: "资源管理",
+            description: "基于人力增益绿钞，田地，水稻和小麦获取。",
+            cost: new Decimal(11),
+            effect() {
+            return player.m.points.add(10).log10()
+            },
+            effectDisplay() { 
+            if (hasUpgrade(this.layer, this.id)) 
+            return format(upgradeEffect(this.layer, this.id)) + "x";
+            else 
+            return "1.00x";
+            },// Add formatting to the effect
+        },
+        14: {
+            title: "终极武器",
+            description: "基于所有节点的升级总数之和增益绿钞，田地，水稻和小麦获取。",
+            cost: new Decimal(13),
+            effect() {
+            let totalUpgrade = getTotalUpgradeCount();
+            return new Decimal(Math.max(totalUpgrade, 1)).add(10).log10();
+            },
+            effectDisplay() { 
+            if (hasUpgrade(this.layer, this.id)) 
+            return format(upgradeEffect(this.layer, this.id)) + "x";
+            else 
+            return "1.00x";
+            },// Add formatting to the effect
+        },
     },
     milestones:{
         1:
@@ -444,9 +489,9 @@ addLayer("m", {
         effectDescription:function() {
         if (hasMilestone(this.layer, this.id)) {
             let eff = player.m.points.min(9);
-            return `基于人力自动购买田地升级。<br>奖励：翻倍蛮王经验值与蛮王等级获取。<br>当前：${formatWhole(eff)}x`;
+            return `基于人力自动购买田地升级。<br>当前：${formatWhole(eff)}x`;
         } else {
-            return `基于人力自动购买田地升级。<br>奖励：翻倍蛮王经验值与蛮王等级获取。<br>当前：NaNx`;
+            return `基于人力自动购买田地升级。<br>当前：NaNx`;
         }
         },
         done() {return player.m.points.gte(2)},
@@ -460,13 +505,103 @@ addLayer("m", {
             bodyStyle: { "color": "#ffffff" }
         },
     },
-    update(diff) {
+    update() {
     },
     style: {
         background: "linear-gradient(135deg, #000000, #001f3f)",
         minHeight: "100vh"
     },
     layerShown() {
-        return hasUpgrade("f", 33) || player.m.points.gte(1);
+        return hasUpgrade("f", 33);
+    }
+});
+addLayer("r", {
+    name: "畜牧业",
+    symbol: "R",
+    position: 0,
+    startData() {
+        return {
+            unlocked: true,
+            points: new Decimal(0),
+        };
+    },
+    color: "#ffff00",
+    requires: new Decimal(15),
+    resource: "牧场",
+    baseResource: "田地",
+    baseAmount() { return player.f.points; },
+    type: "static",
+    exponent: 0.5,
+    branches:["f"],
+    gainMult() {
+        let mult = new Decimal(1);
+        return mult;
+    },
+    gainExp() {
+        return new Decimal(1);
+    },
+    row: 1,
+    hotkeys: [
+        { key: "r", description: "R: 进行一次畜牧业重置", onPress() { if (canReset(this.layer)) doReset(this.layer); } },
+    ],
+    tabFormat: {
+        "畜牧业": {
+            content: [
+                ['infobox', 'story'],
+                'main-display',
+                'prestige-button',
+                'upgrades',
+            ]
+        },
+        "里程碑": {
+            content: [
+                'main-display',
+                'prestige-button',
+                'milestones',
+            ]
+        },
+        "科学": {
+            content: function() {
+                let components = [
+                    ['infobox', 'chicken'], 
+                ]; 
+                return components;
+            },
+            unlocked() {
+                return hasUpgrade("r", 11);
+            }
+        }
+    },
+    upgrades: {
+        11: {
+            title: "畜牧业的开始",
+            description: "解锁鸡。",
+            cost: new Decimal(1),
+        },
+    },
+    milestones:{
+    },
+    infoboxes: {
+        "story": {
+            title: "章节 2：养殖",
+            body: "你发现这个庄园竟然没有牧场！既然没有，那就新建一个吧。",
+            style: { "color": "#ffff00" },
+            bodyStyle: { "color": "#ffffff" }
+        },
+        "chicken": {
+            title: "鸡",
+            body: "鸡，这一被称为“雉”的卵生动物，属于雉科原鸡属，是家禽中的一员。家禽，这一鸟类中的特殊群体，不仅包括我们熟悉的鸡，还有鸭、鹅等成员。家鸡，作为人类饲养最为普遍的家禽之一，其驯化历史可追溯至约4000年前。尽管经过长时间的人工选择与驯化，家鸡仍保留了一定的飞翔能力。目前，家鸡的品种繁多，全球范围内约有250种。",
+            style: { "color": "#ffff00" },
+            bodyStyle: { "color": "#ffffff" }
+        },
+    },
+    update(diff) {
+    },
+    style: {
+        background: "linear-gradient(135deg, #000000, #3f3f00)",
+        minHeight: "100vh"
+    },
+    layerShown() {
+        return hasAchievement("a", 12);
     }
 });
