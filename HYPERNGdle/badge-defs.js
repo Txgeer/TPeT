@@ -3065,11 +3065,11 @@
         },
         {
             id: 'sophie-germain-prime',
-            name: '索菲热尔曼质数',
+            name: '安全质数',
             emoji: '♨',
             score: 377,
             rarity: '罕见',
-            description: '数字是索菲热尔曼质数（p和2p+1均为质数）',
+            description: '数字是安全质数（p和2p+1均为质数）',
             check: function(d) {
                 const num = parseInt(d, 10);
                 if (num < 2) return false;
@@ -3095,40 +3095,6 @@
                 if (sqrtDelta !== Math.floor(sqrtDelta)) return false;
                 const n = (6 + sqrtDelta) / 12;
                 return Number.isInteger(n) && n > 1;
-            }
-        },
-        {
-            id: 'strong-prime',
-            name: '强质数',
-            emoji: '🦷',
-            score: 45,
-            rarity: '普通',
-            description: '数字是质数，且大于其相邻两个质数的平均值',
-            check: function(d) {
-                const num = parseInt(d, 10);
-                if (num < 3) return false; // 2 没有上一个质数
-                if (!window.MathUtils.isPrime(num)) return false;
-                const prev = window.MathUtils.prevPrime(num);
-                const next = window.MathUtils.nextPrime(num);
-                if (prev === null || next === null) return false;
-                return num > (prev + next) / 2;
-            }
-        },
-        {
-            id: 'weak-prime',
-            name: '弱质数',
-            emoji: '🦴',
-            score: 45,
-            rarity: '普通',
-            description: '数字是质数，且小于其相邻两个质数的平均值',
-            check: function(d) {
-                const num = parseInt(d, 10);
-                if (num < 3) return false;
-                if (!window.MathUtils.isPrime(num)) return false;
-                const prev = window.MathUtils.prevPrime(num);
-                const next = window.MathUtils.nextPrime(num);
-                if (prev === null || next === null) return false;
-                return num < (prev + next) / 2;
             }
         },
         {
@@ -3467,6 +3433,57 @@
             rarity: '普通',
             description: '数字能被 12 整除',
             check: function(d) { return parseInt(d, 10) % 12 === 0; }
+        },
+        {
+            id: 'leonardo-number',
+            name: '莱昂纳多',
+            emoji: '🥏',
+            score: 212765958,
+            rarity: '终结',
+            description: '数字是莱昂纳多数列中的一项（L₀=L₁=1, Lₙ=Lₙ₋₁+Lₙ₋₂+1）',
+            check: function(d) {
+                const num = parseInt(d, 10);
+                if (num < 1) return false;
+                if (!window._leonardo_cache) {
+                    const set = new Set();
+                    let a = 1, b = 1;
+                    set.add(a);
+                    set.add(b);
+                    const limit = 10000000000; // 10^10
+                            while (true) {
+                        const c = a + b + 1;
+                        if (c > limit) break;
+                        set.add(c);
+                        a = b;
+                        b = c;
+                    }
+                    window._leonardo_cache = set;
+                }
+                return window._leonardo_cache.has(num);
+            }
+        },
+        {
+            id: 'luhn-valid',
+            name: '稳定',
+            emoji: '🧸',
+            score: 10,
+            rarity: '平庸',
+            description: '能通过 Luhn 校验（常用于信用卡校验）',
+            check: function(d) {
+                let sum = 0;
+                let alternate = false;
+                // 从右往左遍历
+                for (let i = d.length - 1; i >= 0; i--) {
+                    let n = parseInt(d[i], 10);
+                    if (alternate) {
+                        n *= 2;
+                        if (n > 9) n -= 9;
+                    }
+                    sum += n;
+                    alternate = !alternate;
+                }
+                return sum % 10 === 0;
+            }
         }
 
     ];
