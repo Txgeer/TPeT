@@ -4,7 +4,8 @@ const decimalZero = new Decimal(0)
 const decimalOne = new Decimal(1)
 const decimalNaN = new Decimal(NaN)
 
-function layerShown(layer){
+function layerShown(layer) {
+    if (!tmp[layer]) return false;
     return tmp[layer].layerShown;
 }
 
@@ -29,6 +30,7 @@ function updateHotkeys()
             }
         }
     }
+    
 }
 
 var ROW_LAYERS = {}

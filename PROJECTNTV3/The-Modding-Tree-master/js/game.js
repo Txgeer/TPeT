@@ -77,14 +77,21 @@ function softcap(value, cap, power = 0.5) {
 
 // Return true if the layer should be highlighted. By default checks for upgrades only.
 function shouldNotify(layer){
-	for (id in tmp[layer].upgrades){
-		if (isPlainObject(layers[layer].upgrades[id])){
-			if (canAffordUpgrade(layer, id) && !hasUpgrade(layer, id) && tmp[layer].upgrades[id].unlocked){
-				return true
-			}
-		}
-	}
-	if (player[layer].activeChallenge && canCompleteChallenge(layer, player[layer].activeChallenge)) {
+    
+    if (!tmp[layer]) return false;
+
+    if (tmp[layer].upgrades) {
+        for (let id in tmp[layer].upgrades) {
+            if (isPlainObject(layers[layer].upgrades[id]) &&
+                canAffordUpgrade(layer, id) &&
+                !hasUpgrade(layer, id) &&
+                tmp[layer].upgrades[id].unlocked) {
+                return true;
+            }
+        }
+    }
+
+	if (player[layer]?.activeChallenge && canCompleteChallenge(layer, player[layer].activeChallenge)) {
 		return true
 	}
 
@@ -331,6 +338,12 @@ function autobuyUpgrades(layer){
 }
 
 function gameLoop(diff) {
+
+    // ===== 暂停检测 =====
+    if (player.paused) {
+        return;
+    }
+    
 	if (isEndgame() || tmp.gameEnded){
 		tmp.gameEnded = true
 		clearParticles()
@@ -755,6 +768,12 @@ function loadGameDataOnly() {
 
     const newBtn = document.getElementById('newGameBtn');
     if (newBtn) newBtn.textContent = config.newGameText || '新游戏';
+
+    newBtn?.addEventListener('click', () => {
+        if (confirm('确定要开始新游戏吗？当前进度将会丢失！')) {
+            startGame(false);
+        }
+    });
 
     const loadBtn = document.getElementById('loadGameBtn');
     if (loadBtn) loadBtn.textContent = config.loadGameText || '继续游戏';

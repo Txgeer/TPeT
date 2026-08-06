@@ -65,6 +65,7 @@ function getPointGen() {
 
 // You can add non-layer related variables that should to into "player" and be saved here, along with default values
 function addePlayerData() { return {
+    paused: false
 }}
 
 function closeDragHint() {
@@ -73,6 +74,10 @@ function closeDragHint() {
 }
 
 var displayThings = [
+    function() {
+        if (localStorage.getItem('hideDragHint') === 'true') return '';
+        return '<div style="background: #ffbf00; color: #000000; padding: 4px 8px; border-radius: 8px; cursor: pointer; margin-top: 5px;" onclick="closeDragHint()">💡 提示：按住鼠标左键并拖拽可以批量购买升级和可购买！点击此处关闭提示。</div>';
+    },
 ];
 
 // Determines when the game "ends"
@@ -114,5 +119,4 @@ window.startScreenConfig = {
     author: modInfo.author,
     newGameText: "新游戏",
     loadGameText: "继续游戏",
-    credits: "作者：Txgeer"
 };
