@@ -293,11 +293,15 @@ addLayer("a", {
             content:[
             //['infoboxes','main-text'],
             ['display-text', function() {
-                return `你有 <h3 style="color: #ffff3f; text-shadow: 10px">${formatWhole(player.a.achievements.length)}</h3> 成就`;
+                return `你有 <h3 style="color: #ffff3f; text-shadow:0 0 10px">${formatWhole(player.a.achievements.length)}</h3> 成就`;
             }],
             'achievements',
             ],
         },
+    },
+    style: {
+        background: "linear-gradient(135deg, #000000, #3f3f1f)",
+        minHeight: "100vh"
     },
     layerShown() {
         if (hasAchievement("a", 11)) {
@@ -324,17 +328,17 @@ addLayer("p", {
     exponent: 0.5, // Prestige currency exponent
     gainMult() { // Calculate the multiplier for main currency from bonuses
     let mult = new Decimal(1);
-    if (hasUpgrade('p', 11)) mult = mult.times(upgradeEffect('p', 11))
-    if (hasUpgrade('p', 13)) mult = mult.times(upgradeEffect('p', 13))
-    if (hasUpgrade('p', 21)) mult = mult.times(upgradeEffect('p', 21))
-    if (hasUpgrade('p', 31)) mult = mult.times(upgradeEffect('p', 31))
-    if (hasUpgrade('p', 32)) mult = mult.times(upgradeEffect('p', 32))
-    if (hasAchievement('a', 12)) mult = mult.times(achievementEffect('a', 12))
-    mult = mult.times(buyableEffect('k', 12))
-    mult = mult.times(buyableEffect('k', 23))
-    mult = mult.times(getFuryBonus(player.b.power))
-    mult = mult.times(player.c.points.pow(0.5).add(1))
-    if (player.cr.greenchroma.gt(0)) mult = mult.times(player.cr.greenchroma.add(1).log2())
+    if (hasUpgrade('p', 11)) mult = mult.times(upgradeEffect('p', 11)) 
+    if (hasUpgrade('p', 13)) mult = mult.times(upgradeEffect('p', 13)) 
+    if (hasUpgrade('p', 21)) mult = mult.times(upgradeEffect('p', 21)) 
+    if (hasUpgrade('p', 31)) mult = mult.times(upgradeEffect('p', 31)) 
+    if (hasUpgrade('p', 32)) mult = mult.times(upgradeEffect('p', 32)) 
+    if (hasAchievement('a', 12)) mult = mult.times(achievementEffect('a', 12)) 
+    mult = mult.times(buyableEffect('k', 12)) 
+    mult = mult.times(buyableEffect('k', 23)) 
+    mult = mult.times(getFuryBonus(player.b.power)) 
+    mult = mult.times(player.c.points.pow(0.5).add(1)) 
+    if (player.cr.greenchroma.gt(0)) mult = mult.times(player.cr.greenchroma.add(1).log2()) 
     let threshold = getCurrentThreshold();
     if (player.p.points.gte(threshold)) {
     let logPoints = player.p.points.log10();
@@ -352,7 +356,21 @@ addLayer("p", {
     },
     row: 0, // Row the layer is in on the tree (0 is the first row)
     hotkeys: [
-        {key: "p", description: "P: 进行一次蛮王重置", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
+        {
+            key: "shift+p",
+            description: "Shift+P: 暂停/继续游戏",
+            onPress: function() {
+                if (typeof player === 'undefined' || !player) return;
+                player.paused = !player.paused;
+                if (player.paused) {
+                    doPopup("info", "游戏已暂停", "⏸", 2, "#ffaa00");
+                } else {
+                    doPopup("info", "游戏已恢复", "▶", 2, "#00ff00");
+                }
+            },
+            unlocked: true
+        },
+        {key: "p", description: "P: 进行一次蛮王重置", onPress(){if (canReset(this.layer)) doReset(this.layer)}}
     ],
     upgrades: {        
         11: {    
@@ -781,7 +799,7 @@ addLayer("p", {
             let logThreshold = threshold.log10();
             let delta = logPoints.div(logThreshold);
             if (delta.gt(1)) {
-            return `天意使你的蛮王等级获取开 <h3 style="color: #3fffff; text-shadow: 10px">${format(delta)}</h3> 次根！`;
+            return `天意使你的蛮王等级获取开 <h3 style="color: #3fffff; text-shadow:0 0 10px">${format(delta)}</h3> 次根！`;
             }
             }
         }],
@@ -820,13 +838,13 @@ addLayer("k", {
     branches:["p"],
     gainMult() { // Calculate the multiplier for main currency from bonuses
         let mult = new Decimal(1)
-        mult = mult.times(buyableEffect('k', 21))
-        mult = mult.times(buyableEffect('k', 23))
-        if (hasUpgrade('b', 23)) mult = mult.times(upgradeEffect('b', 23))
-        if (hasUpgrade('e', 11)) mult = mult.times(upgradeEffect('e', 11))
-        if (hasUpgrade('e', 23)) mult = mult.times(upgradeEffect('e', 23))
-        if (hasAchievement('a', 25)) mult = mult.times(achievementEffect('a', 25))
-        if (player.cr.bluechroma.gt(0)) mult = mult.times(player.cr.bluechroma.add(1).log2())
+        mult = mult.times(buyableEffect('k', 21)) 
+        mult = mult.times(buyableEffect('k', 23)) 
+        if (hasUpgrade('b', 23)) mult = mult.times(upgradeEffect('b', 23)) 
+        if (hasUpgrade('e', 11)) mult = mult.times(upgradeEffect('e', 11)) 
+        if (hasUpgrade('e', 23)) mult = mult.times(upgradeEffect('e', 23)) 
+        if (hasAchievement('a', 25)) mult = mult.times(achievementEffect('a', 25)) 
+        if (player.cr.bluechroma.gt(0)) mult = mult.times(player.cr.bluechroma.add(1).log2()) 
         let threshold = getCurrentThreshold();
         if (player.k.points.gte(threshold)) {
         let logPoints = player.k.points.log10();
@@ -1092,12 +1110,12 @@ addLayer("k", {
             'main-display',
             ['display-text',function() {
                 if (hasUpgrade("e",14)) {
-            	return `你有 <h3 style="color: #dfdfdf; text-shadow: 10px">${format(player.k.milk)}</h3> 牛奶,该数值可以增加天意阈值`}
+            	return `你有 <h3 style="color: #dfdfdf; text-shadow:0 0 10px">${format(player.k.milk)}</h3> 牛奶,该数值可以增加天意阈值`}
             }
             ],
             ['display-text', function() {
                 if (hasUpgrade("e",14)) {
-                    return `你每秒获得 <h3 style="color: #dfdfdf; text-shadow: 10px">${format(player.k.milkGainRate)}</h3> 牛奶`;}
+                    return `你每秒获得 <h3 style="color: #dfdfdf; text-shadow:0 0 10px">${format(player.k.milkGainRate)}</h3> 牛奶`;}
             }],
             'prestige-button',
             ['display-text', function() {
@@ -1107,7 +1125,7 @@ addLayer("k", {
             let logThreshold = threshold.log10();
             let delta = logPoints.div(logThreshold);
             if (delta.gt(1)) {
-            return `天意使你的骑士团人口获取开 <h3 style="color: #3fffff; text-shadow: 10px">${format(delta)}</h3> 次根！`;
+            return `天意使你的骑士团人口获取开 <h3 style="color: #3fffff; text-shadow:0 0 10px">${format(delta)}</h3> 次根！`;
             }
             }
             }],
@@ -1121,12 +1139,12 @@ addLayer("k", {
             ['display-text',
             function() {
                 if (hasUpgrade("e",14)) {
-            	return `你有 <h3 style="color: #dfdfdf; text-shadow: 10px">${format(player.k.milk)}</h3> 牛奶,该数值可以增加天意阈值`}
+            	return `你有 <h3 style="color: #dfdfdf; text-shadow:0 0 10px">${format(player.k.milk)}</h3> 牛奶,该数值可以增加天意阈值`}
             }
             ],
             ['display-text', function() {
                 if (hasUpgrade("e",14)) {
-                    return `你每秒获得 <h3 style="color: #dfdfdf; text-shadow: 10px">${format(player.k.milkGainRate)}</h3> 牛奶`;}
+                    return `你每秒获得 <h3 style="color: #dfdfdf; text-shadow:0 0 10px">${format(player.k.milkGainRate)}</h3> 牛奶`;}
             }],
             'prestige-button',
             ['display-text', function() {
@@ -1136,7 +1154,7 @@ addLayer("k", {
             let logThreshold = threshold.log10();
             let delta = logPoints.div(logThreshold);
             if (delta.gt(1)) {
-            return `天意使你的骑士团人口获取开 <h3 style="color: #3fffff; text-shadow: 10px">${format(delta)}</h3> 次根！`;
+            return `天意使你的骑士团人口获取开 <h3 style="color: #3fffff; text-shadow:0 0 10px">${format(delta)}</h3> 次根！`;
             }
             }
             }],
@@ -1381,11 +1399,11 @@ addLayer("b", {
             ['display-text',
             function() {
                 if (player.b.points.gte(1)) {
-            	return `你有 <h3 style="color: #7f0000; text-shadow: 10px">${format(player.b.power)}</h3> 狂怒能量,为你的蛮王提供 <h3 style="color: #7f0000; text-shadow: 10px">${format(getFuryBonus(player.b.power))}</h3> 倍率的经验值和等级`}
+            	return `你有 <h3 style="color: #7f0000; text-shadow:0 0 10px">${format(player.b.power)}</h3> 狂怒能量,为你的蛮王提供 <h3 style="color: #7f0000; text-shadow:0 0 10px">${format(getFuryBonus(player.b.power))}</h3> 倍率的经验值和等级`}
                 }
             ],
             ['display-text', function() {
-                return `你每秒获得 <h3 style="color: #7f0000; text-shadow: 10px">${format(player.b.powerGainRate)}</h3> 狂怒能量`;
+                return `你每秒获得 <h3 style="color: #7f0000; text-shadow:0 0 10px">${format(player.b.powerGainRate)}</h3> 狂怒能量`;
             }],
             'prestige-button',
             'upgrades',
@@ -1398,11 +1416,11 @@ addLayer("b", {
             ['display-text',
             function() {
             	if (player.b.points.gte(1)) {
-            	return `你有 <h3 style="color: #7f0000; text-shadow: 10px">${format(player.b.power)}</h3> 狂怒能量,为你的蛮王提供 <h3 style="color: #7f0000; text-shadow: 10px">${format(getFuryBonus(player.b.power))}</h3> 倍率的经验值和等级`}
+            	return `你有 <h3 style="color: #7f0000; text-shadow:0 0 10px">${format(player.b.power)}</h3> 狂怒能量,为你的蛮王提供 <h3 style="color: #7f0000; text-shadow:0 0 10px">${format(getFuryBonus(player.b.power))}</h3> 倍率的经验值和等级`}
                 }
             ],
             ['display-text', function() {
-                return `你每秒获得 <h3 style="color: #7f0000; text-shadow: 10px">${format(player.b.powerGainRate)}</h3> 狂怒能量`;
+                return `你每秒获得 <h3 style="color: #7f0000; text-shadow:0 0 10px">${format(player.b.powerGainRate)}</h3> 狂怒能量`;
             }],
             'prestige-button',
             'milestones',
@@ -1433,10 +1451,10 @@ addLayer("c", {
     branches:["b"],
     gainMult() { // Calculate the multiplier for main currency from bonuses
         let mult = new Decimal(1)
-        mult = mult.times(buyableEffect('e', 13))
-        if (player.cr.cyanchroma.gt(0)) mult = mult.times(player.cr.cyanchroma.add(1).log2())
-        if (hasUpgrade('e', 24)) mult = mult.times(upgradeEffect('e', 24))
-        if (hasAchievement('a', 25)) mult = mult.times(achievementEffect('a', 25))
+        mult = mult.times(buyableEffect('e', 13)) 
+        if (player.cr.cyanchroma.gt(0)) mult = mult.times(player.cr.cyanchroma.add(1).log2()) 
+        if (hasUpgrade('e', 24)) mult = mult.times(upgradeEffect('e', 24)) 
+        if (hasAchievement('a', 25)) mult = mult.times(achievementEffect('a', 25)) 
         mult = mult.times(buyableEffect('k', 24))
         let threshold = getCurrentThreshold();
         if (player.c.points.gte(threshold)) {
@@ -1667,7 +1685,7 @@ addLayer("c", {
             ['display-text',
             function() {
                 if (player.c.points.gte(1)) {
-            	return `你的挑战精神为你的蛮王提供 <h3 style="color: #7fff7f; text-shadow: 10px">${format(player.c.points.pow(0.5).add(1))}</h3> 倍率的经验值和等级`}
+            	return `你的挑战精神为你的蛮王提供 <h3 style="color: #7fff7f; text-shadow:0 0 10px">${format(player.c.points.pow(0.5).add(1))}</h3> 倍率的经验值和等级`}
                 }
             ],
             ['display-text', function() {
@@ -1677,7 +1695,7 @@ addLayer("c", {
             let logThreshold = threshold.log10();
             let delta = logPoints.div(logThreshold);
             if (delta.gt(1)) {
-            return `天意使你的挑战精神获取开 <h3 style="color: #3fffff; text-shadow: 10px">${format(delta)}</h3> 次根！`;
+            return `天意使你的挑战精神获取开 <h3 style="color: #3fffff; text-shadow:0 0 10px">${format(delta)}</h3> 次根！`;
             }
             }
             }],
@@ -1692,7 +1710,7 @@ addLayer("c", {
             ['display-text',
             function() {
                 if (player.c.points.gte(1)) {
-            	return `你的挑战精神为你的蛮王提供 <h3 style="color: #7fff7f; text-shadow: 10px">${format(player.c.points.pow(0.5).add(1))}</h3> 倍率的经验值和等级`}
+            	return `你的挑战精神为你的蛮王提供 <h3 style="color: #7fff7f; text-shadow:0 0 10px">${format(player.c.points.pow(0.5).add(1))}</h3> 倍率的经验值和等级`}
                 }
             ],
             ['display-text', function() {
@@ -1702,7 +1720,7 @@ addLayer("c", {
             let logThreshold = threshold.log10();
             let delta = logPoints.div(logThreshold);
             if (delta.gt(1)) {
-            return `天意使你的挑战精神获取开 <h3 style="color: #3fffff; text-shadow: 10px">${format(delta)}</h3> 次根！`;
+            return `天意使你的挑战精神获取开 <h3 style="color: #3fffff; text-shadow:0 0 10px">${format(delta)}</h3> 次根！`;
             }
             }
             }],
@@ -1733,11 +1751,11 @@ addLayer("e", {
     exponent: 0.1,
     branches: ["k"],
     gainMult() {
-        let mult = new Decimal(1);
-        mult = mult.times(buyableEffect('e', 12))
-        mult = mult.times(buyableEffect('k', 24))
-        if (player.cr.magentachroma.gt(0)) mult = mult.times(player.cr.magentachroma.add(1).log2())
-        if (hasAchievement('a', 25)) mult = mult.times(achievementEffect('a', 25))
+        let mult = new Decimal(1); 
+        mult = mult.times(buyableEffect('e', 12)) 
+        mult = mult.times(buyableEffect('k', 24)) 
+        if (player.cr.magentachroma.gt(0)) mult = mult.times(player.cr.magentachroma.add(1).log2()) 
+        if (hasAchievement('a', 25)) mult = mult.times(achievementEffect('a', 25)) 
         if (hasAchievement('a', 31)) mult = mult.times(achievementEffect('a', 31)) 
         return mult;
     },
@@ -2034,11 +2052,11 @@ addLayer("cr", {
     branches: ["p"],
     gainMult() {
         let mult = new Decimal(1);
-        if (player.cr.graychroma.gt(0)) mult = mult.times(player.cr.graychroma.add(1).log2())
-        mult = mult.times(buyableEffect('k', 14))
-        if (hasAchievement('a', 25)) mult = mult.times(achievementEffect('a', 25))
-        if (hasAchievement('a', 31)) mult = mult.times(achievementEffect('a', 31))
-        if (hasUpgrade('cr', 24)) mult = mult.times(upgradeEffect('cr', 24))
+        if (player.cr.graychroma.gt(0)) mult = mult.times(player.cr.graychroma.add(1).log2()) 
+        mult = mult.times(buyableEffect('k', 14)) 
+        if (hasAchievement('a', 25)) mult = mult.times(achievementEffect('a', 25)) 
+        if (hasAchievement('a', 31)) mult = mult.times(achievementEffect('a', 31)) 
+        if (hasUpgrade('cr', 24)) mult = mult.times(upgradeEffect('cr', 24)) 
         return mult;
     },
     gainExp() { return new Decimal(1); },
@@ -2385,91 +2403,91 @@ update(diff) {
             "颜色色度": {
                 content: 
             [['display-text', function() {if (player.cr.points.gte(1)){
-            	return `你有 <h3 style="color: #ff0000; text-shadow: 10px">${format(player.cr.redchroma)}</h3> 殷红色度,为你的蛮王提供 <h3 style="color: #ff0000; text-shadow: 10px">${format(player.cr.redchroma.add(1).log2())}</h3> 倍率的经验值`
+            	return `你有 <h3 style="color: #ff0000; text-shadow:0 0 10px">${format(player.cr.redchroma)}</h3> 殷红色度,为你的蛮王提供 <h3 style="color: #ff0000; text-shadow:0 0 10px">${format(player.cr.redchroma.add(1).log2())}</h3> 倍率的经验值`
             }}],
             ['display-text', function() {if (player.cr.points.gte(1)){
-                    return `你每秒获得 <h3 style="color: #ff0000; text-shadow: 10px">${format(player.cr.redchromaGainRate)}</h3> 殷红色度`;
+                    return `你每秒获得 <h3 style="color: #ff0000; text-shadow:0 0 10px">${format(player.cr.redchromaGainRate)}</h3> 殷红色度`;
             }}],
             ['display-text', function() {if(hasMilestone("cr",2)){
-            	return `你有 <h3 style="color: #00ff00; text-shadow: 10px">${format(player.cr.greenchroma)}</h3> 翠绿色度,为你的蛮王提供 <h3 style="color: #00ff00; text-shadow: 10px">${format(player.cr.greenchroma.add(1).log2())}</h3> 倍率的等级`
+            	return `你有 <h3 style="color: #00ff00; text-shadow:0 0 10px">${format(player.cr.greenchroma)}</h3> 翠绿色度,为你的蛮王提供 <h3 style="color: #00ff00; text-shadow:0 0 10px">${format(player.cr.greenchroma.add(1).log2())}</h3> 倍率的等级`
             }}],
             ['display-text', function() {if(hasMilestone("cr",2)){
-                    return `你每秒获得 <h3 style="color: #00ff00; text-shadow: 10px">${format(player.cr.greenchromaGainRate)}</h3> 翠绿色度`;
+                    return `你每秒获得 <h3 style="color: #00ff00; text-shadow:0 0 10px">${format(player.cr.greenchromaGainRate)}</h3> 翠绿色度`;
             }}],
             ['display-text', function() {if(hasMilestone("cr",5)){
-            	return `你有 <h3 style="color: #0000ff; text-shadow: 10px">${format(player.cr.bluechroma)}</h3> 苍蓝色度,为你的骑士团提供 <h3 style="color: #0000ff; text-shadow: 10px">${format(player.cr.bluechroma.add(1).log2())}</h3> 倍率的人口`
+            	return `你有 <h3 style="color: #0000ff; text-shadow:0 0 10px">${format(player.cr.bluechroma)}</h3> 苍蓝色度,为你的骑士团提供 <h3 style="color: #0000ff; text-shadow:0 0 10px">${format(player.cr.bluechroma.add(1).log2())}</h3> 倍率的人口`
             }}],
             ['display-text', function() {if(hasMilestone("cr",5)){
-                    return `你每秒获得 <h3 style="color: #0000ff; text-shadow: 10px">${format(player.cr.bluechromaGainRate)}</h3> 苍蓝色度`;
+                    return `你每秒获得 <h3 style="color: #0000ff; text-shadow:0 0 10px">${format(player.cr.bluechromaGainRate)}</h3> 苍蓝色度`;
             }}],
             ['display-text', function() {if(hasMilestone("cr",7)){
-            	return `你有 <h3 style="color: #7f7f7f; text-shadow: 10px">${format(player.cr.graychroma)}</h3> 中立色度,为你的色彩提供 <h3 style="color: #7f7f7f; text-shadow: 10px">${format(player.cr.graychroma.add(1).log2())}</h3> 倍率的色度`
+            	return `你有 <h3 style="color: #7f7f7f; text-shadow:0 0 10px">${format(player.cr.graychroma)}</h3> 中立色度,为你的色彩提供 <h3 style="color: #7f7f7f; text-shadow:0 0 10px">${format(player.cr.graychroma.add(1).log2())}</h3> 倍率的色度`
             }}],
             ['display-text', function() {if(hasMilestone("cr",7)){
-                    return `你每秒获得 <h3 style="color: #7f7f7f; text-shadow: 10px">${format(player.cr.graychromaGainRate)}</h3> 中立色度`;
+                    return `你每秒获得 <h3 style="color: #7f7f7f; text-shadow:0 0 10px">${format(player.cr.graychromaGainRate)}</h3> 中立色度`;
             }}],
             ['display-text', function() {if(hasMilestone("cr",8)){
-            	return `你有 <h3 style="color: #ffff00; text-shadow: 10px">${format(player.cr.yellowchroma)}</h3> 明黄色度,为你的骑士团提供 <h3 style="color: #ffff00; text-shadow: 10px">${format(player.cr.yellowchroma.add(1).log2())}</h3> 倍率的牛奶`
+            	return `你有 <h3 style="color: #ffff00; text-shadow:0 0 10px">${format(player.cr.yellowchroma)}</h3> 明黄色度,为你的骑士团提供 <h3 style="color: #ffff00; text-shadow:0 0 10px">${format(player.cr.yellowchroma.add(1).log2())}</h3> 倍率的牛奶`
             }}],
             ['display-text', function() {if(hasMilestone("cr",8)){
-                    return `你每秒获得 <h3 style="color: #ffff00; text-shadow: 10px">${format(player.cr.yellowchromaGainRate)}</h3> 明黄色度`;
+                    return `你每秒获得 <h3 style="color: #ffff00; text-shadow:0 0 10px">${format(player.cr.yellowchromaGainRate)}</h3> 明黄色度`;
             }}],
             ['display-text', function() {if(hasMilestone("cr",9)){
-            	return `你有 <h3 style="color: #ff00ff; text-shadow: 10px">${format(player.cr.magentachroma)}</h3> 品红色度,为你的增强者提供 <h3 style="color: #ff00ff; text-shadow: 10px">${format(player.cr.magentachroma.add(1).log2())}</h3> 倍率的增强器`
+            	return `你有 <h3 style="color: #ff00ff; text-shadow:0 0 10px">${format(player.cr.magentachroma)}</h3> 品红色度,为你的增强者提供 <h3 style="color: #ff00ff; text-shadow:0 0 10px">${format(player.cr.magentachroma.add(1).log2())}</h3> 倍率的增强器`
             }}],
             ['display-text', function() {if(hasMilestone("cr",9)){
-                    return `你每秒获得 <h3 style="color: #ff00ff; text-shadow: 10px">${format(player.cr.magentachromaGainRate)}</h3> 品红色度`;
+                    return `你每秒获得 <h3 style="color: #ff00ff; text-shadow:0 0 10px">${format(player.cr.magentachromaGainRate)}</h3> 品红色度`;
             }}],
             ['display-text', function() {if(hasMilestone("cr",10)){
-            	return `你有 <h3 style="color: #00ffff; text-shadow: 10px">${format(player.cr.cyanchroma)}</h3> 亮青色度,为你的挑战者提供 <h3 style="color: #00ffff; text-shadow: 10px">${format(player.cr.cyanchroma.add(1).log2())}</h3> 倍率的挑战精神`
+            	return `你有 <h3 style="color: #00ffff; text-shadow:0 0 10px">${format(player.cr.cyanchroma)}</h3> 亮青色度,为你的挑战者提供 <h3 style="color: #00ffff; text-shadow:0 0 10px">${format(player.cr.cyanchroma.add(1).log2())}</h3> 倍率的挑战精神`
             }}],
             ['display-text', function() {if(hasMilestone("cr",10)){
-                    return `你每秒获得 <h3 style="color: #00ffff; text-shadow: 10px">${format(player.cr.cyanchromaGainRate)}</h3> 亮青色度`;
+                    return `你每秒获得 <h3 style="color: #00ffff; text-shadow:0 0 10px">${format(player.cr.cyanchromaGainRate)}</h3> 亮青色度`;
             }}],
             ['display-text', function() {if(hasUpgrade("e",21)){
-            	return `你有 <h3 style="color: #000000; text-shadow: 10px">${format(player.cr.blackchroma)}</h3> 黝黑色度,为你的游戏提供 <h3 style="color: #000000; text-shadow: 10px">${format(player.cr.blackchroma.add(1).log2())}</h3> 倍率的时间`
+            	return `你有 <h3 style="color: #000000; text-shadow:0 0 10px">${format(player.cr.blackchroma)}</h3> 黝黑色度,为你的游戏提供 <h3 style="color: #000000; text-shadow:0 0 10px">${format(player.cr.blackchroma.add(1).log2())}</h3> 倍率的时间`
             }}],
             ['display-text', function() {if(hasUpgrade("e",21)){
-                    return `你每秒获得 <h3 style="color: #000000; text-shadow: 10px">${format(player.cr.blackchromaGainRate)}</h3> 黝黑色度`;
+                    return `你每秒获得 <h3 style="color: #000000; text-shadow:0 0 10px">${format(player.cr.blackchromaGainRate)}</h3> 黝黑色度`;
             }}]]
             },
             "颜色色度 II": {
                 content: [
             ['display-text', function() {if(hasUpgrade("cr",11)){
-            	return `你有 <h3 style="color: #ff7f00; text-shadow: 10px">${format(player.cr.orangechroma)}</h3> 大橙色度,为你的色彩提供 <h3 style="color: #ff7f00; text-shadow: 10px">${format(player.cr.orangechroma.add(1).log2())}</h3> 倍率的殷红色度`
+            	return `你有 <h3 style="color: #ff7f00; text-shadow:0 0 10px">${format(player.cr.orangechroma)}</h3> 大橙色度,为你的色彩提供 <h3 style="color: #ff7f00; text-shadow:0 0 10px">${format(player.cr.orangechroma.add(1).log2())}</h3> 倍率的殷红色度`
             }}],
             ['display-text', function() {if(hasUpgrade("cr",11)){
-                    return `你每秒获得 <h3 style="color: #ff7f00; text-shadow: 10px">${format(player.cr.orangechromaGainRate)}</h3> 大橙色度`;
+                    return `你每秒获得 <h3 style="color: #ff7f00; text-shadow:0 0 10px">${format(player.cr.orangechromaGainRate)}</h3> 大橙色度`;
             }}],
             ['display-text', function() {if(hasUpgrade("cr",12)){
-            	return `你有 <h3 style="color: #3f1f00; text-shadow: 10px">${format(player.cr.brownchroma)}</h3> 煤棕色度,为你的色彩提供 <h3 style="color: #3f1f00; text-shadow: 10px">${format(player.cr.brownchroma.add(1).log2())}</h3> 倍率的翠绿色度`
+            	return `你有 <h3 style="color: #3f1f00; text-shadow:0 0 10px">${format(player.cr.brownchroma)}</h3> 煤棕色度,为你的色彩提供 <h3 style="color: #3f1f00; text-shadow:0 0 10px">${format(player.cr.brownchroma.add(1).log2())}</h3> 倍率的翠绿色度`
             }}],
             ['display-text', function() {if(hasUpgrade("cr",12)){
-                    return `你每秒获得 <h3 style="color: #3f1f00; text-shadow: 10px">${format(player.cr.brownchromaGainRate)}</h3> 煤棕色度`;
+                    return `你每秒获得 <h3 style="color: #3f1f00; text-shadow:0 0 10px">${format(player.cr.brownchromaGainRate)}</h3> 煤棕色度`;
             }}],
             ['display-text', function() {if(hasUpgrade("cr",13)){
-            	return `你有 <h3 style="color: #7f00ff; text-shadow: 10px">${format(player.cr.purplechroma)}</h3> 螺紫色度,为你的色彩提供 <h3 style="color: #7f00ff; text-shadow: 10px">${format(player.cr.purplechroma.add(1).log2())}</h3> 倍率的苍蓝色度`
+            	return `你有 <h3 style="color: #7f00ff; text-shadow:0 0 10px">${format(player.cr.purplechroma)}</h3> 螺紫色度,为你的色彩提供 <h3 style="color: #7f00ff; text-shadow:0 0 10px">${format(player.cr.purplechroma.add(1).log2())}</h3> 倍率的苍蓝色度`
             }}],
             ['display-text', function() {if(hasUpgrade("cr",13)){
-                    return `你每秒获得 <h3 style="color: #7f00ff; text-shadow: 10px">${format(player.cr.purplechromaGainRate)}</h3> 螺紫色度`;
+                    return `你每秒获得 <h3 style="color: #7f00ff; text-shadow:0 0 10px">${format(player.cr.purplechromaGainRate)}</h3> 螺紫色度`;
             }}],
             ['display-text', function() {if(hasUpgrade("cr",21)){
-            	return `你有 <h3 style="color: #ffff7f; text-shadow: 10px">${format(player.cr.beigechroma)}</h3> 米黄色度,为你的狂战士提供 <h3 style="color: #ffff7f; text-shadow: 10px">${format(player.cr.beigechroma.add(1).log2())}</h3> 倍率的狂怒能量`
+            	return `你有 <h3 style="color: #ffff7f; text-shadow:0 0 10px">${format(player.cr.beigechroma)}</h3> 米黄色度,为你的狂战士提供 <h3 style="color: #ffff7f; text-shadow:0 0 10px">${format(player.cr.beigechroma.add(1).log2())}</h3> 倍率的狂怒能量`
             }}],
             ['display-text', function() {if(hasUpgrade("cr",21)){
-                    return `你每秒获得 <h3 style="color: #ffff7f; text-shadow: 10px">${format(player.cr.beigechromaGainRate)}</h3> 米黄色度`;
+                    return `你每秒获得 <h3 style="color: #ffff7f; text-shadow:0 0 10px">${format(player.cr.beigechromaGainRate)}</h3> 米黄色度`;
             }}],
             ['display-text', function() {if(hasUpgrade("cr",22)){
-            	return `你有 <h3 style="color: #ff7fff; text-shadow: 10px">${format(player.cr.pinkchroma)}</h3> 鲜粉色度,为你的神祇提供 <h3 style="color: #ff7fff; text-shadow: 10px">${format(player.cr.pinkchroma.add(1).log2())}</h3> 倍率的φ 精华`
+            	return `你有 <h3 style="color: #ff7fff; text-shadow:0 0 10px">${format(player.cr.pinkchroma)}</h3> 鲜粉色度,为你的神祇提供 <h3 style="color: #ff7fff; text-shadow:0 0 10px">${format(player.cr.pinkchroma.add(1).log2())}</h3> 倍率的φ 精华`
             }}],
             ['display-text', function() {if(hasUpgrade("cr",22)){
-                    return `你每秒获得 <h3 style="color: #ff7fff; text-shadow: 10px">${format(player.cr.pinkchromaGainRate)}</h3> 鲜粉色度`;
+                    return `你每秒获得 <h3 style="color: #ff7fff; text-shadow:0 0 10px">${format(player.cr.pinkchromaGainRate)}</h3> 鲜粉色度`;
             }}],
             ['display-text', function() {if(hasUpgrade("cr",23)){
-            	return `你有 <h3 style="color: #007777; text-shadow: 10px">${format(player.cr.tealchroma)}</h3> 深青色度,为你的色彩提供 <h3 style="color: #007777; text-shadow: 10px">${format(player.cr.tealchroma.add(1).log2())}</h3> 倍率的其他所有颜色色度`
+            	return `你有 <h3 style="color: #007777; text-shadow:0 0 10px">${format(player.cr.tealchroma)}</h3> 深青色度,为你的色彩提供 <h3 style="color: #007777; text-shadow:0 0 10px">${format(player.cr.tealchroma.add(1).log2())}</h3> 倍率的其他所有颜色色度`
             }}],
             ['display-text', function() {if(hasUpgrade("cr",23)){
-                    return `你每秒获得 <h3 style="color: #007777; text-shadow: 10px">${format(player.cr.tealchromaGainRate)}</h3> 深青色度`;
+                    return `你每秒获得 <h3 style="color: #007777; text-shadow:0 0 10px">${format(player.cr.tealchromaGainRate)}</h3> 深青色度`;
             }}]],
                 unlocked() { return hasMilestone('cr', 11) }
             }
@@ -2872,10 +2890,10 @@ addLayer("g", {
             ['display-text',
             function() {if (player.g.points.gte(1)){
                 let safeEnergy = player.g.energy.max(1);
-            	return `你有 <h3 style="color: #bf7f00; text-shadow: 10px">${format(player.g.energy)}</h3> φ 精华,倍增狂怒能量效果 <h3 style="color: #bf7f00; text-shadow: 10px">${format(safeEnergy.add(1).log2())}</h3> 倍`
+            	return `你有 <h3 style="color: #bf7f00; text-shadow:0 0 10px">${format(player.g.energy)}</h3> φ 精华,倍增狂怒能量效果 <h3 style="color: #bf7f00; text-shadow:0 0 10px">${format(safeEnergy.add(1).log2())}</h3> 倍`
             }}],
             ['display-text', function() {if (player.g.points.gte(1)){
-                    return `你每秒获得 <h3 style="color: #bf7f00; text-shadow: 10px">${format(player.g.energyGainRate)}</h3> φ 精华`;
+                    return `你每秒获得 <h3 style="color: #bf7f00; text-shadow:0 0 10px">${format(player.g.energyGainRate)}</h3> φ 精华`;
             }}],
             'prestige-button',
             'upgrades'
@@ -2888,10 +2906,10 @@ addLayer("g", {
             ['display-text',
             function() {if (player.g.points.gte(1)){
                 let safeEnergy = player.g.energy.max(1);
-            	return `你有 <h3 style="color: #bf7f00; text-shadow: 10px">${format(player.g.energy)}</h3> φ 精华,倍增狂怒能量效果 <h3 style="color: #bf7f00; text-shadow: 10px">${format(safeEnergy.add(1).log2())}</h3> 倍`
+            	return `你有 <h3 style="color: #bf7f00; text-shadow:0 0 10px">${format(player.g.energy)}</h3> φ 精华,倍增狂怒能量效果 <h3 style="color: #bf7f00; text-shadow:0 0 10px">${format(safeEnergy.add(1).log2())}</h3> 倍`
             }}],
             ['display-text', function() {if (player.g.points.gte(1)){
-                    return `你每秒获得 <h3 style="color: #bf7f00; text-shadow: 10px">${format(player.g.energyGainRate)}</h3> φ 精华`;
+                    return `你每秒获得 <h3 style="color: #bf7f00; text-shadow:0 0 10px">${format(player.g.energyGainRate)}</h3> φ 精华`;
             }}],
             'prestige-button',
             'milestones'
@@ -2925,8 +2943,8 @@ addLayer("m", {
     branches: ["cr"],
     gainMult() {
         let mult = new Decimal(1);
-        if (hasAchievement('a', 25)) mult = mult.times(achievementEffect('a', 25))
-        mult = mult.times(buyableEffect('m', 14));
+        if (hasAchievement('a', 25)) mult = mult.times(achievementEffect('a', 25)) 
+        mult = mult.times(buyableEffect('m', 14)) 
         return mult;
     },
     gainExp() { return new Decimal(1); },
@@ -3004,92 +3022,92 @@ addLayer("m", {
                 ['display-text', function() {
                     if (player.m.points.gte(1)) {
                         let safeByte = player.m.byte.max(1);
-                        return `你有 <h3 style="color: #00007f; text-shadow: 10px">${format(player.m.byte)}</h3> 字节,倍增游戏全局速度 <h3 style="color: #00007f; text-shadow: 10px">${format(getByteSpeedMult())}</h3> 倍`;
+                        return `你有 <h3 style="color: #00007f; text-shadow:0 0 10px">${format(player.m.byte)}</h3> 字节,倍增游戏全局速度 <h3 style="color: #00007f; text-shadow:0 0 10px">${format(getByteSpeedMult())}</h3> 倍`;
                     }
                 }],
                 ['display-text', function() {
                     if (player.m.points.gte(1)) {
-                        return `你每秒获得 <h3 style="color: #00007f; text-shadow: 10px">${format(player.m.byteGainRate)}</h3> 字节`;
+                        return `你每秒获得 <h3 style="color: #00007f; text-shadow:0 0 10px">${format(player.m.byteGainRate)}</h3> 字节`;
                     }
                 }],
                 ['display-text', function() {
                     if (hasUpgrade("m", 11)) {
-                        return `你有 <h3 style="color: #0f0f8f; text-shadow: 10px">${format(player.m.hdd)}</h3> HDD，每秒可以生产等量字节`;
+                        return `你有 <h3 style="color: #0f0f8f; text-shadow:0 0 10px">${format(player.m.hdd)}</h3> HDD，每秒可以生产等量字节`;
                     }
                 }],
                 ['display-text', function() {
                     if (hasUpgrade("m", 11)) {
-                        return `你每秒获得 <h3 style="color: #0f0f8f; text-shadow: 10px">${format(player.m.hddGainRate)}</h3> HDD`;
+                        return `你每秒获得 <h3 style="color: #0f0f8f; text-shadow:0 0 10px">${format(player.m.hddGainRate)}</h3> HDD`;
                     }
                 }],
                 ['display-text', function() {
                     if (hasUpgrade("m", 12)) {
-                        return `你有 <h3 style="color: #1f1f9f; text-shadow: 10px">${format(player.m.ssd)}</h3> SSD，每秒可以生产等量 HDD`;
+                        return `你有 <h3 style="color: #1f1f9f; text-shadow:0 0 10px">${format(player.m.ssd)}</h3> SSD，每秒可以生产等量 HDD`;
                     }
                 }],
                 ['display-text', function() {
                     if (hasUpgrade("m", 12)) {
-                        return `你每秒获得 <h3 style="color: #1f1f9f; text-shadow: 10px">${format(player.m.ssdGainRate)}</h3> SSD`;
+                        return `你每秒获得 <h3 style="color: #1f1f9f; text-shadow:0 0 10px">${format(player.m.ssdGainRate)}</h3> SSD`;
                     }
                 }],
                 ['display-text', function() {
                     if (hasUpgrade("m", 13)) {
-                        return `你有 <h3 style="color: #2f2faf; text-shadow: 10px">${format(player.m.pagefile)}</h3> 虚拟内存，每秒可以生产等量 SSD`;
+                        return `你有 <h3 style="color: #2f2faf; text-shadow:0 0 10px">${format(player.m.pagefile)}</h3> 虚拟内存，每秒可以生产等量 SSD`;
                     }
                 }],
                 ['display-text', function() {
                     if (hasUpgrade("m", 13)) {
-                        return `你每秒获得 <h3 style="color: #2f2faf; text-shadow: 10px">${format(player.m.pagefileGainRate)}</h3> 虚拟内存`;
+                        return `你每秒获得 <h3 style="color: #2f2faf; text-shadow:0 0 10px">${format(player.m.pagefileGainRate)}</h3> 虚拟内存`;
                     }
                 }],
                 ['display-text', function() {
                     if (hasUpgrade("m", 14)) {
-                        return `你有 <h3 style="color: #3f3fbf; text-shadow: 10px">${format(player.m.ram)}</h3> RAM，每秒可以生产等量 虚拟内存`;
+                        return `你有 <h3 style="color: #3f3fbf; text-shadow:0 0 10px">${format(player.m.ram)}</h3> RAM，每秒可以生产等量 虚拟内存`;
                     }
                 }],
                 ['display-text', function() {
                     if (hasUpgrade("m", 14)) {
-                        return `你每秒获得 <h3 style="color: #3f3fbf; text-shadow: 10px">${format(player.m.ramGainRate)}</h3> RAM`;
+                        return `你每秒获得 <h3 style="color: #3f3fbf; text-shadow:0 0 10px">${format(player.m.ramGainRate)}</h3> RAM`;
                     }
                 }],
                 ['display-text', function() {
                     if (hasUpgrade("m", 21)) {
-                        return `你有 <h3 style="color: #4f4fcf; text-shadow: 10px">${format(player.m.l3Cache)}</h3> L3缓存，每秒可以生产等量 RAM`;
+                        return `你有 <h3 style="color: #4f4fcf; text-shadow:0 0 10px">${format(player.m.l3Cache)}</h3> L3缓存，每秒可以生产等量 RAM`;
                     }
                 }],
                 ['display-text', function() {
                     if (hasUpgrade("m", 21)) {
-                        return `你每秒获得 <h3 style="color: #4f4fcf; text-shadow: 10px">${format(player.m.l3CacheGainRate)}</h3> L3缓存`;
+                        return `你每秒获得 <h3 style="color: #4f4fcf; text-shadow:0 0 10px">${format(player.m.l3CacheGainRate)}</h3> L3缓存`;
                     }
                 }],
                 ['display-text', function() {
                     if (hasUpgrade("m", 22)) {
-                        return `你有 <h3 style="color: #5f5fdf; text-shadow: 10px">${format(player.m.l2Cache)}</h3> L2缓存，每秒可以生产等量 L3缓存`;
+                        return `你有 <h3 style="color: #5f5fdf; text-shadow:0 0 10px">${format(player.m.l2Cache)}</h3> L2缓存，每秒可以生产等量 L3缓存`;
                     }
                 }],
                 ['display-text', function() {
                     if (hasUpgrade("m", 22)) {
-                        return `你每秒获得 <h3 style="color: #5f5fdf; text-shadow: 10px">${format(player.m.l2CacheGainRate)}</h3> L2缓存`;
+                        return `你每秒获得 <h3 style="color: #5f5fdf; text-shadow:0 0 10px">${format(player.m.l2CacheGainRate)}</h3> L2缓存`;
                     }
                 }],
                 ['display-text', function() {
                     if (hasUpgrade("m", 23)) {
-                        return `你有 <h3 style="color: #6f6fef; text-shadow: 10px">${format(player.m.l1Cache)}</h3> L1缓存，每秒可以生产等量 L2缓存`;
+                        return `你有 <h3 style="color: #6f6fef; text-shadow:0 0 10px">${format(player.m.l1Cache)}</h3> L1缓存，每秒可以生产等量 L2缓存`;
                     }
                 }],
                 ['display-text', function() {
                     if (hasUpgrade("m", 23)) {
-                        return `你每秒获得 <h3 style="color: #6f6fef; text-shadow: 10px">${format(player.m.l1CacheGainRate)}</h3> L1缓存`;
+                        return `你每秒获得 <h3 style="color: #6f6fef; text-shadow:0 0 10px">${format(player.m.l1CacheGainRate)}</h3> L1缓存`;
                     }
                 }],
                 ['display-text', function() {
                     if (hasUpgrade("m", 23)) {
-                        return `你有 <h3 style="color: #7f7fff; text-shadow: 10px">${format(player.m.register)}</h3> 寄存器，每秒可以生产等量 L1缓存`;
+                        return `你有 <h3 style="color: #7f7fff; text-shadow:0 0 10px">${format(player.m.register)}</h3> 寄存器，每秒可以生产等量 L1缓存`;
                     }
                 }],
                 ['display-text', function() {
                     if (hasUpgrade("m", 23)) {
-                        return `你每秒获得 <h3 style="color: #7f7fff; text-shadow: 10px">${format(player.m.registerGainRate)}</h3> 寄存器`;
+                        return `你每秒获得 <h3 style="color: #7f7fff; text-shadow:0 0 10px">${format(player.m.registerGainRate)}</h3> 寄存器`;
                     }
                 }]
             ]
@@ -3301,4 +3319,27 @@ addLayer("m", {
         },
     },
     layerShown() { return hasMilestone('cr', 12) || player.m.points.gte(1); }
+});
+addLayer("f", {
+    name: "终结",
+    symbol: "F",
+    position: 0,
+    startData() { return { unlocked: true, 
+        points: new Decimal(0) }; },
+    color: "#007777",
+    requires: new Decimal(8),
+    resource: "终结仪",
+    baseResource: "GTP",
+    baseAmount() { return player.g.points; },
+    type: "normal",
+    exponent: 6,
+    branches: ["g", "m"],
+    gainMult() {
+        let mult = new Decimal(1);
+        return mult;
+    },
+    gainExp() { return new Decimal(1); },
+    row: 4, 
+    hotkeys: [{ key: "m", description: "M: 进行一次主机重置", onPress() { if (canReset(this.layer)) doReset(this.layer); } }],
+    layerShown() { return player.points.gte(1e50) || player.f.points.gte(1); }
 });

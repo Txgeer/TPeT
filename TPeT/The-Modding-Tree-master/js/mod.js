@@ -117,27 +117,25 @@ function canGenPoints(){
 
 // Calculate points/sec!
 function getPointGen() {
-	if(!canGenPoints())
-		return new Decimal(1)
-	if (!player || !player.p) 
-		return new Decimal(1)
+	if(!canGenPoints()) return new Decimal(1) 
+	if (!player || !player.p) return new Decimal(1) 
     let gain = new Decimal(1)
-	if (hasUpgrade('p', 11)) gain = gain.times(upgradeEffect('p', 11))
-	if (hasUpgrade('p', 12)) gain = gain.times(upgradeEffect('p', 12))
-	if (hasUpgrade('p', 22)) gain = gain.times(upgradeEffect('p', 22))
-	if (hasUpgrade('p', 23)) gain = gain.times(upgradeEffect('p', 23))
+	if (hasUpgrade('p', 11)) gain = gain.times(upgradeEffect('p', 11)) 
+	if (hasUpgrade('p', 12)) gain = gain.times(upgradeEffect('p', 12)) 
+	if (hasUpgrade('p', 22)) gain = gain.times(upgradeEffect('p', 22)) 
+	if (hasUpgrade('p', 23)) gain = gain.times(upgradeEffect('p', 23)) 
     if (hasUpgrade('p', 33)) gain = gain.times(upgradeEffect('p', 33))
-	if (hasUpgrade('p', 41)) gain = gain.times(upgradeEffect('p', 41))
-	if (hasUpgrade('p', 42)) gain = gain.times(upgradeEffect('p', 42))
-	if (hasUpgrade('p', 43)) gain = gain.times(upgradeEffect('p', 43))
-	gain = gain.times(buyableEffect('k', 11))
-    gain = gain.times(buyableEffect('k', 23))
-    gain = gain.times(getFuryBonus(player.b.power))
-	gain = gain.times(player.c.points.pow(0.5).add(1))
-	if (player.cr.redchroma.gt(0)) gain = gain.times(player.cr.redchroma.add(1).log2())
-	if (hasAchievement('a', 12)) gain = gain.times(achievementEffect('a', 12))
-	if (hasUpgrade('g', 22)) gain = gain.times(upgradeEffect('g', 22))
-	if (!(gain instanceof Decimal) || gain.lte(0)) gain = new Decimal(1)
+	if (hasUpgrade('p', 41)) gain = gain.times(upgradeEffect('p', 41)) 
+	if (hasUpgrade('p', 42)) gain = gain.times(upgradeEffect('p', 42)) 
+	if (hasUpgrade('p', 43)) gain = gain.times(upgradeEffect('p', 43)) 
+	gain = gain.times(buyableEffect('k', 11)) 
+    gain = gain.times(buyableEffect('k', 23)) 
+    gain = gain.times(getFuryBonus(player.b.power)) 
+	gain = gain.times(player.c.points.pow(0.5).add(1)) 
+	if (player.cr.redchroma.gt(0)) gain = gain.times(player.cr.redchroma.add(1).log2()) 
+	if (hasAchievement('a', 12)) gain = gain.times(achievementEffect('a', 12)) 
+	if (hasUpgrade('g', 22)) gain = gain.times(upgradeEffect('g', 22)) 
+	if (!(gain instanceof Decimal) || gain.lte(0)) gain = new Decimal(1) 
 	return gain
 }
 
@@ -145,7 +143,8 @@ function getPointGen() {
 function addePlayerData() { return {
 	hasAchieved23: false,
 	milkUnlocked: false,
-	Antiteal:false
+	Antiteal:false,
+	paused: false
 }}
 
 function closeDragHint() {
@@ -222,5 +221,4 @@ window.startScreenConfig = {
     author: "Txgeer",
     newGameText: "新游戏",
     loadGameText: "继续游戏",
-    credits: "作者：Txgeer"
 };

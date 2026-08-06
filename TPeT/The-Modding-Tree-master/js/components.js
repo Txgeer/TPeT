@@ -1,5 +1,5 @@
 function loadVue() {
-    if (typeof Vue === 'undefined') {
+    if (typeof Vue === 'undefined' || !tmp) {
         setTimeout(loadVue, 50);
         return;
     }
@@ -148,7 +148,7 @@ function loadVue() {
     app.component('milestone', {
     props: ['layer', 'data'],
     template: `
-        <div v-if="tmp[layer].milestones && tmp[layer].milestones[data] !== undefined && milestoneShown(layer, data) && tmp[layer].milestones[data].unlocked" 
+        <div v-if="tmp[layer] && tmp[layer].milestones && tmp[layer].milestones[data] !== undefined && milestoneShown(layer, data) && tmp[layer].milestones[data].unlocked" 
              :style="[tmp[layer].milestones[data].style]" 
              :class="{milestone: !hasMilestone(layer, data), tooltipBox: true, milestoneDone: hasMilestone(layer, data)}">
             <h3 v-html="tmp[layer].milestones[data].requirementDescription"></h3><br>
@@ -220,7 +220,7 @@ function loadVue() {
     app.component('challenge', {
         props: ['layer', 'data'],
         template: `
-        <div v-if="tmp[layer].challenges && tmp[layer].challenges[data]!== undefined && tmp[layer].challenges[data].unlocked && !(options.hideChallenges && maxedChallenge(layer, [data]) && !inChallenge(layer, [data]))"
+        <div v-if="tmp[layer] && tmp[layer].challenges && tmp[layer].challenges[data]!== undefined && tmp[layer].challenges[data].unlocked && !(options.hideChallenges && maxedChallenge(layer, [data]) && !inChallenge(layer, [data]))"
             :class="['challenge', challengeStyle(layer, data), player[layer].activeChallenge === data ? 'resetNotify' : '']" :style="tmp[layer].challenges[data].style">
             <br><h3 v-html="tmp[layer].challenges[data].name"></h3><br><br>
             <button :class="{ longUpg: true, can: true, [layer]: true }" :style="{'background-color': tmp[layer].color}" @click="startChallenge(layer, data)">{{challengeButtonText(layer, data)}}</button><br><br>
@@ -251,7 +251,7 @@ function loadVue() {
     app.component('upgrade', {
         props: ['layer', 'data'],
         template: `
-        <button v-if="tmp[layer].upgrades && tmp[layer].upgrades[data]!== undefined && tmp[layer].upgrades[data].unlocked" :id="'upgrade-' + layer + '-' + data" @click="buyUpg(layer, data)" :class="{ [layer]: true, tooltipBox: true, upg: true, bought: hasUpgrade(layer, data), locked: (!(canAffordUpgrade(layer, data))&&!hasUpgrade(layer, data)), can: (canAffordUpgrade(layer, data)&&!hasUpgrade(layer, data))}"
+        <button v-if="tmp[layer] && tmp[layer].upgrades && tmp[layer].upgrades[data]!== undefined && tmp[layer].upgrades[data].unlocked" :id="'upgrade-' + layer + '-' + data" @click="buyUpg(layer, data)" :class="{ [layer]: true, tooltipBox: true, upg: true, bought: hasUpgrade(layer, data), locked: (!(canAffordUpgrade(layer, data))&&!hasUpgrade(layer, data)), can: (canAffordUpgrade(layer, data)&&!hasUpgrade(layer, data))}"
             :style="[((!hasUpgrade(layer, data) && canAffordUpgrade(layer, data)) ? {'background-color': tmp[layer].color} : {}), tmp[layer].upgrades[data].style]">
             <span v-if="layers[layer].upgrades[data].fullDisplay" v-html="run(layers[layer].upgrades[data].fullDisplay, layers[layer].upgrades[data])"></span>
             <span v-else>
@@ -314,7 +314,7 @@ function loadVue() {
     app.component('buyable', {
     props: ['layer', 'data', 'size'],
     template: `
-    <div v-if="tmp[layer].buyables && tmp[layer].buyables[data]!== undefined && tmp[layer].buyables[data].unlocked" style="display: grid">
+    <div v-if="tmp[layer] && tmp[layer].buyables && tmp[layer].buyables[data]!== undefined && tmp[layer].buyables[data].unlocked" style="display: grid">
         <button :class="{ buyable: true, tooltipBox: true, can: tmp[layer].buyables[data].canBuy, locked: !tmp[layer].buyables[data].canAfford, bought: player[layer].buyables[data].gte(tmp[layer].buyables[data].purchaseLimit)}"
             :style="[tmp[layer].buyables[data].canBuy ? {'background-color': tmp[layer].color} : {}, size ? {'height': size, 'width': size} : {}, tmp[layer].componentStyles.buyable, tmp[layer].buyables[data].style]"
             @click="() => { if (!interval) buyBuyable(layer, data); }" :id="'buyable-' + layer + '-' + data" @mousedown="start" @mouseleave="stop" @mouseup="stop" @touchstart="start" @touchend="stop" @touchcancel="stop">
@@ -354,7 +354,7 @@ function loadVue() {
     app.component('respec-button', {
         props: ['layer', 'data'],
         template: `
-            <div v-if="tmp[layer].buyables && tmp[layer].buyables.respec && !(tmp[layer].buyables.showRespec !== undefined && tmp[layer].buyables.showRespec == false)">
+            <div v-if="tmp[layer] && tmp[layer].buyables && tmp[layer].buyables.respec && !(tmp[layer].buyables.showRespec !== undefined && tmp[layer].buyables.showRespec == false)">
                 <div class="tooltipBox respecCheckbox"><input type="checkbox" v-model="player[layer].noRespecConfirm"><tooltip :text="'Disable respec confirmation'"></tooltip></div>
                 <button @click="respecBuyables(layer)" :class="{ longUpg: true, can: player[layer].unlocked, locked: !player[layer].unlocked }" style="margin-right: 18px">{{tmp[layer].buyables.respecText ? tmp[layer].buyables.respecText : "Respec"}}</button>
             </div>
@@ -424,7 +424,7 @@ function loadVue() {
     app.component('grid', {
         props: ['layer', 'data'],
         template: `
-        <div v-if="tmp[layer].grid" class="upgTable">
+        <div v-if="tmp[layer] && tmp[layer].grid" class="upgTable">
             <div v-for="row in (data === undefined ? tmp[layer].grid.rows : data)" class="upgRow">
                 <div v-for="col in tmp[layer].grid.cols"><div v-if="run(layers[layer].grid.getUnlocked, layers[layer].grid, row*100+col)"
                     class="upgAlign" :style="{'margin': '1px',  'height': 'inherit',}">
@@ -481,7 +481,7 @@ function loadVue() {
     app.component('microtabs', {
     props: ['layer', 'data', 'style'],
     template: `
-        <div v-if="tmp[layer].microtabs" :style="[style, {'border-style': 'solid'}]">
+        <div v-if="tmp[layer] && tmp[layer].microtabs" :style="[style, {'border-style': 'solid'}]">
             <div class="upgTable instant">
                 <tab-buttons :layer="layer" :data="tmp[layer].microtabs[data]" :name="data" :style="tmp[layer].componentStyles['tab-buttons']"></tab-buttons>
             </div>
@@ -496,7 +496,7 @@ function loadVue() {
             style() { return constructBarStyle(this.layer, this.data); }
         },
         template: `
-        <div v-if="tmp[layer].bars && tmp[layer].bars[data].unlocked" :style="{'position': 'relative'}"><div :style="[tmp[layer].bars[data].style, style.dims, {'display': 'table'}]">
+        <div v-if="tmp[layer] && tmp[layer].bars && tmp[layer].bars[data] && run(tmp[layer].bars[data].unlocked, layers[layer].bars[data])" :style="{'position': 'relative'}"><div :style="[tmp[layer].bars[data].style, style.dims, {'display': 'table'}]">
             <div class="overlayTextContainer barBorder" :style="[tmp[layer].bars[data].borderStyle, style.dims]">
                 <span class="overlayText" :style="[tmp[layer].bars[data].style, tmp[layer].bars[data].textStyle]" v-html="run(layers[layer].bars[data].display, layers[layer].bars[data])"></span>
             </div>
@@ -522,7 +522,7 @@ function loadVue() {
     app.component('achievement', {
         props: ['layer', 'data'],
         template: `
-        <div v-if="tmp[layer].achievements && tmp[layer].achievements[data]!== undefined && tmp[layer].achievements[data].unlocked" :class="{ [layer]: true, achievement: true, tooltipBox:true, locked: !hasAchievement(layer, data), bought: hasAchievement(layer, data)}"
+        <div v-if="tmp[layer] && tmp[layer].achievements && tmp[layer].achievements[data]!== undefined && tmp[layer].achievements[data].unlocked" :class="{ [layer]: true, achievement: true, tooltipBox:true, locked: !hasAchievement(layer, data), bought: hasAchievement(layer, data)}"
             :style="achievementStyle(layer, data)">
             <tooltip :text="
                 (tmp[layer].achievements[data].tooltip == '') ? false : hasAchievement(layer, data) ? (tmp[layer].achievements[data].doneTooltip ? tmp[layer].achievements[data].doneTooltip : (tmp[layer].achievements[data].tooltip ? tmp[layer].achievements[data].tooltip : 'You did it!'))
