@@ -57,11 +57,15 @@ addLayer("a", {
             content:[
             //['infoboxes','main-text'],
             ['display-text', function() {
-                return `你有 <h3 style="color: #ffff3f; text-shadow: 10px">${formatWhole(player.a.achievements.length)}</h3> 成就`;
+                return `你有 <h3 style="color: #ffff3f; text-shadow:0 0 10px">${formatWhole(player.a.achievements.length)}</h3> 成就`;
             }],
             'achievements',
             ],
         },
+    },
+    style: {
+        background: "linear-gradient(135deg, #000000, #3f3f1f)",
+        minHeight: "100vh"
     },
     layerShown() {
         if (hasAchievement("a", 11)) {
@@ -107,7 +111,21 @@ addLayer("f", {
     },
     row: 0,
     hotkeys: [
-        { key: "f", description: "F: 进行一次农业重置", onPress() { if (canReset(this.layer)) doReset(this.layer); } },
+        {
+            key: "shift+p",
+            description: "Shift+P: 暂停/继续游戏",
+            onPress: function() {
+                if (typeof player === 'undefined' || !player) return;
+                player.paused = !player.paused;
+                if (player.paused) {
+                    doPopup("info", "游戏已暂停", "⏸", 2, "#ffaa00");
+                } else {
+                    doPopup("info", "游戏已恢复", "▶", 2, "#00ff00");
+                }
+            },
+            unlocked: true
+        }, 
+        { key: "f", description: "F: 进行一次农业重置", onPress() { if (canReset(this.layer)) doReset(this.layer); } }
     ],
     doReset(resettingLayer) {
         let keep = ["shown"];

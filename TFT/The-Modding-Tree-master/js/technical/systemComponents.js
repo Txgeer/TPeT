@@ -48,10 +48,10 @@ var systemComponents = {
         forceTooltip: player[layer].forceTooltip,
         ghost: tmp[layer].layerShown == 'ghost',
         hidden: !tmp[layer].layerShown,
-        locked: tmp[layer].isLayer ? !(player[layer].unlocked || tmp[layer].canReset) : !(tmp[layer].canClick),
-        notify: tmp[layer].notify && player[layer].unlocked,
+        locked: tmp[layer].isLayer ? !(player[layer] && (player[layer].unlocked || tmp[layer].canReset)) : !(tmp[layer].canClick),
+        notify: tmp[layer].notify && player[layer] && player[layer].unlocked,
         resetNotify: tmp[layer].prestigeNotify,
-        can: ((player[layer].unlocked || tmp[layer].canReset) && tmp[layer].isLayer) || (!tmp[layer].isLayer && tmp[layer].canClick),
+        can: ((player[layer] && player[layer].unlocked || tmp[layer].canReset) && tmp[layer].isLayer) || (!tmp[layer].isLayer && tmp[layer].canClick),
         front: !tmp.scrolled,
         'just-unlocked': player[layer].justUnlocked
         }"
@@ -61,7 +61,7 @@ var systemComponents = {
         v-if="tmp[layer].tooltip != ''"
 			:text="(tmp[layer].isLayer) ? (
 				player[layer].unlocked ? (tmp[layer].tooltip ? tmp[layer].tooltip : formatWhole(player[layer].points) + ' ' + tmp[layer].resource)
-				: (tmp[layer].tooltipLocked ? tmp[layer].tooltipLocked : 'Reach ' + formatWhole(tmp[layer].requires) + ' ' + tmp[layer].baseResource + ' to unlock (你有 ' + formatWhole(tmp[layer].baseAmount) + ' ' + tmp[layer].baseResource + ')')
+				: (tmp[layer].tooltipLocked ? tmp[layer].tooltipLocked : '达到 ' + formatWhole(tmp[layer].requires) + ' ' + tmp[layer].baseResource + ' 去解锁 (你有 ' + formatWhole(tmp[layer].baseAmount) + ' ' + tmp[layer].baseResource + ')')
 			)
 			: (
 				tmp[layer].canClick ? (tmp[layer].tooltip ? tmp[layer].tooltip : 'I am a button!')
@@ -96,7 +96,7 @@ var systemComponents = {
             <achievements v-bind:style="tmp[layer].componentStyles.achievements" :layer="layer"></achievements>
             <br><br>
         </div>
-        <div v-if="tmp[layer].tabFormat">
+        <div v-if="tmp[layer] && tmp[layer].tabFormat">
             <div v-if="Array.isArray(tmp[layer].tabFormat)">
                 <div v-if="spacing" v-bind:style="{'height': spacing}"></div>
                 <column :layer="layer" :data="tmp[layer].tabFormat"></column>
@@ -113,28 +113,35 @@ var systemComponents = {
     },
 
 	'overlay-head': {
-		template: `			
-		<div class="overlayThing" style="padding-bottom:7px; width: 90%; z-index: 1000; position: relative">
-    <span v-if="player.devSpeed && player.devSpeed != 1" class="overlayThing">
-        <br>Dev Speed: {{format(player.devSpeed)}}x<br>
-    </span>
-    <span v-if="player.offTime !== undefined" class="overlayThing">
-        <br>Offline Time: {{formatTime(player.offTime.remain)}}<br>
-    </span>
-    <span v-if="player.points.lt('1e1000')" class="overlayThing">你有 </span>
-    <h2 class="overlayThing" id="points">{{format(player.points)}}</h2>
-    <span v-if="player.points.lt('1e1e6')" class="overlayThing"> {{modInfo.pointsName}}</span>
-    <br>
-    <span v-if="canGenPoints()" class="overlayThing">({{tmp.other.oompsMag != 0 ? format(tmp.other.oomps) + " OOM" + (tmp.other.oompsMag < 0 ? "^OOM" : tmp.other.oompsMag > 1 ? "^" + tmp.other.oompsMag : "") + "s" : formatSmall(getPointGen())}}/s)</span>
-    <div v-for="thing in tmp.displayThings" class="overlayThing"><span v-if="thing" v-html="thing"></span></div>
-    </div>
-	`
+    template: `
+        <div class="overlayThing" style="padding-bottom:7px; width: 90%; z-index: 1000; position: relative">
+            <span v-if="player.devSpeed && player.devSpeed !== 1" class="overlayThing">
+                <br>开发者速度：{{format(player.devSpeed)}}x<br>
+            </span>
+            <span v-if="player.offTime !== undefined" class="overlayThing">
+                <br>Offline Time: {{formatTime(player.offTime.remain)}}<br>
+            </span>
+            <span v-if="player.points.lt('1e1000')" class="overlayThing">你有 </span>
+            <h2 class="overlayThing" id="points">{{format(player.points)}}</h2>
+            <span v-if="player.points.lt('1e1e6')" class="overlayThing"> {{modInfo.pointsName}}</span>
+            <br>
+            <span v-if="canGenPoints()" class="overlayThing">
+                ({{tmp.other.oompsMag !== 0 ? format(tmp.other.oomps) + ' OOM' + (tmp.other.oompsMag < 0 ? '^OOM' : tmp.other.oompsMag > 1 ? '^' + tmp.other.oompsMag : '') + 's' : formatSmall(getPointGen())}}/s)
+            </span>
+            <div v-if="player.paused" class="overlayThing" style="color: #ffaa00; font-size: 20px; margin-top: 5px; text-shadow: 0 0 10px #ffaa00;">
+                ⏸ 暂停中
+            </div>
+            <div v-for="(thing, index) in tmp.displayThings" :key="index" class="overlayThing">
+                <span v-if="thing" v-html="thing"></span>
+            </div>
+        </div>
+    `
     },
 //不要乱动
     'info-tab': {
     data() {
         return {
-            engineVersion: '3.0'
+            engineVersion: '3.0.2'
         };
     },
     template: `

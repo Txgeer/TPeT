@@ -54,20 +54,21 @@ function canGenPoints(){
 
 // Calculate points/sec!
 function getPointGen() {
-	if(!canGenPoints())
-		return new Decimal(1)
-	if (!player || !player.f) 
-		return new Decimal(1)
-    let gain = new Decimal(1)
-    if (player.f.wheat.gt(0)) gain = gain.times(player.f.wheat.add(1).log10())
-    if (hasUpgrade('m', 11)) gain = gain.times(upgradeEffect('m', 11))
-    if (hasUpgrade('m', 12)) gain = gain.times(upgradeEffect('m', 12))
-	if (!(gain instanceof Decimal) || gain.lte(0)) gain = new Decimal(1)
+	if(!canGenPoints()) return new Decimal(1) 
+	if (!player || !player.f) return new Decimal(1) 
+    let gain = new Decimal(1) 
+    if (player.f.wheat.gt(0)) gain = gain.times(player.f.wheat.add(1).log10()) 
+    if (hasUpgrade('m', 11)) gain = gain.times(upgradeEffect('m', 11)) 
+    if (hasUpgrade('m', 12)) gain = gain.times(upgradeEffect('m', 12)) 
+    if (hasUpgrade('m', 13)) gain = gain.times(upgradeEffect('m', 13)) 
+    if (hasUpgrade('m', 14)) gain = gain.times(upgradeEffect('m', 14)) 
+	if (!(gain instanceof Decimal) || gain.lte(0)) gain = new Decimal(1) 
 	return gain
 }
 
 // You can add non-layer related variables that should to into "player" and be saved here, along with default values
 function addePlayerData() { return {
+    paused: false
 }}
 
 function closeDragHint() {
@@ -119,5 +120,4 @@ window.startScreenConfig = {
     author: modInfo.author,
     newGameText: "新游戏",
     loadGameText: "继续游戏",
-    credits: "作者：Txgeer"
 };

@@ -16,7 +16,7 @@ function getStartOptions() {
         musicEnabled: true,
         milestonePopup: true,
         enableZoom: true,
-        textSelect: true
+        textSelect: true,
     }
 }
 
