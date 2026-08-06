@@ -396,16 +396,18 @@ function doPopup(type = "none", text = "This is a test popup.", title = "", time
 	popupID++;
 
 	if (type === "achievement") {
-        let flash = document.createElement('div');
-        flash.style.position = 'fixed';
-        flash.style.top = 0; flash.style.left = 0;
-        flash.style.width = '100%'; flash.style.height = '100%';
-        flash.style.backgroundColor = 'white';
-        flash.style.opacity = 0.5;
-        flash.style.pointerEvents = 'none';
-        flash.style.zIndex = 99999;
-        document.body.appendChild(flash);
-        setTimeout(() => flash.remove(), 200);
+		if (window.options && window.options.achievementFlash !== false) {
+            let flash = document.createElement('div');
+            flash.style.position = 'fixed';
+            flash.style.top = 0; flash.style.left = 0;
+            flash.style.width = '100%'; flash.style.height = '100%';
+            flash.style.backgroundColor = 'white';
+            flash.style.opacity = 0.5;
+            flash.style.pointerEvents = 'none';
+            flash.style.zIndex = 99999;
+            document.body.appendChild(flash);
+            setTimeout(() => flash.remove(), 200);
+        }
     }
 }
 

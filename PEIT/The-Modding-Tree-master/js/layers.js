@@ -35,7 +35,7 @@ addLayer("p", {
     ],
     upgrades:{       
         11:{
-            title:"元神,启动!",
+            title:"元神，启动！",
             description:"开始生产中微子。",
             effect(){
                 let effect = one
@@ -460,13 +460,8 @@ addLayer("p", {
             }
         },
         65: {
-            title: "终点......?",
-            description: "v0.5 版本终局！",
-            effect() {
-                let eff = player.be.points.pow(0.9);
-                return eff;
-            },
-            effectDisplay() { return "/" + format(this.effect()); },
+            title: "超越计划",
+            description: "解锁转生宝石。",
             cost: new Decimal(5000),
             currencyDisplayName: "电子",
             currencyInternalName: "electrons",
@@ -491,7 +486,7 @@ addLayer("p", {
                 if(x.gte(30)) a = x.pow(x.root(2))
                 return a
             },
-            display() { return "加成中微子获取。<br>价格：" + format(this.cost()) + "中微子<br>当前数量：" + format(getBuyableAmount(this.layer, this.id)) + "<br>当前效果：" + format(this.effect()) + "x<br>上限数量：" + format(this.purchaseLimit())},
+            display() { return "加成中微子。<br>价格：" + format(this.cost()) + "中微子<br>当前数量：" + format(getBuyableAmount(this.layer, this.id)) + "<br>当前效果：" + format(this.effect()) + "x<br>上限数量：" + format(this.purchaseLimit())},
             canAfford() { return player.points.gte(this.cost()) },
             buy() {
                 player.points = player.points.sub(this.cost())
@@ -505,7 +500,7 @@ addLayer("p", {
                     return a
                 }
                 else {
-                    let a = x.mul(0.16666).add(1)
+                    let a = x.mul(0.166686).add(1)
                     if(hasUpgrade("p",15)) a = x.mul(0.6666).add(1)
                     if(getBuyableAmount("p",12).gte(1)) a = x.mul(buyableEffect("p",12).add(0.6666))
                     return a
@@ -535,8 +530,8 @@ addLayer("p", {
             },
             effect(x){
                 let addeff = buyableEffect("p",13)
-                let a = x.mul(0.16666)
-                if(hasUpgrade("p",51)) a = x.mul(n(0.16666).add(upgradeEffect("p",51)))
+                let a = x.mul(0.166686)
+                if(hasUpgrade("p",51)) a = x.mul(n(0.166686).add(upgradeEffect("p",51)))
                 a = a.mul(addeff).max(0)
                 return a
             },
@@ -578,7 +573,7 @@ addLayer("p", {
             display() {
                 let gain = player.points.log2().log2().floor();
                 if (hasUpgrade('li', 14)) gain = gain.mul(layers.li.LiboostElectrons()).floor();
-                return "消耗 <span style='color:#FFFFFF;text-shadow:0 0 10px'>"+format(player.points)+"</span> 中微子，获得 <span style='color:#000077;text-shadow:0 0 10px'>"+format(gain)+"</span> 电子。<br>（至少需要 1e100 中微子）";
+                return "消耗 <span style='color:#FFFFFF;text-shadow:0 0 10px'>"+format(player.points)+"</span> 中微子，获得 <span style='color:#000077;text-shadow:0 0 10px'>"+format(gain)+"</span> 电子。<br>（至少转化 1e100 中微子）";
             },
             unlocked() { return true; },
             canClick() { return player.points.gte(1e100); },
@@ -697,7 +692,7 @@ addLayer("h", {
     upgrades:{
         11:{
             title:"氢原子",
-            description:"氢加成中微子获取。",
+            description:"氢加成中微子。",
             effect(){
                 let effect = one.add(player.h.points.add(1).mul(10).log(10))
                 return effect
@@ -1133,7 +1128,6 @@ addLayer("h", {
         if(player.li.unlocked) get = get.mul(layers.li.LiboostHpower())
         if(hasUpgrade("li",42)) get = get.mul(upgradeEffect("li",42))
         if(hasMilestone("he",8)) get = get.mul(layers.he.temPointBoostHpower())
-        if(player.be.depth.gte(36)) get = get.mul(layers.be.depthEffect2())
 
         if(get.gte("e61")) get = powsoftcap(get,layers.h.HpowerGetsoftcap1start(),three) //1软
 
@@ -1172,7 +1166,6 @@ addLayer("h", {
     },
     balloonFloor(){
         let floor = ten
-        if(player.be.depth.gt(1300)) floor = floor.sub(layers.be.depthEffect4())
         if(player.b.inBorane) floor = floor.add(10)
         return floor
     },
@@ -1714,7 +1707,7 @@ addLayer("he", {
             title:"冷却氦",
             display() {return "点击或按住来冷却氦<br>每次点击可获得 <span style='color:#775500;text-shadow:0 0 10px'>"+format(layers.he.temPointGet())+"</span>  温度点"}, 
             unlocked() {return hasUpgrade("he",41)},
-            canClick() {return !player.he.autoTemPoint},
+            canClick() {return !hasMilestone("li",12)},
             onClick() {
                 player.he.temPoint = player.he.temPoint.add(layers.he.temPointGet())
                 player.he.clicks = player.he.clicks.add(1)
@@ -1792,7 +1785,6 @@ addLayer("he", {
         if(hasUpgrade("he",55)) get = get.mul(upgradeEffect("he",55))
         if(hasUpgrade("he",61)) get = get.mul(upgradeEffect("he",61))
         if(hasUpgrade("li",91)) get = get.mul(upgradeEffect("li",91))
-        if(player.be.depth.gte(256)) get = get.mul(layers.be.depthEffect3())
         if(hasUpgrade("b",13)) get = get.mul(upgradeEffect("b",13))
         if(player.c.energy.gte(1)) get = get.mul(layers.c.CEeffect2())
 
@@ -2500,7 +2492,6 @@ addLayer("li", {
         if(hasUpgrade("he",62)) capacity = capacity.mul(upgradeEffect("he",62))
         if(hasUpgrade("li",52)) capacity = capacity.mul(upgradeEffect("li",52))
         if(getBuyableAmount("li",31)) capacity = capacity.mul(buyableEffect("li",31))
-        if(player.be.depth.gte(10)) capacity = capacity.mul(layers.be.depthEffect1())
         if(hasAchievement('a', 23)) capacity = capacity.mul(achievementEffect('a', 14))
         return capacity
     },
@@ -2513,7 +2504,6 @@ addLayer("li", {
         if(hasUpgrade("li",52)) gain = gain.mul(upgradeEffect("li",52))
         if(hasUpgrade("li",41)) gain = gain.mul(upgradeEffect("li",41))
         if(hasUpgrade("h",35)) gain = gain.mul(upgradeEffect("h",25))
-        if(player.be.depth.gte(10)) gain = gain.mul(layers.be.depthEffect1())
         return gain
     },
     researchPointMax(){
@@ -2609,7 +2599,7 @@ addLayer("be", {
         loadingPickaxe: zero,
         bittingTime: zero,
     }},
-    branches: ["h","he"],
+    branches: ["he"],
     color: "#50C878",
     requires: new Decimal(444),
     resource: "铍",
@@ -2655,711 +2645,37 @@ addLayer("be", {
             effectDescription: "解锁新的锂研究，和氢与温度点的升级。",
             done(){return player.be.points.gte(1000)},
             unlocked(){return hasMilestone("be",1)},
-        },
-        4:{
-            requirementDescription: "镐子等级达到Lv.50",
-            effectDescription: "解锁电动钻头",
-            done(){return getBuyableAmount("be",11).gte(50)},
-            unlocked(){return hasUpgrade("li",71)},
-        },
-        5:{
-            requirementDescription: "深度达到60",
-            effectDescription: "解锁转生宝石",
-            done(){return player.be.depth.gte(60)},
-            unlocked(){return hasMilestone("be",4)||hasMilestone("be",5)},
-        },
-        6:{
-            requirementDescription: "1转生宝石",
-            effectDescription: "解锁新的可购买",
-            done(){return player.be.prestiGems.gte(1)},
-            unlocked(){return hasMilestone("be",5)},
-        },
-        7:{
-            requirementDescription: "深度达到100",
-            effectDescription: "解锁新的研究",
-            done(){return player.be.depth.gte(100)},
-            unlocked(){return hasMilestone("be",5)},
-        },
-        8:{
-            requirementDescription: "深度达到179",
-            effectDescription(){return "改进深度第一效果公式,钻头剩余时间<28s时自动充电,充电增加时间锁定为3s(完全锁定),电能提升钻头伤害<br>当前效果: " + format(this.effect())+"x"},
-            effect(){
-                let eff = player.li.currentElectricity.root(2).add(1)
-                return eff
-            },
-            done(){return player.be.depth.gte(179)},
-            unlocked(){return hasMilestone("be",5)},
-        },
-        9:{
-            requirementDescription: "深度达到193",
-            effectDescription: "转生宝石重置时保留可购买,解锁转生宝石研究点和新的温度点升级",
-            done(){return player.be.depth.gte(193)},
-            unlocked(){return hasMilestone("be",5)},
-        },
-        10:{
-            requirementDescription: "深度达到1100",
-            effectDescription(){return "使转生宝石获取受宝石数量增幅,解锁两个新的基本粒子升级<br>当前效果: " + format(this.effect())+"x"},
-            effect(){
-                let eff = player.be.gems.add(10).log(10).mul(3)
-                return eff
-            },
-            done(){return player.be.depth.gte(1100)},
-            unlocked(){return hasMilestone("be",7)},
-        },
-        11:{
-            requirementDescription: "深度达到1500",
-            effectDescription(){return "使转生宝石数量不再被硼的第一个里程碑限制,每秒自动获取当前重置可获得的100%转生宝石"},
-            done(){return player.be.depth.gte(1500)},
-            unlocked(){return player.b.unlocked},
-        },
-        12:{
-            requirementDescription: "深度达到1800",
-            effectDescription(){return "深度第三效果的软上限起始x1e30"},
-            done(){return player.be.depth.gte(1800)},
-            unlocked(){return player.b.unlocked},
-        },
-        13:{
-            requirementDescription: "深度达到2260",
-            effectDescription(){return " 氦扩展深度第三效果的软上限<br>当前效果: " + format(this.effect())+"x"},
-            effect(){
-                let eff = n(1.05).pow(player.he.points)
-                return eff
-            },
-            done(){return player.be.depth.gte(2260)},
-            unlocked(){return player.b.unlocked},
-        },
-        14:{
-            requirementDescription: "深度达到2300",
-            effectDescription(){return "深度第四效果的硬上限+1"},
-            done(){return player.be.depth.gte(2300)},
-            unlocked(){return player.be.depth.gte(1300)},
-        },
+        }
     },
-    clickables:{
-        11:{
-            title:"挖掘",
-            display() {return "用你的镐子向下挖<br>当前伤害:" + format(layers.be.pickaxeDamage()) + "<br>冷却时间:" + formatTime(player.be.loadingPickaxe) + "<br>每次点击可获取 " + format(layers.be.gemGet()) + " 宝石( 深度与伤害)"}, 
-            unlocked() {return true},
-            canClick() {return player.be.loadingPickaxe.lte(0)},
+    clickables: {
+        21: {
+            title: "转生",
+            display() {
+                let gain = player.be.points.add(1).log2().floor().max(1);
+                return "重置中微子、电子、氢、氢能、氦、温度点、锂、电能、铍。<br>获得 <span style='color:#225533;text-shadow:0 0 10px'>" + format(gain) + "</span> 转生宝石。（至少需要 1e10 铍）";
+            },
+            unlocked() { return hasUpgrade("p",65); },
+            canClick() { return player.be.points.gt(1e10); },
             onClick() {
-                player.be.beDamaged = player.be.beDamaged.add(layers.be.pickaxeDamage())
-                player.be.gems = player.be.gems.add(layers.be.gemGet())
-                player.be.loadingPickaxe = layers.be.loadingPickaxe()
+                let gain = player.be.points.add(1).ln().add(1).floor();
+                player.points = zero;
+                player.p.electrons = zero;
+                player.h.points = zero;
+                player.h.power = zero;
+                player.he.points = zero;
+                player.he.temPoint = zero;
+                player.li.points = zero;
+                player.li.currentElectricity = zero;
+                player.be.points = zero;
+                player.be.prestiGems = player.be.prestiGems.add(gain);
+                needCanvasUpdate = true;
             },
-            style() { return { 'background-color': this.canClick()?"#5ED56F":"#BF8F8F", filter: "brightness(" + new Decimal(100) + "%)", color: "#000000",'border-radius': "30px", height: "120px", width: "120px" } },
-        },
-        12:{
-            title:"充电",
-            display() {return "给你的电动钻头充电<br>当前伤害:" + format(layers.be.bitDamage()) + "/s<br>增加持续时间:" + formatTime(layers.be.addBitTime()) + "<br>剩余持续时间:" + formatTime(player.be.bittingTime) + "/1m"}, 
-            unlocked() {return hasMilestone("be",4)},
-            canClick() {return true},
-            onClick() {
-                player.be.bittingTime = player.be.bittingTime.add(layers.be.addBitTime()).min(60)
-                player.li.currentElectricity = zero
-            },
-            style() { return { 'background-color': this.canClick()?"#5ED56F":"#BF8F8F", filter: "brightness(" + new Decimal(100) + "%)", color: "#000000",'border-radius': "30px", height: "120px", width: "120px" } },
-        },
-        21:{
-            title:"转生",
-            display() {return "重置深度,宝石,宝石升级,镐子钻头可购买,同时 重置前的深度获取转生宝石<br>当前重置可获得 " + format(layers.be.prestiGemsGet()) + " 转生宝石"}, 
-            unlocked() {return hasMilestone("be",4)},
-            canClick() {return player.be.depth.gte(60)&&!hasMilestone("b",0)},
-            onClick() {
-                player.be.prestiGems = player.be.prestiGems.add(layers.be.prestiGemsGet())
-                player.be.bittingTime = zero
-                player.be.beDamaged = zero
-                player.be.depth = zero
-                player.be.gems = zero
-                if(!hasMilestone("be",9)){setBuyableAmount("be",11,zero)
-                setBuyableAmount("be",12,zero)}
-                let U = [11,12,13,14,15];for (id in U){if(hasUpgrade("be",U[id])){player.be.upgrades.splice(player.be.upgrades.indexOf(U[id]),1)}}
-            },
-            style() { return { 'background-color': this.canClick()?"#60B060":"#BF8F8F", filter: "brightness(" + new Decimal(100) + "%)", color: "#000000",'border-radius': "5px", height: "120px", width: "200px" } },
-        },
-    },
-    bars:{
-        depth: {
-            direction: RIGHT,
-            width: 600,
-            height: 35,
-            fillStyle: {'background-color' : "green"},
-            display(){
-                if(!hasUpgrade("he",65))return "你对该深度造成了 " + format(player.be.beDamaged) + " 伤害,该深度需要 " + format(layers.be.deptHp()) + "伤害 ( " + format(this.progress().mul(100),1) + " %)"
-                else return "你造成了 " + format(player.be.beDamaged) + " 伤害,下个深度需要 " + format(depthNum(zero,1)) + "伤害  ( " + format(this.progress().mul(100),1) + " %)"
-            },
-            req(){ if(!hasUpgrade("he",65))return layers.be.deptHp()
-                else return depthNum(zero,1)},
-            progress() {
-                let estimatedProgress = player.be.beDamaged.div(this.req())
-                if(hasUpgrade("he",65)) estimatedProgress = player.be.beDamaged.div(this.req())
-                return estimatedProgress
-            },
-            unlocked(){return true},
-        },
-        pickaxeCD: {
-            direction: RIGHT,
-            width: 500,
-            height: 35,
-            fillStyle: {'background-color' : (function(){return (hasUpgrade("he",65)&&layers.be.loadingPickaxe().lte(0.1))?("#"+layers.li.magic()):"#5DC9BF"})},
-            display(){
-                if(hasUpgrade("he",65)&&layers.be.loadingPickaxe().lte(0.1))return "镐子每秒造成伤害: <h3 style=color:yellow>" + format(layers.be.pickaxeDamage().div(layers.be.loadingPickaxe())) + "</h3> "
-                return " 镐子冷却时间: <h3 style=color:yellow>" + format(player.be.loadingPickaxe,1,false) + "</h3> s"
-            },
-            req(){ return layers.be.loadingPickaxe()},
-            progress() {
-                if(hasUpgrade("he",65)&&layers.be.loadingPickaxe().lte(0.1)) return 1
-                return player.be.loadingPickaxe.div(this.req())
-            },
-            unlocked(){return true},
-        },
-        bitTime: {
-            direction: RIGHT,
-            width: 500,
-            height: 35,
-            fillStyle: {'background-color' : "cyan"},
-            display(){
-                return " 钻头剩余时间: <h3 style=color:yellow>" + format(player.be.bittingTime,1,false) + "</h3> s"
-            },
-            req(){ return n(60)},
-            progress() {
-                return player.be.bittingTime.div(this.req())
-            },
-            unlocked(){return hasMilestone("be",4)},
-        },
-    },
-    upgrades:{
-        11:{
-            title:"额外研究",
-            description:"额外获得7个研究点(需重置研究树)",
-            effect(){
-                let effect = seven
-                if(hasUpgrade("be",15)) effect = effect.mul(2)
-                return effect
-            },
-            effectDisplay(){return "+"+format(this.effect())},
-            cost: new Decimal(50),
-            unlocked(){return true},
-            currencyDisplayName:"宝石",
-            currencyInternalName:"gems",
-            currencyLayer:"be",      
-        },
-        12:{
-            title:"软化地层",
-            description:"深度的超级折算 氢能延迟",
-            effect(){
-                let effect = player.h.power.add(10).log(10).root(2)
-                if(hasUpgrade("be",15)) effect = effect.mul(2)
-                if(hasUpgrade("be",23)) effect = effect.mul(upgradeEffect("be",23))
-                return effect
-            },
-            effectDisplay(){return "延迟"+format(this.effect())},
-            cost: new Decimal(111111),
-            unlocked(){return true},
-            currencyDisplayName:"宝石",
-            currencyInternalName:"gems",
-            currencyLayer:"be",      
-        },
-        13:{
-            title:"冷却降低",
-            description:"每次造成伤害的冷却-2.5s",
-            effect(){
-                let effect = n(2.5)
-                if(hasUpgrade("be",15)) effect = effect.add(2)
-                return effect
-            },
-            effectDisplay(){return "-"+formatTime(this.effect())},
-            cost: new Decimal(4444), 
-            unlocked(){return true},
-            currencyDisplayName:"宝石",
-            currencyInternalName:"gems",
-            currencyLayer:"be",      
-        },
-        14:{
-            title:"控制电量",
-            description:"钻头剩余时间越接近28s~32s,效率越高",
-            effect(){
-                let power = four
-                if(hasUpgrade("be",15)) power = power.add(2)
-                let effect = n(28).pow(power)
-                let t = player.be.bittingTime.sub(28)
-                if(t.lt(0)) {t = zero.sub(t)}
-                else if(t.gt(4)) t = t.sub(4)
-                else t = zero
-                t = t.add(1).pow(power)
-                effect = effect.div(t).max(1)
-                return effect
-            },
-            effectDisplay(){return format(this.effect())+"x"},
-            cost: new Decimal(1e9),
-            unlocked(){return hasMilestone("be",4)},
-            currencyDisplayName:"宝石",
-            currencyInternalName:"gems",
-            currencyLayer:"be",      
-        },
-        15:{
-            title:"升级提升",
-            description:"左侧升级效果提升",
-            effect(){
-                let effect = two
-                return effect
-            },
-            effectDisplay(){return "x"+format(this.effect())+",x"+format(this.effect())+",+"+formatTime(this.effect())+",指数+"+format(this.effect())},
-            cost: new Decimal(3e9), 
-            unlocked(){return hasMilestone("be",5)},
-            currencyDisplayName:"宝石",
-            currencyInternalName:"gems",
-            currencyLayer:"be",      
-        },
-        21:{
-            title:"反向钻头强度",
-            description:" 钻头等级获得额外的强度等级",
-            effect(){
-                let effect = getBuyableAmount("be",12).root(2).div(3).max(0.5)
-                return effect
-            },
-            effectDisplay(){return "+Lv."+format(this.effect())},
-            cost: new Decimal(1),
-            unlocked(){return hasMilestone("be",6)},
-            currencyDisplayName:"转生宝石",
-            currencyInternalName:"prestiGems",
-            currencyLayer:"be",      
-        },
-        22:{
-            title:"自动挖掘与冷却降低",
-            description:"初始状态下镐子冷却时间/10,当冷却结束后自动点击挖掘",
-            effect(){
-                let effect = ten
-                return effect
-            },
-            effectDisplay(){return "/"+format(this.effect())},
-            cost: new Decimal(4), 
-            unlocked(){return hasMilestone("be",6)},
-            currencyDisplayName:"转生宝石",
-            currencyInternalName:"prestiGems",
-            currencyLayer:"be",      
-        },
-        23:{
-            title:"强度软化地层",
-            description:" 强度等级(额外等级不计)提升升级软化地层的效果",
-            effect(){
-                let effect = getBuyableAmount("be",21).add(3).div(3)
-                return effect
-            },
-            effectDisplay(){return "x"+format(this.effect())},
-            cost: new Decimal(20),
-            unlocked(){return hasMilestone("be",6)},
-            currencyDisplayName:"转生宝石",
-            currencyInternalName:"prestiGems",
-            currencyLayer:"be",      
-        },
-        24:{
-            title:"强度延迟折算",
-            description:" 强度等级(额外等级不计)延迟两个可购买的超级折算",
-            effect(){
-                let effect = getBuyableAmount("be",21).pow(1.5)
-                return effect
-            },
-            effectDisplay(){return "延迟"+format(this.effect())},
-            cost: new Decimal(2500),
-            unlocked(){return hasMilestone("be",6)},
-            currencyDisplayName:"转生宝石",
-            currencyInternalName:"prestiGems",
-            currencyLayer:"be",      
-        },
-        25:{
-            title:"超级折算延迟究极折算",
-            description:" 深度超级折算超出究极折算初始数值延迟深度究极折算",
-            effect(){
-                let effect = layers.be.superHpStart().sub(100).mul(1.1).max(0)
-                return effect
-            },
-            effectDisplay(){return "延迟"+format(this.effect())},
-            cost: new Decimal(6666),
-            unlocked(){return hasMilestone("be",6)},
-            currencyDisplayName:"转生宝石",
-            currencyInternalName:"prestiGems",
-            currencyLayer:"be",      
-        },
-        31:{
-            title:"反向镐子强度",
-            description:" 镐子等级获得额外的强度等级",
-            effect(){
-                let effect = getBuyableAmount("be",11).root(1.8).div(4).max(0.5)
-                return effect
-            },
-            effectDisplay(){return "+Lv."+format(this.effect())},
-            cost: new Decimal(133000000),
-            unlocked(){return player.b.unlocked},
-            currencyDisplayName:"转生宝石",
-            currencyInternalName:"prestiGems",
-            currencyLayer:"be",      
-        },
-        32:{
-            title:"转生宝石-宝石",
-            description:"转生宝石增幅宝石与深度奖励宝石获取",
-            effect(){
-                let effect = player.be.prestiGems.max(1).min("e50")
-                return effect
-            },
-            effectDisplay(){return "x"+format(this.effect())},
-            cost: new Decimal(134000000),
-            unlocked(){return player.b.unlocked},
-            currencyDisplayName:"转生宝石",
-            currencyInternalName:"prestiGems",
-            currencyLayer:"be",      
-        },
-        33:{
-            title:"强度强化强度",
-            description:" 强度等级(额外等级不计)强化强度的基础效果",
-            effect(){
-                let effect = getBuyableAmount("be",21).div(500)
-                return effect
-            },
-            effectDisplay(){return "+"+format(this.effect())},
-            cost: new Decimal(190101091),
-            unlocked(){return player.b.unlocked},
-            currencyDisplayName:"转生宝石",
-            currencyInternalName:"prestiGems",
-            currencyLayer:"be",      
-        },
-        34:{
-            title:"钻头折算强度平衡",
-            description:"钻头超级折算的指数-0.5",
-            effect(){
-                let effect = n(0.5)
-                return effect
-            },
-            effectDisplay(){return "-"+format(this.effect())},
-            cost: new Decimal(5e12),
-            unlocked(){return player.b.unlocked},
-            currencyDisplayName:"转生宝石",
-            currencyInternalName:"prestiGems",
-            currencyLayer:"be",      
-        },
-        35:{
-            title:"效果硬上限延迟",
-            description:"深度第四效果硬上限+0.5",
-            effect(){
-                let effect = n(0.5)
-                return effect
-            },
-            effectDisplay(){return "+"+format(this.effect())},
-            cost: new Decimal(1e13),
-            unlocked(){return player.b.unlocked},
-            currencyDisplayName:"转生宝石",
-            currencyInternalName:"prestiGems",
-            currencyLayer:"be",      
-        },
-    },
-    buyables:{
-        11:{
-            title(){
-                let title = layers.be.pickaxeCanEvolve()?"进阶你的镐子":"升级你的镐子"
-                if(getBuyableAmount("be",11).gte(this.super())) title = "超级折算|" + title
-                return title},
-            cost(x){
-                x = powerTo(x,this.super(),this.superPower())
-                let estimatedCost = new Decimal(1.2).pow(x).mul(10).floor()
-                if (layers.be.pickaxeCanEvolve())estimatedCost = estimatedCost.mul(5)
-                return estimatedCost
-            },
-            display() { return "价格: <br><h1 style=color:#5EE55E>" + format(this.cost()) + "</h1> 宝石 <br>镐子等级: <h1 style=color:#3F3F6F>Lv."+format(getBuyableAmount("be",11),0)+"</h1><br>效果:增幅镐子伤害" + format(this.effect()) + "x"},
-            canAfford() { return player.be.gems.gte(this.cost())},
-            effect(x){ 
-                let floor = n(1.3)
-                if(getBuyableAmount("be",21).gte(1)) floor = floor.add(buyableEffect("be",21))
-                let estimatedEffect = floor.pow(x)
-                estimatedEffect = estimatedEffect.pow(new Decimal(1.2).pow(layers.be.pickaxeLevelThreshold()))//每次进阶使伤害^1.2
-                return estimatedEffect
-            },
-            buy(){
-                player.be.gems = player.be.gems.sub(this.cost())
-                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))                
-            },
-            super(){
-                let start = n(45)
-                if(hasUpgrade("be",24)) start = start.add(upgradeEffect("be",24))
-                return start
-            },
-            superPower(){
-                let power = n(1.4)
-                return power
-            },
-            unlocked(){return hasUpgrade("li",71)},
-            style() { return { 'background-color': layers.be.pickaxeCanEvolve()?(this.canAfford()?"E4D00A":"#BF8F8F"):(this.canAfford()?"#5DC9BF":"#BF8F8F"), filter: "brightness(100%)",'border-radius': "30px", height: "120px", width: "180px" }},
-        },
-        12:{
-            title(){
-                let title = layers.be.bitCanEvolve()?"进阶你的钻头":"升级你的钻头"
-                if(getBuyableAmount("be",12).gte(this.super())) title = "超级折算|" + title
-                return title},
-            cost(x){
-                x = powerTo(x,this.super(),this.superPower())
-                let estimatedCost = new Decimal(1.15).pow(x).mul(1125).floor()
-                if (layers.be.bitCanEvolve())estimatedCost = estimatedCost.mul(10)
-                return estimatedCost
-            },
-            display() { return "价格: <br><h1 style=color:#5EE55E>" + format(this.cost()) + "</h1> 宝石 <br>钻头等级: <h1 style=color:#3F3F6F>Lv."+format(getBuyableAmount("be",12),0)+"</h1><br>效果:增幅钻头伤害" + format(this.effect()) + "x"},
-            canAfford() { return player.be.gems.gte(this.cost())},
-            effect(x){ 
-                let floor = n(1.55)
-                if(getBuyableAmount("be",21).gte(1)) floor = floor.add(buyableEffect("be",21))
-                let estimatedEffect = floor.pow(x)
-                estimatedEffect = estimatedEffect.pow(new Decimal(1.2).pow(layers.be.bitLevelThreshold()))//每次进阶使伤害^1.2
-                return estimatedEffect
-            },
-            buy(){
-                player.be.gems = player.be.gems.sub(this.cost())
-                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))                
-            },
-            super(){
-                let start = n(26)
-                if(hasUpgrade("be",24)) start = start.add(upgradeEffect("be",24))
-                return start
-            },
-            superPower(){
-                let power = n(2)
-                if(hasUpgrade("be",34)) power = power.sub(upgradeEffect("be",34))
-                return power
-            },
-            unlocked(){return hasMilestone("be",4)||hasMilestone("be",5)},
-            style() { return { 'background-color': layers.be.bitCanEvolve()?(this.canAfford()?"E4D00A":"#BF8F8F"):(this.canAfford()?"cyan":"#BF8F8F"), filter: "brightness(100%)",'border-radius': "30px", height: "120px", width: "180px" }},
-        },
-        21:{
-            title(){
-                let title = "升级你的镐子钻头强度"
-                if(getBuyableAmount("be",21).gte(this.super())) title = "超级折算|" + title
-                return title},
-            cost(x){
-                x = powerTo(x,this.super(),this.superPower())
-                let estimatedCost = new Decimal(3).pow(x).floor()
-                return estimatedCost
-            },
-            display() { 
-                let al = "" 
-                if(hasUpgrade("be",21)) al += "+"+format(this.addLevel())
-                return "价格: <br><h1 style=color:#5EE55E>" + format(this.cost()) + "</h1> 转生宝石 <br>强度等级: <h1 style=color:#3F3F6F>Lv."+format(getBuyableAmount("be",21),0)+"</h1>"+al+"<br>效果:增幅镐子,钻头伤害底数+" + format(this.effect()) + ""},
-            canAfford() { return player.be.prestiGems.gte(this.cost())},
-            effect(x){ 
-                let floor = one.div(100)
-                if(hasUpgrade("be",33)) floor = floor.add(upgradeEffect("be",33))
-                let estimatedEffect = floor.mul(x.add(this.addLevel()))
-                return estimatedEffect
-            },
-            buy(){
-                player.be.prestiGems = player.be.prestiGems.sub(this.cost())
-                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))                
-            },
-            super(){
-                let start = n(10)
-                return start
-            },
-            superPower(){
-                let power = n(2)
-                if(hasUpgrade("h",55)) power = power.sub(upgradeEffect("h",55))
-                return power
-            },
-            addLevel(){
-                let n = zero
-                if(hasUpgrade("be",21)) n = n.add(upgradeEffect("be",21))
-                if(hasUpgrade("be",31)) n = n.add(upgradeEffect("be",31))
-                return n
-            },
-            unlocked(){return hasMilestone("be",6)},
-            style() { return { 'background-color': this.canAfford()?"#60B080":"#BF8F8F", filter: "brightness(100%)",'border-radius': "30px", height: "120px", width: "180px" }},
-        },
-    },
-    pickaxeDamage(){
-        let atk = one
-        if(getBuyableAmount("be",11).gte(1)) atk = atk.mul(buyableEffect("be",11))
-        return atk
-    },
-    pickaxeCanEvolve(){
-        const upgradeThresholds = [10,25,50,75,100,200,300,400,500]
-        for (index in upgradeThresholds){
-            if (getBuyableAmount("be",11).eq(upgradeThresholds[index])) return true
+            style() {
+                return {
+                    'background-color': this.canClick() ? "#50C878" : "#BF8F8F",
+                };
+            }
         }
-        return false
-    },
-    pickaxeLevelThreshold(){//检测等阶
-        const upgradeThresholds = [10,25,50,75,100,200,300,400,500] //每个: 镐子升级进阶所需的等级数
-        for (index in upgradeThresholds){
-            if (getBuyableAmount("be",11).lte(upgradeThresholds[index])) return index
-        }
-        return 0
-    },
-    bitCanEvolve(){
-        const upgradeThresholds = [5,10,15,20,30,50,75,100,200,300,400,500]
-        for (index in upgradeThresholds){
-            if (getBuyableAmount("be",12).eq(upgradeThresholds[index])) return true
-        }
-        return false
-    },
-    bitLevelThreshold(){
-        const upgradeThresholds = [5,10,15,20,30,50,75,100,200,300,400,500]
-        for (index in upgradeThresholds){
-            if (getBuyableAmount("be",12).lte(upgradeThresholds[index])) return index
-        }
-        return 0
-    },
-    bitDamage(){
-        let atk = one
-        if(getBuyableAmount("be",12).gte(1)) atk = atk.mul(buyableEffect("be",12))
-        if(hasUpgrade("be",14)) atk = atk.mul(upgradeEffect("be",14))
-        if(hasMilestone("be",8)) atk = atk.mul(milestoneEffect("be",7))
-        return atk
-    },
-    addBitTime(){
-        if(hasMilestone("be",8)) return three
-        let t = player.li.currentElectricity.div("e10").add(5).log(5).sub(1)
-        return t
-    },
-    deptHp(){
-        let depth = player.be.depth
-        depth = powerTo(depth,layers.be.superHpStart(),1.5)
-        if(player.be.depth.gte(100))depth = depth.sub(layers.be.hyperHpStart()).add(powerTo(player.be.depth,layers.be.hyperHpStart(),2))
-        let hp = n(1.5).pow(depth.add(3)).floor()
-        return hp
-    },
-    superHpStart(){
-        let start = n(18)
-        if(hasUpgrade("be",12)) start = start.add(upgradeEffect("be",12))
-        if(hasUpgrade("li",81)) start = start.add(upgradeEffect("li",81))
-        if(hasUpgrade("li",82)) start = start.add(upgradeEffect("li",82))
-        if(hasUpgrade("li",83)) start = start.add(upgradeEffect("li",83))
-        if(hasMilestone("he",9)) start = start.add(layers.he.temPointEffect6())
-        return start
-    },
-    hyperHpStart(){
-        let start = n(100)
-        if(hasUpgrade("be",25)) start = start.add(upgradeEffect("be",25))
-        return start
-    },
-    superhyperHpStart(){
-        let start = n(1500)
-        return start
-    },
-    gemGet(){
-        let dg = layers.be.pickaxeDamage()
-        if(dg.gte(12)) dg = powsoftcap(dg,n(12),three)
-        dg = dg.floor()
-        let get = player.be.depth.root(1.5).floor().mul(dg)
-        if(player.be.depth.gte(36)) get = get.mul(layers.be.depthEffect2())
-        if(hasUpgrade("be",32)) get = get.mul(upgradeEffect("be",32))
-        if(player.c.energy.gte(1)) get = get.mul(layers.c.CEeffect1())
-        return get
-    },
-    rewardGemt(){
-        let rewardGemt = n(1.1).pow(player.be.depth)
-        rewardGemt = powsoftcap(rewardGemt,n(1e30),5)
-        if(player.be.depth.gte(36)) rewardGemt = rewardGemt.mul(layers.be.depthEffect2())
-        if(hasUpgrade("be",32)) rewardGemt = rewardGemt.mul(upgradeEffect("be",32).mul(upgradeEffect("be",32)))
-        if(hasUpgrade("h",54)) rewardGemt = rewardGemt.pow(upgradeEffect("h",54))
-        if(player.c.energy.gte(1)) rewardGemt = rewardGemt.mul(layers.c.CEeffect1())
-        return rewardGemt
-    },
-    depthEffect1(){
-        let eff = player.be.depth.sub(9).pow(1.5).add(1)
-        if(hasMilestone("be",8)) eff = n(1.1).pow(player.be.depth.sub(10))
-        eff = eff.max(1)
-        eff = powsoftcap(eff,layers.be.depthEffect1softcap(),5)
-        return eff
-    },
-    depthEffect2(){
-        let eff = player.be.depth.sub(35).pow(2).add(1)
-        eff = eff.max(1)
-        eff = powsoftcap(eff,layers.be.depthEffect2softcap(),5)
-        return eff
-    },
-    depthEffect3(){
-        let eff = three.pow(player.be.depth.sub(255))
-        eff = eff.max(1)
-        let saveeff = powsoftcap(eff,layers.be.depthEffect3softcap(),5)
-        let root = saveeff.log(1e19).max(5)
-        
-        if(player.b.inBorane) eff = eff.max(10).log(10)//special
-        
-        eff = powsoftcap(eff,layers.be.depthEffect3softcap(),root)
-        return eff
-    },
-    depthEffect4(){
-        let eff = player.be.depth.sub(1298).div(100).root(2)
-        eff = eff.max(0)
-        if(eff.gt(3)) eff = three.add(player.be.depth.sub(2198).root(4).div(100))
-        eff = eff.min(layers.be.depthEffect4hardcap())
-        return eff
-    },
-    depthEffect5(){
-        let eff = player.be.depth.sub(2280).max(1)
-        return eff
-    },
-    depthEffect1softcap(){
-        let start = n(1e8)
-        return start
-    },
-    depthEffect2softcap(){
-        let start = n(1024)
-        return start
-    },
-    depthEffect3softcap(){
-        let start = n(1024)
-        if(hasMilestone("be",12)) start = start.mul(1e30)
-        if(hasMilestone("be",13)) start = start.mul(milestoneEffect("be",12))
-        return start
-    },
-    depthEffect4hardcap(){
-        let start = n(2)
-        if(hasUpgrade("be",35)) start = start.add(upgradeEffect("be",35))
-        if(hasMilestone("be",14)) start = start.add(1)
-        return start
-    },
-    loadingPickaxe(){
-        let t = five
-        if(hasUpgrade("be",13)) t = t.sub(upgradeEffect("be",13))
-        if(hasUpgrade("be",22)) t = t.div(upgradeEffect("be",22))
-        return t
-    },
-    prestiGemsGet(){
-        let get = player.be.depth.sub(59).max(0).pow(2)
-        if(!hasUpgrade("h",53)) get = powsoftcap(get,two.pow(10),three)
-        if(hasMilestone("be",10)) get = get.mul(milestoneEffect("be",9))
-        if(hasMilestone("b",0)) get = get.mul(100)
-        if(player.c.energy.gte(1)) get = get.mul(layers.c.CEeffect3())
-        return get
-    },
-    update(diff){
-        if(player.be.bittingTime.gt(0)){
-            player.be.bittingTime = player.be.bittingTime.sub(diff).max(0)
-            player.be.beDamaged = player.be.beDamaged.add(layers.be.bitDamage().mul(diff))
-        }
-        player.be.loadingPickaxe = player.be.loadingPickaxe.sub(diff).max(0)
-        if(hasUpgrade("he",65)&&layers.be.loadingPickaxe().lte(diff*2)){
-            player.be.beDamaged = player.be.beDamaged.add(layers.be.pickaxeDamage().mul(diff*2).div(layers.be.loadingPickaxe()))
-            player.be.gems = player.be.gems.add(layers.be.gemGet().mul(diff*2).div(layers.be.loadingPickaxe()))
-        }
-        else if(hasUpgrade("be",22)&&player.be.loadingPickaxe.eq(0)){
-            player.be.beDamaged = player.be.beDamaged.add(layers.be.pickaxeDamage())
-            player.be.gems = player.be.gems.add(layers.be.gemGet())
-            player.be.loadingPickaxe = layers.be.loadingPickaxe()
-        }
-        if(hasMilestone("be",8)&&player.be.bittingTime.lte(28)){
-            player.be.bittingTime = player.be.bittingTime.add(layers.be.addBitTime()).min(60)
-            player.li.currentElectricity = zero
-        }
-        if(hasUpgrade("he",65)){
-            if(player.be.depth.lt(depthNum(player.be.beDamaged)))player.be.depth = depthNum(player.be.beDamaged).floor()
-            if(player.be.depth.gte(8)) player.be.gems = player.be.gems.add(layers.be.rewardGemt().mul(diff))
-        }
-        else if(player.be.beDamaged.gte(layers.be.deptHp())){
-            if(player.be.depth.lt(8)) player.be.gems = player.be.gems.add(layers.be.deptHp().root(2).floor())
-            if(player.be.depth.gte(8)) player.be.gems = player.be.gems.add(layers.be.deptHp().root(3).floor())
-            player.be.beDamaged = player.be.beDamaged.sub(layers.be.deptHp())
-            player.be.depth = player.be.depth.add(1)
-        }
-        if(hasMilestone("be",11)){
-            player.be.prestiGems = player.be.prestiGems.add(layers.be.prestiGemsGet().mul(diff))
-        }
-        else if(hasMilestone("b",0)&&layers.be.prestiGemsGet().gte(player.be.prestiGems)) player.be.prestiGems = layers.be.prestiGemsGet().max(0)
     },
     tabFormat:{
         "主页": {   
@@ -3369,84 +2685,18 @@ addLayer("be", {
             ],
             unlocked(){return player.be.unlocked}
         },
-        "digdown":{
+        "转生宝石": {
             content: [
-                "main-display","prestige-button",   
-                ["bar","depth"],
-                ["display-text",function(){return "你达到了 " + format(player.be.depth) + " 深度"}],
-                ["display-text",function(){
-                    if(!hasUpgrade("he",65))return "你有 " + format(player.be.gems) + " 宝石(在第8深度以后,深度奖励宝石^0.5->^0.33)"
-                    else return "你有 " + format(player.be.gems) + " 宝石<br>深度奖励宝石获取: " + format(layers.be.rewardGemt()) + "/s"}],                
-                ["clickables",[1]],
-                ["bar","pickaxeCD"],
-                ["bar","bitTime"],
-                ["display-text",function(){
-                    let text = ""
-                    if(player.be.depth.gte(layers.be.superHpStart())) text += "当深度到达"+format(layers.be.superHpStart())+"以后,深度将超级折算!<br>"
-                    if(player.be.depth.gte(layers.be.hyperHpStart())) text += "当深度到达"+format(layers.be.hyperHpStart())+"以后,深度将究极折算!<br>"
-                    if(player.be.depth.gte(layers.be.superhyperHpStart())) text += "当深度到达"+format(layers.be.superhyperHpStart())+"以后,深度将超究折算!<br>"
-                    return text
+                "main-display",
+                "prestige-button",
+                ["display-text", function(){ 
+                    return "你有 <span style='color:#50C878;text-shadow:0 0 10px'>" + format(player.be.prestiGems) + "</span> 转生宝石";
                 }],
-                ["display-text",function(){
-                    let text1 = "当深度到达10后,解锁深度第一效果"
-                    let text2 = ""
-                    let text3 = ""
-                    let text4 = ""
-                    let text5 = ""
-                    if(player.be.depth.gte(10)) {
-                        text1 = "深度第一效果:电能获取与电池容量变为原来的" + format(layers.be.depthEffect1()) + "x"
-                        if(layers.be.depthEffect1().gte(layers.be.depthEffect1softcap())) text1 += "(已达软上限)"
-                        text2 = "当深度到达36时,解锁深度第二效果"
-                    }
-                    if(player.be.depth.gte(36)) {
-                        text2 = "深度第二效果:宝石获取与氢能获取变为原来的" + format(layers.be.depthEffect2()) + "x"
-                        if(layers.be.depthEffect2().gte(layers.be.depthEffect2softcap())) text2 += "(已达软上限)"
-                        text3 = "当深度到达256时,解锁深度第三效果"
-                    }
-                    if(player.be.depth.gte(256)) {
-                        text3 = "深度第三效果:温度点获取变为原来的" + format(layers.be.depthEffect3()) + "x"
-                        if(layers.be.depthEffect3().gte(layers.be.depthEffect3softcap())) text3 += "(已达软上限)"
-                        text4 = "当深度到达1300时,解锁深度第四效果"
-                    }
-                    if(player.be.depth.gte(1300)) {
-                        text4 = "深度第四效果:计算气球获取的底数 -" + format(layers.be.depthEffect4())
-                        if(layers.be.depthEffect4().gte(layers.be.depthEffect4hardcap())) text4 += "(已达硬上限)"
-                        text5 = "当深度到达2300时,解锁深度第五效果"
-                    }
-                    if(player.be.depth.gte(2300)) {
-                        text5 = "深度第五效果:丁硼烷获取变为原来的 " + format(layers.be.depthEffect5()) + "x"
-                        //if(layers.be.depthEffect5().gte(layers.be.depthEffect5hardcap())) text4 += "(已达软上限)"
-                        text6 = "当深度到达10000000时,解锁深度第六效果"
-                    }
-                    return text1 + "<br>" + text2 + "<br>" + text3 + "<br>" + text4 + "<br>" + text5
-                }],
+                "clickables"
             ],
-            unlocked(){return hasUpgrade("li",71)}
-        },
-        "pickaxes":{
-            content: [
-                "main-display","prestige-button",   
-                ["display-text",function(){return "你有 " + format(player.be.gems) + " 宝石"}],
-                ["buyables",[1,2]]
-            ],
-            unlocked(){return hasUpgrade("li",71)}
-        },
-        "upgrades":{
-            content: [
-                "main-display","prestige-button",   
-                ["display-text",function(){return "你有 " + format(player.be.gems) + " 宝石"}],
-                ["upgrades",[1,2,3]]
-            ],
-            unlocked(){return hasUpgrade("li",71)}
-        },
-        "prestigems":{
-            content:[
-                "main-display","prestige-button",   
-                ["clickable",21],["display-text",function(){return "你有 " + format(player.be.prestiGems) + " 转生宝石"}],
-            ],
-            unlocked(){return hasMilestone("be",5)}
-        },
-    },
+            unlocked(){ return hasUpgrade("p",65); }
+        }
+    }
 },)
 /*
 |||||\\\\\
@@ -3914,7 +3164,6 @@ addLayer("b", {
         if((num==1||num==2||num==3)&&hasUpgrade("b",41)) gain = gain.mul(upgradeEffect("b",41))
         if(num==1&&hasUpgrade("b",23)) gain = gain.mul(upgradeEffect("b",23))
         if(num==2&&hasUpgrade("b",33)) gain = gain.mul(upgradeEffect("b",33))
-        if(num==4&&player.be.depth.gte(2300)) gain = gain.mul(layers.be.depthEffect5())
         return gain
     },
     chooseBoraneGainMax(){
@@ -4190,7 +3439,7 @@ addLayer("a", {
         },
         24: {
             name: "24",
-            done() {return player.be.depth.gte(10)},
+            done() {return false}, 
             tooltip: "到达10深度",
             unlocked() {return hasAchievement("a",99)}
         },

@@ -185,18 +185,16 @@ var systemComponents = {
                         <td><button class="opt" @click="() => save()">保存</button></td>
                         <td><button class="opt" @click="() => toggleOpt('autosave')">自动保存: {{ options.autosave ? "开" : "关" }}</button></td>
                         <td><button class="hard-reset-btn" @click="() => hardReset()">硬复位</button></td>
+                        <td><button class="opt" @click="() => exportSave()">导出到剪切板</button></td>
                     </tr>
                     <tr>
-                        <td><button class="opt" @click="() => exportSave()">导出到剪切板</button></td>
                         <td><button class="opt" @click="() => importSave()">导入</button></td>
                         <td><button class="opt" @click="() => toggleOpt('offlineProd')">离线进度: {{ options.offlineProd ? "开" : "关" }}</button></td>
-                    </tr>
-                    <tr>
                         <td><button class="opt" @click="() => switchTheme()">主题: {{ getThemeName() }}</button></td>
                         <td><button class="opt" @click="() => adjustMSDisp()">显示里程碑: {{ MS_DISPLAYS[MS_SETTINGS.indexOf(options.msDisplay)] }}</button></td>
-                        <td><button class="opt" @click="() => toggleOpt('hqTree')">高质量树贴图: {{ options.hqTree ? "开" : "关" }}</button></td>
                     </tr>
                     <tr>
+                        <td><button class="opt" @click="() => toggleOpt('hqTree')">高质量树贴图: {{ options.hqTree ? "开" : "关" }}</button></td>
                         <td><button class="opt" @click="() => toggleOpt('hideChallenges')">已完成的挑战: {{ options.hideChallenges ? "隐藏" : "显示" }}</button></td>
                         <td><button class="opt" @click="() => { toggleOpt('forceOneTab'); needCanvasUpdate = true; }">单标签页模式: {{ options.forceOneTab ? "总是" : "自动" }}</button></td>
                         <td><button class="opt" @click="() => toggleMusic()">音乐: {{ options.musicEnabled ? "开" : "关" }}</button></td>
@@ -205,6 +203,7 @@ var systemComponents = {
                         <td><button class="opt" @click="() => toggleOpt('milestonePopup')">里程碑弹窗: {{ options.milestonePopup ? "开" : "关" }}</button></td>
                         <td><button class="opt" @click="() => toggleZoom()">放大: {{ options.enableZoom ? "开" : "关" }}</button></td>
                         <td><button class="opt" @click="() => toggleTextSelect()">文本选择: {{ options.textSelect ? "开" : "关" }}</button></td>
+                        <td><button class="opt" @click="() => toggleOpt('achievementFlash')">成就闪光: {{ options.achievementFlash ? "开" : "关" }}</button></td>
                     </tr>
                 </tbody>
             </table>
