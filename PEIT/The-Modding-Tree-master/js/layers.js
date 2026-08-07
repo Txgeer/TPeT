@@ -1,4 +1,4 @@
-const NAMES = ["基本粒子","氢","氦","锂","铍","硼","碳","氮","氧","氟","氖"]
+const NAMES = ["中微子","氢","氦","锂","铍","硼","碳","氮","氧","氟","氖"]
 addLayer("p", {
     name: "p",
     symbol: "P",
@@ -173,7 +173,7 @@ addLayer("p", {
                 return effect
             },
             effectDisplay(){return "+"+format(this.effect())},
-            currencyDisplayName:"基本粒子",
+            currencyDisplayName:"中微子",
             currencyInternalName:"points",
             cost: new Decimal(9e15),
             unlocked(){return hasUpgrade("he",21)||hasUpgrade("p",[this.id])},
@@ -213,21 +213,21 @@ addLayer("p", {
                 if(hasUpgrade("p",62)) effect = effect.mul(upgradeEffect("p",62))
                 return effect
             },
-            currencyDisplayName:"基本粒子",
+            currencyDisplayName:"中微子",
             currencyInternalName:"points",
             cost: new Decimal(300000000),
             unlocked(){return hasUpgrade("h",13)||hasUpgrade("p",[this.id])},
         },
         34:{
             title:"加速生产 VII",
-            description:"翻六倍基本粒子获取。",
+            description:"翻六倍中微子获取。",
             effect(){
                 let effect = n(6)
                 if(hasUpgrade("p",62)) effect = effect.mul(upgradeEffect("p",62))
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect())},
-            currencyDisplayName:"基本粒子",
+            currencyDisplayName:"中微子",
             currencyInternalName:"points",
             cost: new Decimal(3.14e16),
             unlocked(){return hasUpgrade("p",25)||hasUpgrade("p",[this.id])},
@@ -235,7 +235,7 @@ addLayer("p", {
         35:{
             title:"粒子超越器",
             description:"优化 粒子究速器 的公式。",
-            currencyDisplayName:"基本粒子",
+            currencyDisplayName:"中微子",
             currencyInternalName:"points",
             cost: new Decimal(3e22),
             unlocked(){return hasUpgrade("p",34)||hasUpgrade("p",[this.id])},
@@ -263,7 +263,7 @@ addLayer("p", {
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect())},
-            currencyDisplayName:"基本粒子",
+            currencyDisplayName:"中微子",
             currencyInternalName:"points",
             cost: new Decimal(3e9),
             unlocked(){return hasUpgrade("h",13)||hasUpgrade("p",[this.id])},
@@ -278,7 +278,7 @@ addLayer("p", {
                 return a
             },
             effectDisplay(){return "x"+format(this.effect())},
-            currencyDisplayName:"基本粒子",
+            currencyDisplayName:"中微子",
             currencyInternalName:"points",
             cost: new Decimal(3e38),
             unlocked(){return hasMilestone("li",11)||hasUpgrade("p",[this.id])},
@@ -291,7 +291,7 @@ addLayer("p", {
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect())},
-            currencyDisplayName:"基本粒子",
+            currencyDisplayName:"中微子",
             currencyInternalName:"points",
             cost: new Decimal(3.9e39),
             unlocked(){return hasUpgrade("p",43)||hasUpgrade("p",[this.id])},
@@ -304,7 +304,7 @@ addLayer("p", {
                 return effect
             },
             effectDisplay(){return "+"+format(this.effect())},
-            currencyDisplayName:"基本粒子",
+            currencyDisplayName:"中微子",
             currencyInternalName:"points",
             cost: new Decimal(4e40),
             unlocked(){return hasUpgrade("p",44)||hasUpgrade("p",[this.id])},
@@ -318,7 +318,7 @@ addLayer("p", {
                 return effect
             },
             effectDisplay(){return "+"+format(this.effect())},
-            currencyDisplayName:"基本粒子",
+            currencyDisplayName:"中微子",
             currencyInternalName:"points",
             cost: new Decimal(3e10),
             unlocked(){return hasUpgrade("h",13)||hasUpgrade("p",[this.id])},
@@ -333,7 +333,7 @@ addLayer("p", {
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect())},
-            currencyDisplayName:"基本粒子",
+            currencyDisplayName:"中微子",
             currencyInternalName:"points",
             cost: new Decimal(4e42),
             unlocked(){return hasUpgrade("p",45)||hasUpgrade("p",[this.id])}
@@ -346,7 +346,7 @@ addLayer("p", {
                 return effect
             },
             effectDisplay(){return format(this.effect().mul(100)) + "%"},
-            currencyDisplayName:"基本粒子",
+            currencyDisplayName:"中微子",
             currencyInternalName:"points",
             cost: new Decimal(4e44),
             unlocked() {return hasUpgrade("p",52)||hasUpgrade("p",[this.id])}
@@ -660,7 +660,7 @@ addLayer("p", {
                 a = x.pow(x.pow(2))
                 return a
             },
-            display() { return "加成 粒子加速器|Bef。<br>价格：" + format(this.cost()) + "基本粒子<br>当前数量：" + format(getBuyableAmount(this.layer, this.id)) + "<br>当前效果：" + format(this.effect()) + "x<br>上限数量：" + format(this.purchaseLimit())},
+            display() { return "加成 粒子加速器|Bef。<br>价格：" + format(this.cost()) + "中微子<br>当前数量：" + format(getBuyableAmount(this.layer, this.id)) + "<br>当前效果：" + format(this.effect()) + "x<br>上限数量：" + format(this.purchaseLimit())},
             canAfford() { return player.points.gte(this.cost()) },
             buy() {
                 player.points = player.points.sub(this.cost())
@@ -836,7 +836,7 @@ addLayer("h", {
         },   
         13:{
             title:"氘",
-            description:"解锁更多基本粒子升级，并小幅加成氢获取。",
+            description:"解锁更多中微子升级，并小幅加成氢获取。",
             effect(){
                 let effect = n(1.2)
                 return effect
@@ -2064,7 +2064,7 @@ addLayer("he", {
                 "main-display",
                 "prestige-button",   
                 ["display-text",
-                    function(){return "你有 "+format(player.points)+" 基本粒子"}],"blank"
+                    function(){return "你有 "+format(player.points)+" 中微子"}],"blank"
                 ["display-text",function(){return "你的氦现在的温度是 <span style='color:#FFB6C1;text-shadow:0 0 10px'>"+format(player.he.temperature)+"</span>"}],"milestones"
             ],
             unlocked(){return hasUpgrade("he",41)}
@@ -3112,7 +3112,7 @@ addLayer("b", {
         },
         12:{
             title:"癸硼烷粒子",
-            description:"基本粒子获取 癸硼烷而提升",
+            description:"中微子获取 癸硼烷而提升",
             effect(){
                 let effect = player.b.borane1.max(1)
                 effect = powsoftcap(effect,n(1e20),n(three))
@@ -3304,7 +3304,7 @@ addLayer("b", {
         },
         43:{
             title:"丁硼烷粒子",
-            description:" 丁硼烷加成基本粒子获取",
+            description:" 丁硼烷加成中微子获取",
             effect(){
                 let effect = player.b.borane4.pow(2.5)
                 effect = powsoftcap(effect,n(1e30),five)
@@ -3342,7 +3342,7 @@ addLayer("b", {
             title() {return "制取硼烷--" + (player.b.inBorane?"结束":"开始")},
             display() {
                 let text = "当前状态:" + (player.b.inBorane?"进行中":"闲置") + "<br><h3>"
-                text += "开始制取硼烷时,进行一次铍重置,但保留一些重要升级<br>在制取硼烷的过程中,基本粒子获取^0.75,气球获取底数+10,温度点获取^0.5,氢获取^0.5,氢能获取^0.8,锂第四效果log10,锂研究-22效果^0.2,深度第三效果log10<br>结束制取硼烷时, 气球数量和温度点数量获取硼烷获取基数,<br>当前: "+format(player.b.boraneGainFloorN)+"<br>当前结束制取硼烷可获得 " + format(layers.b.boraneGainFloor()) + "(+"+format(layers.b.boraneGainFloor().sub(player.b.boraneGainFloorN).max(0))+") 硼烷获取基数"
+                text += "开始制取硼烷时,进行一次铍重置,但保留一些重要升级<br>在制取硼烷的过程中,中微子获取^0.75,气球获取底数+10,温度点获取^0.5,氢获取^0.5,氢能获取^0.8,锂第四效果log10,锂研究-22效果^0.2,深度第三效果log10<br>结束制取硼烷时, 气球数量和温度点数量获取硼烷获取基数,<br>当前: "+format(player.b.boraneGainFloorN)+"<br>当前结束制取硼烷可获得 " + format(layers.b.boraneGainFloor()) + "(+"+format(layers.b.boraneGainFloor().sub(player.b.boraneGainFloorN).max(0))+") 硼烷获取基数"
                 return text
             },
             canClick() {return player.b.inBorane||canReset("be")},
@@ -3551,7 +3551,7 @@ addLayer("c", {
     color: "#555555",
     requires: new Decimal("1e332"),
     resource: "碳",
-    baseResource: "基本粒子",
+    baseResource: "中微子",
     baseAmount() {return player.points},
     type: "normal", 
     exponent: 1/308,
@@ -3654,7 +3654,7 @@ addLayer("a", {
         11: {
             name: "赢",
             done() {return player.points.gte(1e5)}, 
-            tooltip: "获得 100000 基本粒子。<br>奖励：+1 中微子获取。", 
+            tooltip: "获得 100000 中微子。<br>奖励：+1 中微子获取。", 
             effect() {return one},
             unlocked: true
         },
