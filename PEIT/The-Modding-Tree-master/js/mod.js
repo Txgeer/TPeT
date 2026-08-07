@@ -29,15 +29,17 @@ let modInfo = {
 let getModID = () => modInfo.id ?? `${modInfo.name.replace(/\s+/g, '-')}-${modInfo.author.replace(/\s+/g, '-')}`;
 // Set your version in num and name
 let VERSION = {
-	num: "0.5",
+	num: "0.5.1",
 	name: "New Game"
 }
 
 let changelog = `<h1>更新日志:</h1><br>
-    <h3>v0.5 临时版本 2026.8.6</h3><br>
+    <h3>NG v0.5.1 2026.8.6</h3><br>
+		- 增加了自己的一些新内容。<br>
+    <h3>NG v0.5 临时版本 2026.8.6</h3><br>
 		- 修复了氦不能冷却的恶性Bug。<br>
 		- 不要点那个转生！！！！！！！目前有Bug<br>
-    <h3>v0.5 2026.8.6</h3><br>
+    <h3>NG v0.5 2026.8.6</h3><br>
 		- 物是人非。<br>
 		- 总之，元素周期增量树换新作者了！<br>
 		- 我把游戏搬到了基于TMT自制的PROJECT:NTV3引擎！<br>
@@ -124,11 +126,13 @@ function getPointGen() {
 	if(hasMilestone("h",4)) gain = gain.mul(layers.he.balloonBoostPoints())
 	if(player.he.upTime.gt(0)) gain = gain.mul(layers.he.boomedBalloonBoostPoints())
 	if(hasMilestone("he",2)) gain = gain.mul(layers.he.temPointBoostPoints())
+	if(hasUpgrade("be",13)) gain = gain.mul(upgradeEffect("be",13))
+	if(hasUpgrade("be",21)) gain = gain.mul(upgradeEffect("be",13))
 	if(hasUpgrade("b",12)) gain = gain.mul(upgradeEffect("b",12))
 	if(hasUpgrade("b",43)) gain = gain.mul(upgradeEffect("b",43))
 	if(player.c.energy.gte(1)) gain = gain.mul(layers.c.CEeffect1())
 	if(hasUpgrade("li",13)) gain = gain.mul(layers.li.LiboostPoints())
-    if(player.b.inBorane) gain = gain.pow(0.75)
+    if(player.b.inBorane) gain = gain.pow(0.75).add(1)
 	return gain
 }
 
