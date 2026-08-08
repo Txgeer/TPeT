@@ -2110,7 +2110,7 @@ lllllllllll      ii
 addLayer("li", {
     name: "li",
     symbol: "Li",
-    position: 1,
+    position: 2,
     branches: ["h"],
     startData() { return {
         unlocked: false,
@@ -2793,7 +2793,7 @@ addLayer("li", {
 addLayer("be", {
     name: "be",
     symbol: "Be",
-    position: 2, 
+    position: 1, 
     startData() { return {
         unlocked: false,
         points: new Decimal(0),
