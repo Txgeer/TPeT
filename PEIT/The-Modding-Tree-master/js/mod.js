@@ -29,13 +29,16 @@ let modInfo = {
 let getModID = () => modInfo.id ?? `${modInfo.name.replace(/\s+/g, '-')}-${modInfo.author.replace(/\s+/g, '-')}`;
 // Set your version in num and name
 let VERSION = {
-	num: "0.5.1",
+	num: "0.5.2",
 	name: "New Game"
 }
 
 let changelog = `<h1>更新日志:</h1><br>
-    <h3>NG v0.5.1 2026.8.6</h3><br>
-		- 增加了自己的一些新内容。<br>
+    <h3>NG v0.5.2 2026.8.8</h3><br>
+		- 增加了新的内容（碳前）。<br>
+    <h3>NG v0.5.1 2026.8.7</h3><br>
+		- 增加了新的内容（硼前）。<br>
+		- 修复了转生的问题。<br>
     <h3>NG v0.5 临时版本 2026.8.6</h3><br>
 		- 修复了氦不能冷却的恶性Bug。<br>
 		- 不要点那个转生！！！！！！！目前有Bug<br>
@@ -92,7 +95,7 @@ function getStartPoints(){
 
 // Determines if it should show points/sec
 function canGenPoints(){
-	return hasUpgrade("p",11);
+	return hasUpgrade("b",15);
 }
 
 // Calculate points/sec!
@@ -128,11 +131,10 @@ function getPointGen() {
 	if(hasMilestone("he",2)) gain = gain.mul(layers.he.temPointBoostPoints())
 	if(hasUpgrade("be",13)) gain = gain.mul(upgradeEffect("be",13))
 	if(hasUpgrade("be",21)) gain = gain.mul(upgradeEffect("be",13))
-	if(hasUpgrade("b",12)) gain = gain.mul(upgradeEffect("b",12))
-	if(hasUpgrade("b",43)) gain = gain.mul(upgradeEffect("b",43))
+	if(hasUpgrade("b",41)) gain = gain.mul(upgradeEffect("b",41))
 	if(player.c.energy.gte(1)) gain = gain.mul(layers.c.CEeffect1())
 	if(hasUpgrade("li",13)) gain = gain.mul(layers.li.LiboostPoints())
-    if(player.b.inBorane) gain = gain.pow(0.75).add(1)
+    if(player.b.inBorane) gain = gain.pow(0.66686)
 	return gain
 }
 

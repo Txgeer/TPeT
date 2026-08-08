@@ -272,11 +272,46 @@ function loadVue() {
     });
     app.component('prestige-button', {
         props: ['layer', 'data'],
+        data() {
+            return {
+                interval: false,
+                time: 0
+            };
+        },
+        methods: {
+            start() {
+                if (!this.interval) {
+                    this.interval = setInterval(() => {
+                        doReset(this.layer);
+                        this.time = this.time + 1;
+                    }, 50);
+                }
+            },
+            stop() {
+                clearInterval(this.interval);
+                this.interval = false;
+                this.time = 0;
+            }
+        },
+        unmounted() {
+            if (this.interval) {
+                clearInterval(this.interval);
+                this.interval = false;
+            }
+        },
         template: `
-        <button v-if="(tmp[layer].type !== 'none')" :class="{ [layer]: true, reset: true, locked: !tmp[layer].canReset, can: tmp[layer].canReset}"
-            :style="[tmp[layer].canReset ? {'background-color': tmp[layer].color} : {}, tmp[layer].componentStyles['prestige-button']]"
-            v-html="prestigeButtonText(layer)" @click="doReset(layer)">
-        </button>
+            <button v-if="(tmp[layer].type !== 'none')"
+                :class="{ [layer]: true, reset: true, locked: !tmp[layer].canReset, can: tmp[layer].canReset }"
+                :style="[tmp[layer].canReset ? {'background-color': tmp[layer].color} : {}, tmp[layer].componentStyles['prestige-button']]"
+                v-html="prestigeButtonText(layer)"
+                @click="doReset(layer)"
+                @mousedown="start"
+                @mouseup="stop"
+                @mouseleave="stop"
+                @touchstart="start"
+                @touchend="stop"
+                @touchcancel="stop">
+            </button>
         `
     });
     app.component('main-display', {
@@ -375,44 +410,51 @@ function loadVue() {
     `
     });
     app.component('clickable', {
-    props: ['layer', 'data', 'size'],
-    template: `
-    <button 
-        v-if="tmp[layer].clickables && tmp[layer].clickables[data]!== undefined && tmp[layer].clickables[data].unlocked" 
-        :class="{ upg: true, tooltipBox: true, can: tmp[layer].clickables[data].canClick, locked: !tmp[layer].clickables[data].canClick}"
-        :style="[tmp[layer].clickables[data].canClick ? {'background-color': tmp[layer].color} : {}, size ? {'height': size, 'width': size} : {}, tmp[layer].clickables[data].style]"
-        @click="() => { if (!interval) clickClickable(layer, data); }" :id="'clickable-' + layer + '-' + data" @mousedown="start" @mouseleave="stop" @mouseup="stop" @touchstart="start" @touchend="stop" @touchcancel="stop">
-        <span v-if="tmp[layer].clickables[data].title"><h2 v-html="tmp[layer].clickables[data].title"></h2><br></span>
-        <span :style="{'white-space': 'pre-line'}" v-html="run(layers[layer].clickables[data].display, layers[layer].clickables[data])"></span>
-        <node-mark :layer="layer" :data="tmp[layer].clickables[data].marked"></node-mark>
-        <tooltip v-if="tmp[layer].clickables[data].tooltip" :text="tmp[layer].clickables[data].tooltip"></tooltip>
-    </button>
-    `,
-    data() { return { interval: false, time: 0 }; },
-    methods: {
-        start() {
-            if (!this.interval && layers[this.layer].clickables[this.data].onHold) {
-                this.interval = setInterval((function() {
-                    let c = layers[this.layer].clickables[this.data];
-                    if(this.time >= 5 && run(c.canClick, c)) {
-                        run(c.onHold, c);
-                    }    
-                    this.time = this.time+1;
-                }).bind(this), 50);
+        props: ['layer', 'data', 'size'],
+        template: `
+        <button 
+            v-if="tmp[layer].clickables && tmp[layer].clickables[data]!== undefined && tmp[layer].clickables[data].unlocked" 
+            :class="{ upg: true, tooltipBox: true, can: tmp[layer].clickables[data].canClick, locked: !tmp[layer].clickables[data].canClick}"
+            :style="[tmp[layer].clickables[data].canClick ? {'background-color': tmp[layer].color} : {}, size ? {'height': size, 'width': size} : {}, tmp[layer].clickables[data].style]"
+            @click="() => { if (!interval) clickClickable(layer, data); }" 
+            :id="'clickable-' + layer + '-' + data" 
+            @mousedown="start" 
+            @mouseleave="stop" 
+            @mouseup="stop" 
+            @touchstart="start" 
+            @touchend="stop" 
+            @touchcancel="stop">
+            <span v-if="tmp[layer].clickables[data].title"><h2 v-html="tmp[layer].clickables[data].title"></h2><br></span>
+            <span :style="{'white-space': 'pre-line'}" v-html="run(layers[layer].clickables[data].display, layers[layer].clickables[data])"></span>
+            <node-mark :layer="layer" :data="tmp[layer].clickables[data].marked"></node-mark>
+            <tooltip v-if="tmp[layer].clickables[data].tooltip" :text="tmp[layer].clickables[data].tooltip"></tooltip>
+        </button>
+        `,
+        data() { return { interval: false, time: 0 }; },
+        methods: {
+            start() {
+                if (!this.interval) {
+                    const clickable = layers[this.layer].clickables[this.data];
+                    const action = clickable.onHold || clickable.onClick;
+                    if (!action) return;
+                    this.interval = setInterval(() => {
+                        run(action, clickable);
+                        this.time = this.time + 1;
+                    }, 50);
+                }
+            },
+            stop() {
+                clearInterval(this.interval);
+                this.interval = false;
+                this.time = 0;
             }
         },
-        stop() {
-            clearInterval(this.interval);
-            this.interval = false;
-            this.time = 0;
+        unmounted() {
+            if (this.interval) {
+                clearInterval(this.interval);
+                this.interval = false;
+            }
         }
-    },
-    unmounted() {
-        if (this.interval) {
-            clearInterval(this.interval);
-            this.interval = false;
-        }
-    }
     });
     app.component('master-button', {
         props: ['layer', 'data'],

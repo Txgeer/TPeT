@@ -141,7 +141,7 @@ var systemComponents = {
     'info-tab': {
     data() {
         return {
-            engineVersion: '3.0.2'
+            engineVersion: '3.0.3'
         };
     },
     template: `
