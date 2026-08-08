@@ -26,7 +26,7 @@ let modInfo = {
 	initialStartPoints: new Decimal (0), // Used for hard resets and new players
 	offlineLimit: 0,  // In hours
 }
-let getModID = () => modInfo.id ?? `${modInfo.name.replace(/\s+/g, '-')}-${modInfo.author.replace(/\s+/g, '-')}`;
+let getModID = () => modInfo.id ?? modInfo.name.replace(/\s+/g, '-');
 // Set your version in num and name
 let VERSION = {
 	num: "0.5.2",
@@ -95,7 +95,7 @@ function getStartPoints(){
 
 // Determines if it should show points/sec
 function canGenPoints(){
-	return hasUpgrade("b",15);
+	return hasUpgrade("p",11);
 }
 
 // Calculate points/sec!
@@ -162,7 +162,7 @@ var displayThings = [
 
 // Determines when the game "ends"
 function isEndgame() {
-	return hasUpgrade("p",65)
+	return hasUpgrade("b",15)
 }
 
 
