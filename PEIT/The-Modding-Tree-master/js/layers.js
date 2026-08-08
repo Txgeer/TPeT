@@ -354,7 +354,7 @@ addLayer("p", {
         },
         54:{
             title:"人外有人",
-            description:"解锁第三个粒子加速器，最大购买前两个粒子加速器，同时这两个粒子加速器不再有上限。",
+            description:"解锁第三个粒子加速器，且最大购买前两个粒子加速器，同并让这两个粒子加速器不再有上限。",
             currencyDisplayName:"中微子",
             currencyInternalName:"points",
             cost: new Decimal(9e97),
@@ -550,7 +550,7 @@ addLayer("p", {
         74: {
             title: "阿尔法解放",
             description: "取消 氦-4 的上限。",
-            cost: new Decimal(100000),
+            cost: new Decimal(70000),
             currencyDisplayName: "电子",
             currencyInternalName: "electrons",
             currencyLayer: "p",
@@ -573,7 +573,7 @@ addLayer("p", {
                 return eff;
             },
             effectDisplay() { return "/" + format(this.effect()); },
-            cost: new Decimal(200000),
+            cost: new Decimal(100000),
             currencyDisplayName: "电子",
             currencyInternalName: "electrons",
             currencyLayer: "p",
@@ -2211,7 +2211,7 @@ addLayer("li", {
         },
         32:{
             title:"研究-sp1",
-            description:"你可以同时购买研究21,22,31,32。",
+            description:"你可以同时购买 研究 21,22,31,32。",
             cost: new Decimal(1),
             unlocked(){return hasUpgrade("li",52)},
             currencyDisplayName:"研究点",
@@ -2760,7 +2760,9 @@ addLayer("li", {
                 "prestige-button",
                 
                 ["display-text", function() {return "你有 <span style='color:#FF66CC;text-shadow:0 0 10px'>"+format(player.h.power)+"</span> 氢能，每秒生产 <span style='color:#DDDD33;text-shadow:0 0 10px'>"+format(layers.li.electricityGain())+"</span> 电能（至少需要 1e60 氢能）"}],
-                ["display-text", "由于存储技术不完善，电池每秒流失上限 0.5 % 的电能!"],
+                ["display-text", function() {
+                    return "由于存储技术不完善，电池每秒流失上限 " + (hasAchievement('a', 23) ? "0.1" : "0.5") + " % 的电能！";
+                }],
                 ["bar","battery1"],
                 ["display-text", "以下滑条选择每秒将氢能转化为电能的 % 数！"],["slider", ["hPowerConsumingPercentage", 0, 10]],
                 ["buyables",[3]],
@@ -3108,6 +3110,21 @@ addLayer("b", {
         if (!canReset(this.layer)) return;
         if (run(this.resetsNothing, this)) return;
     
+        // ---------- 显式备份所有层的 milestones & achievements ----------
+        let backup = {};
+        for (let layer in player) {
+            if (player[layer] && typeof player[layer] === 'object') {
+                if (player[layer].milestones) {
+                    backup[layer] = backup[layer] || {};
+                    backup[layer].milestones = player[layer].milestones.slice();
+                }
+                if (player[layer].achievements) {
+                    backup[layer] = backup[layer] || {};
+                    backup[layer].achievements = player[layer].achievements.slice();
+                }
+            }
+        }
+    
         let gain = tmp[this.layer].resetGain;
         if (this.onPrestige) run(this.onPrestige, this, gain);
         addPoints(this.layer, gain);
@@ -3123,20 +3140,30 @@ addLayer("b", {
         player.points = getStartPoints();
     
         let keep = ['milestones', 'achievements'];
-        
         for (let x = 0; x <= maxRow; x++) {
             for (let lr in ROW_LAYERS[x]) {
                 layerDataReset(lr, keep);
             }
         }
-        
         for (let r in OTHER_LAYERS) {
             for (let lr in OTHER_LAYERS[r]) {
                 layerDataReset(lr, keep);
             }
         }
-        // ====================================================
+    
         player[this.layer].resetTime = 0;
+    
+        // ---------- 恢复所有层的备份 ----------
+        for (let layer in backup) {
+            if (backup[layer].milestones) {
+                player[layer].milestones = backup[layer].milestones;
+            }
+            if (backup[layer].achievements) {
+                player[layer].achievements = backup[layer].achievements;
+            }
+        }
+    
+        // ---------- 强制恢复氢层（确保不被遗漏） ----------
     
         updateTemp();
         updateTemp();
