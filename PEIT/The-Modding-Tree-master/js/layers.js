@@ -22,7 +22,8 @@ addLayer("p", {
             key: "shift+p",
             description: "Shift+P: 暂停/继续游戏",
             onPress: function() {
-                if (typeof player === 'undefined' || !player) return;
+                if (typeof player === 'undefined' || !player || typeof tmp === 'undefined') return;
+                if (!tmp.p || !tmp.p.layerShown) return;
                 player.paused = !player.paused;
                 if (player.paused) {
                     doPopup("info", "游戏已暂停", "⏸", 2, "#ffaa00");
@@ -502,12 +503,12 @@ addLayer("p", {
         },
         72: {
             title: "稳定粒子",
-            description: "电子大幅降低氦价格。",
+            description: "电子降低氦价格。",
             effect() {
                 let eff = player.p.electrons.add(1).pow(0.9).add(1);
                 return eff;
             },
-            effectDisplay() { return "x" + format(this.effect()); },
+            effectDisplay() { return "/" + format(this.effect()); },
             cost: new Decimal(20000),
             currencyDisplayName: "电子",
             currencyInternalName: "electrons",
@@ -525,12 +526,12 @@ addLayer("p", {
         },
         73: {
             title: "导电金属",
-            description: "电子较大幅降低锂价格。",
+            description: "电子降低锂价格。",
             effect() {
                 let eff = player.p.electrons.add(1).pow(0.8).add(1);
                 return eff;
             },
-            effectDisplay() { return "x" + format(this.effect()); },
+            effectDisplay() { return "/" + format(this.effect()); },
             cost: new Decimal(40000),
             currencyDisplayName: "电子",
             currencyInternalName: "electrons",
@@ -1619,7 +1620,7 @@ addLayer("he", {
         },
         53:{
             title:"冷却推进",
-            description:" 温度点加成 高阶冷却 的效果。",
+            description:" 温度点加成 提升冷却氦 的效果。",
             cost: new Decimal(3.14e16),
             effect(){
                 let effect = player.he.temPoint.add(2).log(2).pow(1.3)
@@ -2758,8 +2759,8 @@ addLayer("li", {
                 "main-display",
                 "prestige-button",
                 
-                ["display-text", function() {return "你有 <span style='color:#FF66CC;text-shadow:0 0 10px'>"+format(player.h.power)+"</span> 氢能,每秒生产 <span style='color:#DDDD33;text-shadow:0 0 10px'>"+format(layers.li.electricityGain())+"</span> 电能"}],
-                ["display-text", "由于存储技术不完善 ，电池每秒流失上限 0.5 % 的电能!"],
+                ["display-text", function() {return "你有 <span style='color:#FF66CC;text-shadow:0 0 10px'>"+format(player.h.power)+"</span> 氢能，每秒生产 <span style='color:#DDDD33;text-shadow:0 0 10px'>"+format(layers.li.electricityGain())+"</span> 电能（至少需要 1e60 氢能）"}],
+                ["display-text", "由于存储技术不完善，电池每秒流失上限 0.5 % 的电能!"],
                 ["bar","battery1"],
                 ["display-text", "以下滑条选择每秒将氢能转化为电能的 % 数！"],["slider", ["hPowerConsumingPercentage", 0, 10]],
                 ["buyables",[3]],

@@ -167,9 +167,13 @@ function layerDataReset(layer, keep = []) {
 	}
 }
 
-
-
 function addPoints(layer, gain) {
+    if (!player[layer]) {
+        return;
+    }
+    if (!player[layer].points || typeof player[layer].points.add !== 'function') {
+        player[layer].points = new Decimal(0);
+    }
 	player[layer].points = player[layer].points.add(gain).max(0)
 	if (player[layer].best) player[layer].best = player[layer].best.max(player[layer].points)
 	if (player[layer].total) player[layer].total = player[layer].total.add(gain)
@@ -340,6 +344,15 @@ function gameLoop(diff) {
     // ===== 暂停检测 =====
     if (player.paused) {
         return;
+    }
+
+    if (!player || !player.points || typeof player.points.add !== 'function') {
+        console.warn('player.points invalid, reinitializing');
+        if (!player) player = getStartplayer();
+        if (!player.points) player.points = new Decimal(0);
+        else if (typeof player.points.add !== 'function') {
+            player.points = new Decimal(player.points || 0);
+        }
     }
     
 	if (isEndgame() || tmp.gameEnded){
@@ -652,44 +665,78 @@ function startGameEngine() {
     if (typeof player === 'undefined' || !player || typeof tmp === 'undefined') {
         setTimeout(startGameEngine, 100);
         return;
-    };
+    }
     gameStarted = true;
     player.time = Date.now();
-    
+
     updateTemp();
     updateTemp();
-    
+    updateTabFormats();
+
     if (typeof initUtils === 'function') initUtils();
+    window.__vueMounted = false;
     loadVue();
     startIntervals();
     if (typeof startSaveInterval === 'function') startSaveInterval();
-    
+
     let bgm = getBgm();
     if (window.options.musicEnabled && bgm.paused) {
         bgm.play().catch(() => {});
     }
 
     if (typeof startTreeAnimation === 'function') {
-    startTreeAnimation();
+        startTreeAnimation();
     }
 }
 
 function resetToNewGame() {
+    if (gameIntervals.length) {
+        gameIntervals.forEach(clearInterval);
+        gameIntervals = [];
+    }
+    gameStarted = false;
+
+    window.shiftDown = false;
+    window.ctrlDown = false;
+
     localStorage.removeItem(getModID());
     localStorage.removeItem(getModID() + "_options");
+
     let newPlayer = getStartplayer();
+    newPlayer.tab = "none";
+    newPlayer.navTab = "tree-tab";
+    newPlayer.paused = false;
+
     window.player = Vue.reactive(newPlayer);
     player = window.player;
     window.options = getStartOptions();
     options = window.options;
+
     fixSave();
     updateLayers();
     setupTemp();
     updateTemp();
+    updateTemp();
+    updateLayers();
+    updateTabFormats();
+    resizeCanvas();
+
     setupModInfo();
     changeTheme();
     applyZoomSetting();
     applyTextSelectSetting();
+
+    window.__vueMounted = false;
+    window.__reactiveProxies = false;
+    if (window.__vueApp && typeof window.__vueApp.unmount === 'function') {
+        window.__vueApp.unmount();
+        window.__vueApp = null;
+    }
+    window.__vueRoot = null;
+
+    newPlayer.paused = false;
+
+    startGameEngine();
 }
 
 function loadGameDataOnly() {
@@ -747,64 +794,69 @@ function loadGameDataOnly() {
     }
 
     function initStartScreen() {
-    initBgm();
-
-    const config = window.startScreenConfig || {};
-
-    const titleEl = document.querySelector('.game-title');
-    if (titleEl) titleEl.textContent = config.title || '未命名树';
-
-    const versionEl = document.getElementById('startScreenVersion');
-    if (versionEl) {
-        versionEl.textContent = config.version || (VERSION && VERSION.withName) || '';
-    }
-
-    const creditsEl = document.querySelector('.credits');
-    if (creditsEl) {
-        creditsEl.textContent = config.credits || (config.author ? '作者：' + config.author : '作者：Txgeer');
-    }
-
-    const newBtn = document.getElementById('newGameBtn');
-    if (newBtn) newBtn.textContent = config.newGameText || '新游戏';
-
-    newBtn?.addEventListener('click', () => {
-        if (confirm('确定要开始新游戏吗？当前进度将会丢失！')) {
-            startGame(false);
-        }
-    });
-
-    const loadBtn = document.getElementById('loadGameBtn');
-    if (loadBtn) loadBtn.textContent = config.loadGameText || '继续游戏';
-
-    let hasSave = false;
-    try {
-        const saveStr = localStorage.getItem(getModID());
-        hasSave = saveStr && saveStr.length > 0;
-    } catch(e) {}
-    if (loadBtn) {
-        loadBtn.style.display = hasSave ? 'inline-block' : 'none';
-    }
-
-
-            const startGame = (loadSave) => {
-                try {
-                    if (loadSave && hasSave) {
-                        loadGameDataOnly();
-                    } else {
-                        resetToNewGame();
-                    }
-                    startGameEngine();
-                    startScreen.style.opacity = '0';
-                    setTimeout(() => startScreen.remove(), 500);
-                } catch (e) {
-                }
-            };
-
-            newBtn?.addEventListener('click', () => startGame(false));
-            if (loadBtn) loadBtn.addEventListener('click', () => startGame(true));
-         else {
+        initBgm();
+    
+        const startScreen = document.getElementById('startScreen');
+        if (!startScreen) {
             loadGameDataOnly();
             startGameEngine();
+            return;
+        }
+    
+        const config = window.startScreenConfig || {};
+    
+        const titleEl = document.querySelector('.game-title');
+        if (titleEl) titleEl.textContent = config.title || '未命名树';
+    
+        const versionEl = document.getElementById('startScreenVersion');
+        if (versionEl) {
+            versionEl.textContent = config.version || (VERSION && VERSION.withName) || '';
+        }
+    
+        const creditsEl = document.querySelector('.credits');
+        if (creditsEl) {
+            creditsEl.textContent = config.credits || (config.author ? '作者：' + config.author : '作者：Txgeer');
+        }
+    
+        const newBtn = document.getElementById('newGameBtn');
+        if (newBtn) newBtn.textContent = config.newGameText || '新游戏';
+    
+        const loadBtn = document.getElementById('loadGameBtn');
+        if (loadBtn) loadBtn.textContent = config.loadGameText || '继续游戏';
+    
+        let hasSave = false;
+        try {
+            const saveStr = localStorage.getItem(getModID());
+            hasSave = saveStr && saveStr.length > 0;
+        } catch(e) {}
+        if (loadBtn) {
+            loadBtn.style.display = hasSave ? 'inline-block' : 'none';
+        }
+    
+        const startGame = (loadSave) => {
+            try {
+                if (loadSave && hasSave) {
+                    loadGameDataOnly();
+                } else {
+                    resetToNewGame();
+                }
+                startGameEngine();
+                startScreen.style.opacity = '0';
+                setTimeout(() => startScreen.remove(), 500);
+            } catch (e) {
+            }
+        };
+    
+        newBtn?.addEventListener('click', () => {
+           if (confirm('确定要开始新游戏吗？当前进度将会丢失！')) {
+                startGame(false);
+            }
+        });
+    
+        if (loadBtn) {
+            loadBtn.addEventListener('click', () => startGame(true));
+        } else {
+            startGame(hasSave);
         }
     }
 })();

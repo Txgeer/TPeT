@@ -179,6 +179,13 @@ function fixSave() {
 					player.subtabs[layer][item] = Object.keys(layers[layer].microtabs[item])[0];
 		}
 	}
+
+	for (layer in layers) {
+        if (player[layer] && player[layer].points !== undefined) {
+            player[layer].points = new Decimal(player[layer].points);
+        }
+    }
+	
 }
 
 function fixData(defaultData, newData) {
@@ -205,6 +212,13 @@ function fixData(defaultData, newData) {
     }
 }
 function load() {
+
+	for (let layer in layers) {
+        if (player[layer] && !(player[layer].points instanceof Decimal)) {
+            player[layer].points = new Decimal(player[layer].points || 0);
+        }
+    }
+	
 	if (typeof window.options === 'undefined') {
         window.options = getStartOptions();
     }

@@ -154,13 +154,23 @@ function setupBuyables(layer) {
         b._originalCost = b.cost;
         b._originalEffect = b.effect;
         b.cost = function(x) {
-            x = (x === undefined ? player[this.layer].buyables[this.id] : x);
+            if (x === undefined) {
+                const layerData = player[this.layer];
+                const buyables = layerData ? layerData.buyables : null;
+                x = (buyables && buyables[this.id] !== undefined) ? buyables[this.id] : new Decimal(0);
+            }
             return this._originalCost(x);
         };
+
         b.effect = function(x) {
-            x = (x === undefined ? player[this.layer].buyables[this.id] : x);
+            if (x === undefined) {
+                const layerData = player[this.layer];
+                const buyables = layerData ? layerData.buyables : null;
+                x = (buyables && buyables[this.id] !== undefined) ? buyables[this.id] : new Decimal(0);
+            }
             return this._originalEffect(x);
         };
+        
         b._patched = true;
     }
 }

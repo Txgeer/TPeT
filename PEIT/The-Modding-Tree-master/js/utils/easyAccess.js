@@ -45,7 +45,7 @@ function getBuyableAmount(layer, id) {
 }
 
 function setBuyableAmount(layer, id, amt) {
-	player[layer].buyables[id] = amt
+    player[layer].buyables[id] = new Decimal(amt);
 }
 
 function addBuyables(layer, id, amt) {

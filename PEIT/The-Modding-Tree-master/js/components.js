@@ -438,8 +438,11 @@ function loadVue() {
                     const action = clickable.onHold || clickable.onClick;
                     if (!action) return;
                     this.interval = setInterval(() => {
-                        run(action, clickable);
-                        this.time = this.time + 1;
+                        // 添加 canClick 检查
+                        if (this.canClick) {
+                            run(action, clickable);
+                            this.time = this.time + 1;
+                        }
                     }, 50);
                 }
             },
@@ -478,47 +481,49 @@ function loadVue() {
         `
     });
     app.component('gridable', {
-    props: ['layer', 'data'],
-    template: `
-    <button 
-        v-if="tmp[layer].grid && player[layer].grid[data]!== undefined && run(layers[layer].grid.getUnlocked, layers[layer].grid, data)" 
-        :class="{ tile: true, can: canClick, locked: !canClick, tooltipBox: true,}"
-        :style="[canClick ? {'background-color': tmp[layer].color} : {}, gridRun(layer, 'getStyle', player[this.layer].grid[this.data], this.data)]"
-        @click="clickGrid(layer, data)" @mousedown="start" @mouseleave="stop" @mouseup="stop" @touchstart="start" @touchend="stop" @touchcancel="stop">
-        <span v-if="layers[layer].grid.getTitle"><h3 v-html="gridRun(this.layer, 'getTitle', player[this.layer].grid[this.data], this.data)"></h3><br></span>
-        <span :style="{'white-space': 'pre-line'}" v-html="gridRun(this.layer, 'getDisplay', player[this.layer].grid[this.data], this.data)"></span>
-        <tooltip v-if="layers[layer].grid.getTooltip" :text="gridRun(this.layer, 'getTooltip', player[this.layer].grid[this.data], this.data)"></tooltip>
-    </button>
-    `,
-    data() { return { interval: false, time: 0 }; },
-    computed: {
-        canClick() {
-            return gridRun(this.layer, 'getCanClick', player[this.layer].grid[this.data], this.data);
-        }
-    },
-    methods: {
-        start() {
-            if (!this.interval && layers[this.layer].grid.onHold) {
-                this.interval = setInterval((function() {
-                    if(this.time >= 5 && gridRun(this.layer, 'getCanClick', player[this.layer].grid[this.data], this.data)) {
-                        gridRun(this.layer, 'onHold', player[this.layer].grid[this.data], this.data);
-                    }    
-                    this.time = this.time+1;
-                }).bind(this), 50);
+        props: ['layer', 'data'],
+        template: `
+        <button 
+            v-if="tmp[layer].grid && player[layer].grid[data]!== undefined && run(layers[layer].grid.getUnlocked, layers[layer].grid, data)" 
+            :class="{ tile: true, can: canClick, locked: !canClick, tooltipBox: true,}"
+            :style="[canClick ? {'background-color': tmp[layer].color} : {}, gridRun(layer, 'getStyle', player[this.layer].grid[this.data], this.data)]"
+            @click="clickGrid(layer, data)" @mousedown="start" @mouseleave="stop" @mouseup="stop" @touchstart="start" @touchend="stop" @touchcancel="stop">
+            <span v-if="layers[layer].grid.getTitle"><h3 v-html="gridRun(this.layer, 'getTitle', player[this.layer].grid[this.data], this.data)"></h3><br></span>
+            <span :style="{'white-space': 'pre-line'}" v-html="gridRun(this.layer, 'getDisplay', player[this.layer].grid[this.data], this.data)"></span>
+            <tooltip v-if="layers[layer].grid.getTooltip" :text="gridRun(this.layer, 'getTooltip', player[this.layer].grid[this.data], this.data)"></tooltip>
+        </button>
+        `,
+        data() { return { interval: false, time: 0 }; },
+        computed: {
+            canClick() {
+                return gridRun(this.layer, 'getCanClick', player[this.layer].grid[this.data], this.data);
             }
         },
-        stop() {
-            clearInterval(this.interval);
-            this.interval = false;
-            this.time = 0;
+        methods: {
+            start() {
+                if (!this.interval && layers[this.layer].grid.onHold) {
+                    this.interval = setInterval((function() {
+                        if (this.canClick && gridRun(this.layer, 'getCanClick', player[this.layer].grid[this.data], this.data)) {
+                            if (this.time >= 5) {
+                                gridRun(this.layer, 'onHold', player[this.layer].grid[this.data], this.data);
+                            }
+                            this.time = this.time + 1;
+                        }
+                    }).bind(this), 50);
+                }
+            },
+            stop() {
+                clearInterval(this.interval);
+                this.interval = false;
+                this.time = 0;
+            }
+        },
+        unmounted() {
+            if (this.interval) {
+                clearInterval(this.interval);
+                this.interval = false;
+            }
         }
-    },
-    unmounted() {
-        if (this.interval) {
-            clearInterval(this.interval);
-            this.interval = false;
-        }
-    }
     });
     app.component('microtabs', {
     props: ['layer', 'data', 'style'],
@@ -575,19 +580,24 @@ function loadVue() {
         `
     });
     app.component('tree', {
-    props: ['layer', 'data'],
-    template: `
-        <div>
-            <div class="upgRow" v-for="(row, r) in data" :key="r">
-                <span v-for="(node, id) in row" :key="id" style="width: 0px;">
-                    <tree-node v-if="tmp[node]" :layer="node" :prev="layer" :abb="tmp[node].symbol || ''"></tree-node>
-                </span>
-                <div style="display: inline-block;">
-                    <button class="treeNode hidden"></button>
+        props: ['layer', 'data'],
+        computed: {
+            resolvedData() {
+                return typeof this.data === 'function' ? this.data() : this.data;
+            }
+        },
+        template: `
+            <div>
+                <div class="upgRow" v-for="(row, r) in resolvedData" :key="r">
+                    <span v-for="(node, id) in row" :key="id" style="width: 0px;">
+                        <tree-node v-if="tmp[node]" :layer="node" :prev="layer" :abb="tmp[node].symbol || ''"></tree-node>
+                    </span>
+                    <div style="display: inline-block;">
+                        <button class="treeNode hidden"></button>
+                    </div>
                 </div>
             </div>
-        </div>
-    `
+        `
     });
     app.component('upgrade-tree', {
     props: ['layer', 'data'],
@@ -661,7 +671,7 @@ function loadVue() {
 
     updateTemp();
     updateTemp();
-    const vueRoot = app.mount('#app');
-    window.__vueRoot = vueRoot; 
+    window.__vueApp = app;
+    window.__vueRoot = app.mount('#app');
 }
  

@@ -339,6 +339,11 @@ function initUtils() {
         window.ctrlDown = e.ctrlKey;
     };
 
+    document.addEventListener('blur', function() {
+        window.shiftDown = false;
+        window.ctrlDown = false;
+    }, true);
+
     window.onFocused = false;
 }
 
