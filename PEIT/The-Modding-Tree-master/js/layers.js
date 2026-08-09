@@ -971,7 +971,7 @@ addLayer("h", {
         },
         34:{
             title:"氢实验",
-            description:"优化气球加成氢的公式",
+            description:"优化气球加成氢的公式。",
             cost: new Decimal(5),
             currencyDisplayName: "气球",
             currencyInternalName: "balloon",
@@ -3318,7 +3318,7 @@ addLayer("b", {
             title:"癸硼烷终极升级",
             description:"解锁新层级。",
             cost: new Decimal(7000000),
-            unlocked(){return hasUpgrade("b",23)},
+            unlocked(){return hasUpgrade("b",24)},
             currencyDisplayName:"癸硼烷",
             currencyInternalName:"borane1",
             currencyLayer:"b",
@@ -3681,7 +3681,7 @@ addLayer("b", {
     },
     chooseBoraneGainMax(){
         let num = 1;
-        if (hasUpgrade("b", 11)) num += 4;
+        if (hasUpgrade("b", 24)) num += 4;
             return num;
     },
     update(diff){
