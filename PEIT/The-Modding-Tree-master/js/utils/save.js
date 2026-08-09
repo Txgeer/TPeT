@@ -157,28 +157,24 @@ function getStartGrid(layer) {
 function fixSave() {
 	defaultData = getStartplayer();
     fixData(defaultData, player);
-    for (layer in layers) {
-        if (player[layer].best !== undefined)
-            player[layer].best = new Decimal(player[layer].best);
-        if (player[layer].total !== undefined)
-            player[layer].total = new Decimal(player[layer].total);
-        const layerData = player[layer];
-        for (let key in layerData) {
-            if (defaultData[layer] && defaultData[layer][key] instanceof Decimal) {
-                layerData[key] = new Decimal(layerData[key] || 0);
+    for (let layer in layers) {
+        if (!player[layer]) {
+            player[layer] = getStartLayerData(layer);
+            continue;
+        }
+        const defaultData = getStartLayerData(layer);
+        for (let key in defaultData) {
+            if (!(key in player[layer])) {
+                if (defaultData[key] instanceof Decimal) {
+                    player[layer][key] = new Decimal(defaultData[key]);
+                } else {
+                    player[layer][key] = defaultData[key];
+                }
+            } else if (defaultData[key] instanceof Decimal && !(player[layer][key] instanceof Decimal)) {
+                player[layer][key] = new Decimal(player[layer][key] || 0);
             }
         }
-		if (layers[layer].tabFormat && !Array.isArray(layers[layer].tabFormat)) {
-
-			if (!Object.keys(layers[layer].tabFormat).includes(player.subtabs[layer].mainTabs))
-				player.subtabs[layer].mainTabs = Object.keys(layers[layer].tabFormat)[0];
-		}
-		if (layers[layer].microtabs) {
-			for (item in layers[layer].microtabs)
-				if (!Object.keys(layers[layer].microtabs[item]).includes(player.subtabs[layer][item]))
-					player.subtabs[layer][item] = Object.keys(layers[layer].microtabs[item])[0];
-		}
-	}
+    }
 
 	for (layer in layers) {
         if (player[layer] && player[layer].points !== undefined) {
@@ -309,7 +305,7 @@ function NaNcheck(data) {
 		else if (data[item] !== data[item] || checkDecimalNaN(data[item])) {
 			if (!NaNalert) {
 				NaNalert = true;
-				alert("发现未定义值, 名为 '" + item + "'。 请让模组制作者知道！ 你可以刷新界面，然后你的值会被定义.")
+				alert("发现未定义值, 名为 '" + item + "'。 请让模组制作者知道！ 你可以刷新界面，然后你的值会被定义。")
 				return
 			}
 		}

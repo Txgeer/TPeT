@@ -78,7 +78,7 @@ function softcap(value, cap, power = 0.5) {
 // Return true if the layer should be highlighted. By default checks for upgrades only.
 function shouldNotify(layer){
     
-    if (!tmp[layer]) return false;
+    if (!tmp[layer] || !player[layer]) return false;
 
     if (tmp[layer].upgrades) {
         for (let id in tmp[layer].upgrades) {
@@ -121,16 +121,16 @@ function shouldNotify(layer){
 	
 }
 
-function canReset(layer)
-{	
-	if (layers[layer].canReset!== undefined)
-		return run(layers[layer].canReset, layers[layer])
-	else if(tmp[layer].type == "normal")
-		return tmp[layer].baseAmount.gte(tmp[layer].requires)
-	else if(tmp[layer].type== "static")
-		return tmp[layer].baseAmount.gte(tmp[layer].nextAt) 
-	else 
-		return false
+function canReset(layer) {    
+    if (!layers[layer] || !player[layer] || !tmp[layer]) return false;
+    if (layers[layer].canReset !== undefined)
+        return run(layers[layer].canReset, layers[layer]);
+    else if (tmp[layer].type == "normal")
+        return tmp[layer].baseAmount.gte(tmp[layer].requires);
+    else if (tmp[layer].type == "static")
+        return tmp[layer].baseAmount.gte(tmp[layer].nextAt);
+    else 
+        return false;
 }
 
 function rowReset(row, layer) {
@@ -185,6 +185,7 @@ function generatePoints(layer, diff) {
 }
 
 function doReset(layer, force=false) {
+    if (!tmp[layer] || !player[layer]) return;
 	if (tmp[layer].type == "none") return
 	let row = tmp[layer].row
 	if (!force) {
