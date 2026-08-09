@@ -794,7 +794,6 @@ addLayer("h", {
         if(hasUpgrade("be",13)) mult = mult.mul(upgradeEffect("be",13))
         if(hasUpgrade("be",22)) mult = mult.mul(upgradeEffect("be",22))
         if(hasUpgrade("b",41)) mult = mult.mul(upgradeEffect("b",41))
-        if(player.c.energy.gte(1)) mult = mult.mul(layers.c.CEeffect2())
 	    if(hasAchievement('a', 16)) mult = mult.mul(achievementEffect('a', 16))
         return mult
     },
@@ -1264,8 +1263,6 @@ addLayer("h", {
 
         if(get.gte(1e61)) get = powsoftcap(get,layers.h.HpowerGetsoftcap1start(),three) //1软
 
-        if(player.c.energy.gte(1)) get = get.mul(layers.c.CEeffect2())
-
         if(player.b.inBorane) get = get.pow(0.66686)
         return get
     },
@@ -1417,7 +1414,6 @@ addLayer("he", {
         mult = one
         if(player.li.unlocked) mult = mult.div(layers.li.LidivHecost())
         if(hasMilestone("he",2)) mult = mult.div(layers.he.temPointdivHecost())
-        if(player.c.energy.gte(1)) mult = mult.div(layers.c.CEeffect2())
         if(hasAchievement('a', 21)) mult = mult.div(achievementEffect('a', 21))
         if(hasMilestone("be",1)) mult = mult.div(2)
         if(hasUpgrade("p",64)) mult = mult.div(upgradeEffect("p",64))
@@ -1713,7 +1709,7 @@ addLayer("he", {
         },
         65:{
             title:"超导体？！",
-            description:"锂的指数降低0.05。",
+            description:"锂的成本指数降低0.05。",
             effect(){
                 let effect = 0.05
                 return effect
@@ -1930,7 +1926,6 @@ addLayer("he", {
         if(hasUpgrade("b",21)) get = get.mul(upgradeEffect("b",21))
         if(hasUpgrade("b",41)) get = get.mul(upgradeEffect("b",41))
         if(hasAchievement("a",26)) get = get.mul(achievementEffect("a",26))
-        if(player.c.energy.gte(1)) get = get.mul(layers.c.CEeffect2())
 
         if(player.b.inBorane) get = get.pow(0.66686)
         return get
@@ -2142,7 +2137,6 @@ addLayer("li", {
         if(hasUpgrade("p",75)) mult = mult.div(upgradeEffect("p",75))
         if(hasUpgrade("b",12)) mult = mult.div(upgradeEffect("b",12))
         if(hasUpgrade("b",42)) mult = mult.div(upgradeEffect("b",42))
-        if(player.c.energy.gte(1)) mult = mult.div(layers.c.CEeffect3())
         return mult
     },
     gainExp() {
@@ -2358,7 +2352,6 @@ addLayer("li", {
                              .mul(getBuyableAmount("li", 12))
                              .mul(getBuyableAmount("li", 13));
                 let extra = zero;
-                if (player.c.energy.gte(1)) extra = extra.add(layers.c.CEeffect3().floor());
                 let effect = total.add(extra).add(1);
                 return effect;
             },
@@ -2396,7 +2389,6 @@ addLayer("li", {
                              .mul(getBuyableAmount("li", 12))
                              .mul(getBuyableAmount("li", 13));
                 let extra = zero;
-                if (player.c.energy.gte(1)) extra = extra.add(layers.c.CEeffect3().floor());
                 let effect = total.add(extra).add(1);
                 return effect;
             },
@@ -2418,7 +2410,6 @@ addLayer("li", {
                              .mul(getBuyableAmount("li", 12))
                              .mul(getBuyableAmount("li", 13));
                 let extra = zero;
-                if (player.c.energy.gte(1)) extra = extra.add(layers.c.CEeffect3().floor());
                 let effect = total.add(extra).add(1);
                 return effect;
             },
@@ -2710,7 +2701,6 @@ addLayer("li", {
         let shi = getBuyableAmount("li", 13);
         let base = hasUpgrade("li", 62) ? li.mul(dian).mul(shi) : li.add(dian).add(shi);
         let extra = zero;
-        if (player.c.energy.gte(1)) extra = extra.add(layers.c.CEeffect3().floor());
         return base.add(extra);
     },
     update(diff){
@@ -2820,7 +2810,6 @@ addLayer("be", {
         if(hasUpgrade('be', 23)) mult = mult.mul(upgradeEffect('be', 23))
         if(hasUpgrade('b', 13)) mult = mult.mul(upgradeEffect('b', 13))
         if(hasAchievement('a', 24)) mult = mult.mul(achievementEffect('a', 24))
-        if(player.c.energy.gte(1)) mult = mult.mul(layers.c.CEeffect3())
         if(player.b.inBorane) mult = mult.pow(0.66686)
         return mult
     },
@@ -2872,7 +2861,6 @@ addLayer("be", {
                                  .mul(getBuyableAmount("li", 12))
                                  .mul(getBuyableAmount("li", 13));
                     let extra = zero;
-                    if (player.c.energy.gte(1)) extra = extra.add(layers.c.CEeffect3().floor());
                     let effect = total.add(extra).add(1);
                     return effect;
                 } else {
@@ -3449,7 +3437,7 @@ addLayer("b", {
                 let effect = player.b.borane3
                 return effect
             },
-            effectDisplay(){return "x"+format(this.effect())},
+            effectDisplay(){return format(this.effect())+"x"},
             cost: new Decimal(600),
             unlocked(){return hasUpgrade("b",41)},
             currencyDisplayName:"戊硼烷",
@@ -3474,7 +3462,7 @@ addLayer("b", {
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect())},
-            cost: new Decimal(10000),
+            cost: new Decimal(1000),
             unlocked(){return hasUpgrade("b",42)},
             currencyDisplayName:"戊硼烷",
             currencyInternalName:"borane3",
@@ -3536,7 +3524,7 @@ addLayer("b", {
             }
         },
         51:{
-            title:"乙硼烷加成电子",
+            title:"乙硼烷助力电子",
             description:" 乙硼烷加成电子获取。",
             effect(){
                 let effect = player.b.borane5.add(1).log2().add(1).floor()
@@ -3670,8 +3658,7 @@ addLayer("b", {
     boraneGain(num){
         let gain = one
         if(!player.b.gainBorane.includes(num)) return zero
-        if(hasMilestone("he",10)) gain = gain.add(layers.he.temPointEffect7())
-        if(player.c.energy.gte(1)) gain = gain.add(layers.c.CEeffect3())        
+        if(hasMilestone("he",10)) gain = gain.add(layers.he.temPointEffect7())        
         if(num==1){gain = gain.mul(player.b.boraneGainFloorN)}
         else if(num==2)gain = gain.mul(player.b.boraneGainFloorN.add(1).log2().add(1))
         else if(num==3)gain = gain.mul(player.b.boraneGainFloorN.add(1).ln().add(1))
@@ -3754,16 +3741,15 @@ addLayer("c", {
         unlocked: false,
         points: new Decimal(0),
         energy: zero,
-        bestResetTime: 1.79e308,
     }},
     branches: ["h"],
     color: "#555555",
-    requires: new Decimal(1e332),
+    requires: new Decimal(1e100),
     resource: "碳",
-    baseResource: "中微子",
-    baseAmount() {return player.points},
+    baseResource: "氢能",
+    baseAmount() {return player.h.power},
     type: "normal", 
-    exponent: 1/308,
+    exponent: 1,
     gainMult() {
         mult = one
         return mult
@@ -3773,81 +3759,10 @@ addLayer("c", {
         return exp
     },
     row: 2,
-    doReset(){
-        player.p.upgrades = [];setBuyableAmount("p",11,0);setBuyableAmount("p",12,0);setBuyableAmount("p",13,0)
+    layerShown(){return player.c.unlocked||hasUpgrade("b",15)},
+    resetsNothing(){
+        return hasMilestone("b",3)
     },
-    effectDescription(){
-        return "和 " + format(player.c.energy) + " CE" 
-    },
-    layerShown(){return hasUpgrade("b",15)||player.c.unlocked},
-    milestones:{
-        0:{
-            requirementDescription: "首次重置碳",
-            effectDescription(){return "每个碳生产碳能量(CE),<br>当前效果: +" + format(this.effect()) + "/s(为0有效)"},
-            effect(){
-                let eff = player.c.points.add(1)
-                return eff
-            },
-            done(){return player.c.unlocked},
-            unlocked(){return true},
-        },
-    },
-    upgrades:{
-        11:{
-            title:"碳-自动购买者",
-            description:"自动购买所有之前的升级",
-            cost: new Decimal(1),
-            unlocked(){return player.c.unlocked},
-        },
-    },
-    CEeffect1(){ //点数,宝石,奖励宝石
-        let eff = player.c.energy.max(1).root(2)
-        powsoftcap(eff,n(1e9),two)
-        return eff
-    },
-    CEeffect2(){ //氢,氦,温度点,氢能
-        let eff = player.c.energy.add(1).root(5)
-        powsoftcap(eff,n(1e9),two)
-        return eff
-    },
-    CEeffect3(){ //铍,转生宝石,锂,硼烷基础,额外研究点
-        let eff = player.c.energy.max(10).log(10)
-        return eff
-    },
-    update(diff){
-        if(hasMilestone("c",0)) player.c.energy = player.c.energy.add(milestoneEffect("c",0).mul(diff))
-        if(hasUpgrade("c",11)){
-            buyUpgrade("li",11);buyUpgrade("li",12);buyUpgrade("li",21)
-            buyUpgrade("be",11);buyUpgrade("be",12);buyUpgrade("be",13);buyUpgrade("be",14);buyUpgrade("be",15);buyUpgrade("be",21);buyUpgrade("be",23);buyUpgrade("be",22);buyUpgrade("be",24);buyUpgrade("be",25);buyUpgrade("be",31);buyUpgrade("be",32);buyUpgrade("be",33);buyUpgrade("be",34);buyUpgrade("be",35)
-            buyUpgrade("b",11);buyUpgrade("b",12);buyUpgrade("b",13);buyUpgrade("b",14);buyUpgrade("b",21);buyUpgrade("b",22);buyUpgrade("b",23);buyUpgrade("b",24);buyUpgrade("b",31);buyUpgrade("b",32);buyUpgrade("b",33);buyUpgrade("b",34);buyUpgrade("b",41);buyUpgrade("b",42);buyUpgrade("b",43);buyUpgrade("b",44)
-            buyUpgrade("h",51);buyUpgrade("h",52);buyUpgrade("h",53);buyUpgrade("h",54);buyUpgrade("h",55)
-            buyUpgrade("p",11);buyUpgrade("p",12);buyUpgrade("p",13);buyUpgrade("p",14);buyUpgrade("p",15);buyUpgrade("p",21);buyUpgrade("p",23);buyUpgrade("p",22);buyUpgrade("p",24);buyUpgrade("p",25);buyUpgrade("p",31);buyUpgrade("p",32);buyUpgrade("p",33);buyUpgrade("p",34);buyUpgrade("p",35);buyUpgrade("p",51);buyUpgrade("p",52);buyUpgrade("p",53);buyUpgrade("p",54);buyUpgrade("p",55);buyUpgrade("p",41);buyUpgrade("p",42);buyUpgrade("p",43);buyUpgrade("p",44);buyUpgrade("p",45)
-            buyUpgrade("he",64);buyUpgrade("he",65)
-        }
-    },
-    tabFormat:{
-        "milestones": {   
-            content: [
-                "main-display","prestige-button",["display-text",function(){
-                    return "<h5>距离上次碳重置已经过去了 "+formatTime(player.c.resetTime) +"<br>你的最佳重置时间为 "+formatTime(player.c.bestResetTime)
-                }], ["display-text",function(){
-                    let text1 = "你的 CE 加成点数,宝石,奖励宝石获取 "+format(layers.c.CEeffect1())+"x<br>"
-                    let text2 = "你的 CE 加成氢,氢能,温度点获取 "+format(layers.c.CEeffect2())+"x,和降低氦价格 /"+format(layers.c.CEeffect2())+"<br>"
-                    let text3 = "你的 CE 加成铍,转生宝石 "+format(layers.c.CEeffect3())+"x,和降低锂价格 /"+format(layers.c.CEeffect3())+",同时硼烷基础和研究点 +"+format(layers.c.CEeffect3().floor())+"<br>"
-                    return text1 + text2 + text3
-                }],  
-                "milestones",                
-            ],
-            unlocked(){return player.c.unlocked}
-        },
-        "upgrades": {
-            content: [
-                "main-display","prestige-button",
-                "upgrades",                
-            ],
-            unlocked(){return player.c.unlocked}
-        }
-    },    
 },)
 addLayer("a", {
     startData() { return {

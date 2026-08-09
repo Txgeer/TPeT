@@ -132,7 +132,6 @@ function getPointGen() {
 	if(hasUpgrade("be",13)) gain = gain.mul(upgradeEffect("be",13))
 	if(hasUpgrade("be",21)) gain = gain.mul(upgradeEffect("be",13))
 	if(hasUpgrade("b",41)) gain = gain.mul(upgradeEffect("b",41))
-	if(player.c.energy.gte(1)) gain = gain.mul(layers.c.CEeffect1())
 	if(hasUpgrade("li",13)) gain = gain.mul(layers.li.LiboostPoints())
     if(player.b.inBorane) gain = gain.pow(0.66686)
 	return gain

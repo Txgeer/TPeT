@@ -147,11 +147,12 @@ function rowReset(row, layer) {
 function layerDataReset(layer, keep = []) {
 	let storedData = {unlocked: player[layer].unlocked, forceTooltip: player[layer].forceTooltip, noRespecConfirm: player[layer].noRespecConfirm, prevTab:player[layer].prevTab} // Always keep these
 
-	for (thing in keep) {
-		if (player[layer][keep[thing]] !== undefined)
-			storedData[keep[thing]] = player[layer][keep[thing]]
-	}
-
+	for (let key of keep) {
+        if (player[layer][key] !== undefined) {
+            storedData[key] = player[layer][key];
+        }
+    }
+    
 	player[layer].buyables = getStartBuyables(layer);
     player[layer].clickables = getStartClickables(layer);
     player[layer].challenges = getStartChallenges(layer);
@@ -454,43 +455,48 @@ var ticking = false;
     }
 
     function handleDragMove(e) {
-		if (dragStartX === 0 && dragStartY === 0) return;
+        if (dragStartX === 0 && dragStartY === 0) return;
         if (!dragStartX && dragStartX !== 0) return;
         let coords = getClientCoords(e);
         let dx = Math.abs(coords.clientX - dragStartX);
         let dy = Math.abs(coords.clientY - dragStartY);
-        
+    
         if (!isDragging && (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD)) {
             isDragging = true;
         }
-        
+    
         if (!isDragging) return;
-        
+    
         if (e.cancelable) e.preventDefault();
-        
+    
         let elem = document.elementFromPoint(coords.clientX, coords.clientY);
         if (!elem) return;
-        
-        const btn = elem.closest('.upg, .buyable');
+    
+        const btn = elem.closest('.upg, .buyable, .clickable');
         if (!btn) return;
-        
+    
         let layer, id;
         const upgMatch = btn.id.match(/upgrade-([^-]+)-(\d+)/);
         const buyMatch = btn.id.match(/buyable-([^-]+)-(\d+)/);
+        const clickMatch = btn.id.match(/clickable-([^-]+)-(\d+)/);
+    
         if (upgMatch) {
             layer = upgMatch[1];
             id = upgMatch[2];
         } else if (buyMatch) {
             layer = buyMatch[1];
             id = buyMatch[2];
+        } else if (clickMatch) {
+            layer = clickMatch[1];
+            id = clickMatch[2];
         } else {
             return;
         }
-        
+    
         const key = `${layer}-${id}`;
         if (lastBoughtId === key) return;
         lastBoughtId = key;
-        
+    
         if (upgMatch) {
             if (typeof canAffordUpgrade !== 'undefined' && canAffordUpgrade(layer, id) && !hasUpgrade(layer, id)) {
                 buyUpg(layer, id);
@@ -499,10 +505,14 @@ var ticking = false;
             if (typeof canBuyBuyable !== 'undefined' && canBuyBuyable(layer, id)) {
                 buyBuyable(layer, id);
             }
+        } else if (clickMatch) {
+            if (tmp && tmp[layer] && tmp[layer].clickables && tmp[layer].clickables[id] && tmp[layer].clickables[id].canClick) {
+                clickClickable(layer, id);
+            }
         }
-        
+    
         setTimeout(() => { lastBoughtId = null; }, 50);
-    }
+    }    
     
     function handleDragEnd() {
         isDragging = false;
