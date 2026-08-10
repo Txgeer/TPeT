@@ -690,7 +690,8 @@ addLayer("p", {
                 if (hasUpgrade('li', 14)) gain = gain.mul(layers.li.LiboostElectrons()).floor();
                 if (hasUpgrade('p', 71)) gain = gain.mul(upgradeEffect("p",71)).floor();
                 if (hasUpgrade('li', 81)) gain = gain.mul(upgradeEffect("li",81)).floor();
-                if (hasUpgrade('b', 32)) gain = gain.mul(upgradeEffect("b",51)).floor();
+                if (hasUpgrade('b', 51)) gain = gain.mul(upgradeEffect("b",51)).floor();
+                if (hasUpgrade('c', 23)) gain = gain.mul(upgradeEffect("c",23)).floor();
                 if(player.b.inBorane) gain = gain.pow(0.66686).floor();
                 return "消耗 <span style='color:#FFFFFF;text-shadow:0 0 10px'>"+format(player.points)+"</span> 中微子，获得 <span style='color:#111177;text-shadow:0 0 10px'>"+format(gain)+"</span> 电子。<br>（至少转化 1e100 中微子）";
             },
@@ -701,7 +702,8 @@ addLayer("p", {
                 if (hasUpgrade('li', 14)) gain = gain.mul(layers.li.LiboostElectrons()).floor();
                 if (hasUpgrade('p', 71)) gain = gain.mul(upgradeEffect("p",71)).floor();
                 if (hasUpgrade('li', 81)) gain = gain.mul(upgradeEffect("li",81)).floor();
-                if (hasUpgrade('b', 32)) gain = gain.mul(upgradeEffect("b",51)).floor();
+                if (hasUpgrade('b', 51)) gain = gain.mul(upgradeEffect("b",51)).floor();
+                if (hasUpgrade('c', 23)) gain = gain.mul(upgradeEffect("c",23)).floor();
                 if(player.b.inBorane) gain = gain.pow(0.66686).floor();
                 player.points = zero
                 player.p.electrons = player.p.electrons.add(gain);
@@ -730,7 +732,7 @@ addLayer("p", {
                     return "你有 <span style='color:#3F3FFF;text-shadow:0 0 10px'>"+format(player.p.electrons)+"</span> 电子"; 
                 }],
                 "clickables",
-                ["upgrades",[6,7]],
+                ["upgrades",[6,7]], 
             ],
             unlocked(){return hasUpgrade("p",55)},
             buttonStyle: {'border-color': '#3F3FFF'},
@@ -1316,7 +1318,7 @@ addLayer("h", {
                 "prestige-button",
                 ["display-text", 
                     function(){return "你有 <span style='color:#FFFFFF;text-shadow:0 0 10px'>"+format(player.points)+"</span> 中微子"}],
-                ["upgrades",[1,2,3,4,5]],
+                "upgrades",
                 ["milestones", function() {
                     let data = {};
                     if (tmp.h && tmp.h.milestones) {
@@ -1334,7 +1336,7 @@ addLayer("h", {
                 "prestige-button",
                 ["display-text", 
                     function(){return "你有 <span style='color:#FFFFFF;text-shadow:0 0 10px'>"+format(player.points)+"</span> 中微子"}],
-                ["clickables",[1]],
+                ["clickables",[[1]]],
                 ["display-text",function(){
                     let a = "你有 <span style='color:#FF66CC;text-shadow:0 0 10px'>"+format(player.h.power)+"</span> 氢能"
                     if (!hasUpgrade('c', 13) && layers.h.HpowerGet().gt(layers.h.HpowerGetsoftcap1start())) a = a + "（受软上限限制）"
@@ -1353,7 +1355,7 @@ addLayer("h", {
                     if(hasMilestone("h",4)) b = "，氦气球加成中微子 <span style='color:#FFFFFF;text-shadow:0 0 10px'>"+format(layers.he.balloonBoostPoints())+"</span> 倍"
                     return a + b
                 }],
-                ["clickables",[2]],
+                ["clickables",[[2]]],
                 ["milestones", function() {
                     let data = {};
                     if (tmp.h && tmp.h.milestones) {
@@ -2086,7 +2088,7 @@ addLayer("he", {
                         a = a + "<br>"     
                     }   
                     return a + "</h4>"  
-                }],["clickables",[1]],["upgrades",[4,5,6,7]],
+                }],"clickables",["upgrades",[4,5,6,7]],
             ],
             unlocked(){return hasMilestone("li",5)}
         },
@@ -2506,7 +2508,7 @@ addLayer("li", {
                 let a = two.pow(x.add(1))
                 return a
             },
-            display() { return "价格: <span style='color:#225533;text-shadow:0 0 10px'>"+format(this.cost(),0)+"</span> 转生宝石<br>当前数量：<span style='color:#225533;text-shadow:0 0 10px'>"+format(getBuyableAmount("li",13),0)+"</span>"},
+            display() { return "价格: <span style='color:#117777;text-shadow:0 0 10px'>"+format(this.cost(),0)+"</span> 转生宝石<br>当前数量：<span style='color:#117777;text-shadow:0 0 10px'>"+format(getBuyableAmount("li",13),0)+"</span>"},
             canAfford() { return player.be.prestiGems.gte(this.cost())},
             buy() {
                 let oldTotal = layers.li.totalResearchPoints();
@@ -2516,7 +2518,7 @@ addLayer("li", {
                 player.li.researchPoint = player.li.researchPoint.add(newTotal.sub(oldTotal));
             },
             unlocked(){return hasUpgrade("be",13)},
-            style() { return { 'background-color': this.canAfford()?"#50C878":"#BF8F8F"}},
+            style() { return { 'background-color': this.canAfford()?"#3FFFFF":"#BF8F8F"}},
         },
         31:{
             title: "电容增幅",
@@ -2711,6 +2713,10 @@ addLayer("li", {
         let mult = player.li.points.add(1).pow(0.5).add(1)
         return mult
     },
+    LiboostBe(){//锂加铍
+        let mult = player.li.points.add(1).pow(0.1).add(1)
+        return mult
+    },
     getElectricityCap(){//获取电量上限
         let capacity = new Decimal(100)
         if(hasMilestone("he",11)) capacity = capacity.mul(layers.he.temPointEffect7().add(1))
@@ -2772,6 +2778,7 @@ addLayer("li", {
                         if (hasMilestone("li",6)) a = a + "<br>加成温度点获取 <span style='color:#FFDA00;text-shadow:0 0 10px'>"+format(layers.li.LiboostTemPoint())+"</span>x"
                         if (hasUpgrade("li",13)) a = a + " 加成中微子获取 <span style='color:#FFFFFF;text-shadow:0 0 10px'>"+format(layers.li.LiboostPoints())+"</span>x"
                         if (hasUpgrade("li",14)) a = a + " 加成电子获取 <span style='color:#3F3FFF;text-shadow:0 0 10px'>"+format(layers.li.LiboostElectrons())+"</span>x"
+                        if (hasUpgrade("b",43)) a = a + " <br>加成铍获取 <span style='color:#50C878;text-shadow:0 0 10px'>"+format(layers.li.LiboostBe())+"</span>x"
                         return a
                     }],
                 ["upgrades",[1,2]],
@@ -2798,7 +2805,7 @@ addLayer("li", {
                 }],
                 ["bar","battery1"],
                 ["display-text", "以下滑条选择每秒将氢能转化为电能的 % 数！"],["slider", ["hPowerConsumingPercentage", 0, 10]],
-                ["buyables",[3]],
+                ["buyables",[[3]]],
             ],
             unlocked(){return player.be.unlocked}
         },
@@ -2806,8 +2813,8 @@ addLayer("li", {
             content: [
                 "main-display",
                 "prestige-button",
-                ["buyables",[1]],["display-text", function(){return "你有 <span style='color:#C8143C;text-shadow:0 0 10px'>"+format(player.li.researchPoint)+"</span> 研究点"}],["buyables",[2]],["upgrades",[3,4,5,6,7,8,9]],
-                ["clickables",[1]]
+                ["buyables",[[1]]],["display-text", function(){return "你有 <span style='color:#C8143C;text-shadow:0 0 10px'>"+format(player.li.researchPoint)+"</span> 研究点"}],["buyables",[[2]]],["upgrades",[3,4,5,6,7,8,9]],
+                "clickables"
             ],
             unlocked(){return hasUpgrade("li",21)}
         },
@@ -2850,6 +2857,7 @@ addLayer("be", {
     exponent: 25,
     gainMult() {
         mult = one
+        if(hasUpgrade("b",43)) mult = mult.mul(layers.li.LiboostBe())
         if(hasMilestone("he",10)) mult = mult.mul(layers.he.temPointEffect6().add(1))
         if(hasUpgrade('be', 23)) mult = mult.mul(upgradeEffect('be', 23))
         if(hasUpgrade('b', 13)) mult = mult.mul(upgradeEffect('b', 13))
@@ -2881,7 +2889,16 @@ addLayer("be", {
             currencyDisplayName: "转生宝石",
             currencyInternalName: "prestiGems",
             currencyLayer: "be",
-            unlocked() { return (player.be.prestiGems && player.be.prestiGems.gte(10))||hasUpgrade("be",[this.id]); }
+            unlocked() { return (player.be.prestiGems && player.be.prestiGems.gte(10))||hasUpgrade("be",[this.id]); },
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#3FFFFF'};
+                } else {
+                    return {};
+                }
+            }
         },
         12: {
             title: "卓越电子",
@@ -2891,6 +2908,15 @@ addLayer("be", {
             currencyInternalName: "prestiGems",
             currencyLayer: "be",
             unlocked() { return hasUpgrade("be",11)||hasUpgrade("be",[this.id]); },
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#3FFFFF'};
+                } else {
+                    return {};
+                }
+            }
         },
         13: {
             title: "绿石科技",
@@ -2914,6 +2940,15 @@ addLayer("be", {
             },
             effectDisplay(){return "x"+format(this.effect())},
             unlocked() { return hasUpgrade("be",12)||hasUpgrade("be",[this.id]); },
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#3FFFFF'};
+                } else {
+                    return {};
+                }
+            }
         },
         14: {
             title: "平行回归",
@@ -2923,6 +2958,15 @@ addLayer("be", {
             currencyInternalName: "prestiGems",
             currencyLayer: "be",
             unlocked() { return hasUpgrade("be",13)||hasUpgrade("be",[this.id]); },
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#3FFFFF'};
+                } else {
+                    return {};
+                }
+            }
         },
         21: {
             title: "中子源的命运",
@@ -2937,6 +2981,15 @@ addLayer("be", {
             currencyInternalName: "prestiGems",
             currencyLayer: "be",
             unlocked() { return hasUpgrade("p",75)||hasUpgrade("be",[this.id]); },
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#3FFFFF'};
+                } else {
+                    return {};
+                }
+            }
         },
         22: {
             title: "强子化",
@@ -2951,6 +3004,15 @@ addLayer("be", {
             currencyInternalName: "prestiGems",
             currencyLayer: "be",
             unlocked() { return hasUpgrade("be",21)||hasUpgrade("be",[this.id]); },
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#3FFFFF'};
+                } else {
+                    return {};
+                }
+            }
         },
         23: {
             title: "大型铍墙",
@@ -2965,6 +3027,15 @@ addLayer("be", {
             currencyInternalName: "prestiGems",
             currencyLayer: "be",
             unlocked() { return hasUpgrade("be",22)||hasUpgrade("be",[this.id]); },
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#3FFFFF'};
+                } else {
+                    return {};
+                }
+            }
         },
         24: {
             title: "金属同质化",
@@ -2979,6 +3050,15 @@ addLayer("be", {
             currencyInternalName: "prestiGems",
             currencyLayer: "be",
             unlocked() { return hasUpgrade("be",23)||hasUpgrade("be",[this.id]); },
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#3FFFFF'};
+                } else {
+                    return {};
+                }
+            }
         },
     },
     milestones:{
@@ -3010,6 +3090,7 @@ addLayer("be", {
             if (hasUpgrade('p',71)) gain = gain.mul(upgradeEffect("p",71)).floor();
             if (hasUpgrade('li',81)) gain = gain.mul(upgradeEffect("li",81)).floor();
             if (hasUpgrade('b',51)) gain = gain.mul(upgradeEffect("b",51)).floor();
+            if (hasUpgrade('c', 23)) gain = gain.mul(upgradeEffect("c",23)).floor();
             if(player.b.inBorane) gain = gain.pow(0.66686).floor();
             if (gain.gt(0)) {
                 player.p.electrons = player.p.electrons.add(gain.mul(diff));
@@ -3022,7 +3103,7 @@ addLayer("be", {
             display() {
                 let gain = player.be.points.add(1).ln().add(1).floor().max(1);
                 if(player.b.inBorane) gain = gain.pow(0.66686)
-                return "重置中微子、电子、氢、氢能、气球、氦、氦气球、温度点、锂、电能、铍。<br>获得 <span style='color:#225533;text-shadow:0 0 10px'>" + format(gain) + "</span> 转生宝石。（至少需要 1e10 铍）";
+                return "重置中微子、电子、氢、氢能、气球、氦、氦气球、温度点、锂、电能、铍。<br>获得 <span style='color:#117777;text-shadow:0 0 10px'>" + format(gain) + "</span> 转生宝石。（至少需要 1e10 铍）";
             },
             unlocked() { return hasUpgrade("p",65); },
             canClick() { return player.be.points.gt(1e10); },
@@ -3044,7 +3125,7 @@ addLayer("be", {
             },
             style() {
                 return {
-                    'background-color': this.canClick() ? "#50C878" : "#BF8F8F",
+                    'background-color': this.canClick() ? "#3FFFFF" : "#BF8F8F",
                 };
             }
         }
@@ -3067,12 +3148,16 @@ addLayer("be", {
                 "main-display",
                 "prestige-button",
                 ["display-text", function(){ 
-                    return "你有 <span style='color:#50C878;text-shadow:0 0 10px'>" + format(player.be.prestiGems) + "</span> 转生宝石";
+                    return "你有 <span style='color:#3FFFFF;text-shadow:0 0 10px'>" + format(player.be.prestiGems) + "</span> 转生宝石";
                 }],
                 "clickables",
                 "upgrades"
             ],
-            unlocked(){ return hasUpgrade("p",65); }
+            unlocked(){ return hasUpgrade("p",65); },
+            buttonStyle: {'border-color': '#3FFFFF'},
+            style: {
+                background: "",
+            }
         }
     },
     style: {
@@ -3104,15 +3189,16 @@ addLayer("b", {
     position: 1, 
     startData() { return {
         unlocked: false,
-        points: new Decimal(0),
+        points: zero,
         inBorane: false,
-        borane1: new Decimal(0),
-        borane2: new Decimal(0),
-        borane3: new Decimal(0),
-        borane4: new Decimal(0),
-        borane5: new Decimal(0),
+        borane1: zero,
+        borane2: zero,
+        borane3: zero,
+        borane4: zero,
+        borane5: zero,
         gainBorane: [],
-        boraneGainFloorN: new Decimal(0),
+        boraneGainFloorN: zero,
+        transcendCrystals: zero,
     }},
     branches: ["he"],
     color: "brown",
@@ -3142,8 +3228,10 @@ addLayer("b", {
         return exp
     },
     row: 2,
-    layerShown(){return player.b.unlocked||hasAchievement("a",25)},
-    resetsNothing(){return hasMilestone("b",3)},
+    layerShown() { return player.b.unlocked||hasAchievement("a",25); },
+    resetsNothing() { return hasMilestone("b",3); },
+    canBuyMax() { return hasMilestone("b", 8); }, 
+    autoPrestige() { return hasMilestone("b", 9); },
     doReset: function() {
         if (!canReset(this.layer)) return;
         if (run(this.resetsNothing, this)) return;
@@ -3249,6 +3337,18 @@ addLayer("b", {
             done(){return player.b.points.gte(7)},
             unlocked(){return hasMilestone("b",6)},
         },
+        8:{
+            requirementDescription: "13 硼",
+            effectDescription: "最大获取硼。",
+            done(){return player.b.points.gte(13)},
+            unlocked(){return hasMilestone("b",7)},
+        },
+        9:{
+            requirementDescription: "15 硼",
+            effectDescription: "自动获取硼。",
+            done(){return player.b.points.gte(15)},
+            unlocked(){return hasMilestone("b",8)},
+        },
     },
     upgrades:{
         11:{
@@ -3328,7 +3428,7 @@ addLayer("b", {
                 return effect
             },
             effectDisplay(){return "/"+format(this.effect())},
-            cost: new Decimal(2700000),
+            cost: new Decimal(1700000),
             unlocked(){return hasUpgrade("b",23)},
             currencyDisplayName:"癸硼烷",
             currencyInternalName:"borane1",
@@ -3346,7 +3446,7 @@ addLayer("b", {
         15:{
             title:"癸硼烷终极升级",
             description:"解锁新层级。",
-            cost: new Decimal(7000000),
+            cost: new Decimal(3000000),
             unlocked(){return hasUpgrade("b",24)},
             currencyDisplayName:"癸硼烷",
             currencyInternalName:"borane1",
@@ -3427,14 +3527,37 @@ addLayer("b", {
         },
         24:{
             title:"己硼烷助力氦",
-            description:"己硼烷降低氦价格，并可以同时生产至多 5 种硼烷。",
+            description:"己硼烷降低氦价格，并可以同时生产至多 2 种硼烷。",
             effect(){
                 let effect = player.b.borane2.add(1).pow(0.9).add(1)
                 return effect
             },
             effectDisplay(){return "/"+format(this.effect())},
-            cost: new Decimal(3100),
+            cost: new Decimal(2100),
             unlocked(){return hasUpgrade("b",33)},
+            currencyDisplayName:"己硼烷",
+            currencyInternalName:"borane2",
+            currencyLayer:"b",
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#FF7F3F'};
+                } else {
+                    return {};
+                }
+            }
+        },
+        25:{
+            title:"己硼烷终极升级",
+            description:"制取时重置硼，但结束制取时，硼加成硼烷产能。",
+            effect(){
+                let effect = player.b.points.add(2)
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            cost: new Decimal(5000),
+            unlocked(){return hasUpgrade("b",61)},
             currencyDisplayName:"己硼烷",
             currencyInternalName:"borane2",
             currencyLayer:"b",
@@ -3499,12 +3622,57 @@ addLayer("b", {
             description:"戊硼烷加成氢能。",
             effect(){
                 let effect = player.b.borane3.add(1).pow(0.9).add(1)
-                effect = powsoftcap(effect,n(1e20),n(three))
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect())},
             cost: new Decimal(1000),
             unlocked(){return hasUpgrade("b",42)},
+            currencyDisplayName:"戊硼烷",
+            currencyInternalName:"borane3",
+            currencyLayer:"b",   
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#FFFF3F'};
+                } else {
+                    return {};
+                }
+            }
+        },
+        34:{
+            title:"戊硼烷助力熵",
+            description:"戊硼烷加成熵。",
+            effect(){
+                let effect = player.b.borane3.add(1).ln().add(1).floor()
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            cost: new Decimal(2100),
+            unlocked(){return hasUpgrade("b",62)},
+            currencyDisplayName:"戊硼烷",
+            currencyInternalName:"borane3",
+            currencyLayer:"b",   
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#FFFF3F'};
+                } else {
+                    return {};
+                }
+            }
+        },
+        35:{
+            title:"戊硼烷终极升级",
+            description:"铍加成硼烷产能。",
+            effect(){
+                let effect = player.be.points.add(1).ln().add(1)
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            cost: new Decimal(5000),
+            unlocked(){return hasUpgrade("b",34)},
             currencyDisplayName:"戊硼烷",
             currencyInternalName:"borane3",
             currencyLayer:"b",   
@@ -3564,6 +3732,70 @@ addLayer("b", {
                 }
             }
         },
+        43:{
+            title:"丁硼烷解放锂",
+            description:"解锁锂的第七个效果。",
+            cost: new Decimal(1000),
+            unlocked(){return hasUpgrade("b",63)},
+            currencyDisplayName:"丁硼烷",
+            currencyInternalName:"borane4",
+            currencyLayer:"b",
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#3FFF3F'};
+                } else {
+                    return {};
+                }
+            }
+        },
+        44:{
+            title:"丁硼烷助力碳",
+            description:"丁硼烷加成碳。",
+            cost: new Decimal(2100),
+            effect(){
+                let effect = player.b.borane4.add(1).pow(1.1).add(1)
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            unlocked(){return hasUpgrade("b",43)},
+            currencyDisplayName:"丁硼烷",
+            currencyInternalName:"borane4",
+            currencyLayer:"b",
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#3FFF3F'};
+                } else {
+                    return {};
+                }
+            }
+        },
+        45:{
+            title:"丁硼烷终极升级",
+            description:"碳加成硼烷产能。",
+            cost: new Decimal(5000),
+            effect(){
+                let effect = player.c.points.add(1).log2().add(1).log2().add(1)
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            unlocked(){return hasUpgrade("b",43)},
+            currencyDisplayName:"丁硼烷",
+            currencyInternalName:"borane4",
+            currencyLayer:"b",
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#3FFF3F'};
+                } else {
+                    return {};
+                }
+            }
+        },
         51:{
             title:"乙硼烷助力电子",
             description:" 乙硼烷加成电子获取。",
@@ -3587,12 +3819,176 @@ addLayer("b", {
                 }
             }
         },
+        52:{
+            title:"乙硼烷还原 I",
+            description:"优化己硼烷的公式。",
+            cost: new Decimal(600),
+            unlocked(){return hasUpgrade("b",64)},
+            currencyDisplayName:"乙硼烷",
+            currencyInternalName:"borane5",
+            currencyLayer:"b",
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#3F3FFF'};
+                } else {
+                    return {};
+                }
+            }
+        },
+        53:{
+            title:"乙硼烷还原 II",
+            description:"优化戊硼烷的公式。",
+            cost: new Decimal(1000),
+            unlocked(){return hasUpgrade("b",52)},
+            currencyDisplayName:"乙硼烷",
+            currencyInternalName:"borane5",
+            currencyLayer:"b",
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#3F3FFF'};
+                } else {
+                    return {};
+                }
+            }
+        },
+        54:{
+            title:"乙硼烷还原 III",
+            description:"优化丁硼烷的公式。",
+            cost: new Decimal(2100),
+            unlocked(){return hasUpgrade("b",53)},
+            currencyDisplayName:"乙硼烷",
+            currencyInternalName:"borane5",
+            currencyLayer:"b",
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#3F3FFF'};
+                } else {
+                    return {};
+                }
+            }
+        },
+        55:{
+            title:"乙硼烷终极还原",
+            description:"优化乙硼烷的公式，并解锁光子（咕咕咕）。",
+            cost: new Decimal(5000),
+            unlocked(){return hasUpgrade("b",54)},
+            currencyDisplayName:"乙硼烷",
+            currencyInternalName:"borane5",
+            currencyLayer:"b",
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#3F3FFF'};
+                } else {
+                    return {};
+                }
+            }
+        },
+        61:{
+            title:"硼-10",
+            description:"解锁完整己硼烷升级。",
+            effect(){
+                let effect = one
+                return effect
+            },
+            effectDisplay(){return "+"+format(this.effect())},
+            cost: new Decimal(15),
+            unlocked(){return player.b.transcendCrystals.gte(10)||hasUpgrade("b",[this.id])},
+            currencyDisplayName:"超越水晶",
+            currencyInternalName:"transcendCrystals",
+            currencyLayer:"b",
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#7F3FFF'};
+                } else {
+                    return {};
+                }
+            }
+        },
+        62:{
+            title:"硼-11",
+            description:"解锁完整戊硼烷升级。",
+            effect(){
+                let effect = two
+                return effect
+            },
+            effectDisplay(){return "+"+format(this.effect())},
+            cost: new Decimal(50),
+            unlocked(){return hasUpgrade("b",61)&&hasUpgrade("b",25)},
+            currencyDisplayName:"超越水晶",
+            currencyInternalName:"transcendCrystals",
+            currencyLayer:"b",
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#7F3FFF'};
+                } else {
+                    return {};
+                }
+            }
+        },
+        63:{
+            title:"丙硼烷",
+            description:"解锁完整丁硼烷升级。",
+            effect(){
+                let effect = three
+                return effect
+            },
+            effectDisplay(){return "+"+format(this.effect())},
+            cost: new Decimal(100),
+            unlocked(){return hasUpgrade("b",62)&&hasUpgrade("b",35)},
+            currencyDisplayName:"超越水晶",
+            currencyInternalName:"transcendCrystals",
+            currencyLayer:"b",
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#7F3FFF'};
+                } else {
+                    return {};
+                }
+            }
+        },
+        64:{
+            title:"甲硼烷",
+            description:"解锁完整乙硼烷升级。",
+            effect(){
+                let effect = four
+                return effect
+            },
+            effectDisplay(){return "+"+format(this.effect())},
+            cost: new Decimal(185),
+            unlocked(){return hasUpgrade("b",63)&&hasUpgrade("b",45)},
+            currencyDisplayName:"超越水晶",
+            currencyInternalName:"transcendCrystals",
+            currencyLayer:"b",
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#7F3FFF'};
+                } else {
+                    return {};
+                }
+            }
+        },
     },
     clickables:{
         11:{
             title() {return "制取"},
             display() {
-                let text = "当前状态：" + (player.b.inBorane?"进行中":"闲置") + "<br>重置转生的所有内容与转生宝石。<br>制取削弱：中微子、电子、氢、氢能、温度点、电能上限、铍、转生宝石^0.66686。<br>结束制取时，气球和温度点加成硼烷产能。<br>当前硼烷产能：<span style='color:#441111;text-shadow:0 0 10px'>"+format(player.b.boraneGainFloorN)+"</span> <br>当前效果：增加<span style='color:#441111;text-shadow:0 0 10px'>"+format(layers.b.boraneGainFloor().sub(player.b.boraneGainFloorN).max(0))+"</span> 硼烷产能"
+                let text = "当前状态：" + (player.b.inBorane?"进行中":"闲置") + "<br>重置转生的所有内容与转生宝石。<br>制取削弱：中微子、电子、氢、氢能、温度点、电能上限、铍、转生宝石^0.66686。<br>结束制取时，气球和温度点加成硼烷产能。<br>当前硼烷产能：<span style='color:#441111;text-shadow:0 0 10px'>"+format(player.b.boraneGainFloorN)+"</span> <br>当前效果：获得 <span style='color:#441111;text-shadow:0 0 10px'>"+format(layers.b.boraneGainFloor())+"</span> 硼烷产能<br>增加 <span style='color:#441111;text-shadow:0 0 10px'>"+format(layers.b.boraneGainFloor().sub(player.b.boraneGainFloorN).max(0))+"</span> 硼烷产能"
                 return text
             },
             canClick() {return true},
@@ -3602,7 +3998,9 @@ addLayer("b", {
                     player.b.inBorane = false
                 }
                 else {
-                    run(layers.be.clickables[21].onClick);player.be.prestiGems = zero;
+                    run(layers.be.clickables[21].onClick);
+                    player.be.prestiGems = zero;
+                    if(hasUpgrade("b",25)) player.b.points = zero;
                     player.b.inBorane = true
                 }
             },
@@ -3623,6 +4021,43 @@ addLayer("b", {
             },
             style() { return { 'background-color': this.canClick()?"#A52A2A":"#BF8F8F"} },
             unlocked(){return hasMilestone("b",3)},
+        },
+        13: {
+            title() { return "超越"; },
+            display() {
+                let gain = player.b.boraneGainFloorN.add(1).log2().add(1).floor();
+                if (gain.lt(1)) gain = zero;
+                return "重置制取的所有内容和硼、硼烷、碳、熵。<br>获得 <span style='color:#331177;text-shadow:0 0 10px'>"+format(gain)+"</span> 超越水晶。（至少需要 30000 硼烷产能）";
+            },
+            unlocked() { return hasUpgrade('c', 34); },
+            canClick() { return player.b.boraneGainFloorN.gte(30000); },
+            onClick() {
+                let gain = player.b.boraneGainFloorN.add(1).log2().add(1).floor();
+               if (gain.lt(1)) gain = zero;
+            
+                player.b.inBorane = false;
+                player.b.gainBorane = [];
+                player.b.boraneGainFloorN = zero;
+            
+                player.b.borane1 = zero;
+                player.b.borane2 = zero;
+                player.b.borane3 = zero;
+                player.b.borane4 = zero;
+                player.b.borane5 = zero;
+            
+                player.b.points = zero;
+            
+                player.c.points = zero;
+                player.c.entropy = zero;
+            
+                player.b.transcendCrystals = player.b.transcendCrystals.add(gain);
+            },
+            style() { 
+                return { 
+                    'background-color': this.canClick() ? "#7F3FFF" : "#BF8F8F",
+                    'width': '200px'
+                };
+            }
         },
         31:{
             title() {return "选择生产癸硼烷"},
@@ -3693,25 +4128,46 @@ addLayer("b", {
     boraneGainFloor(){
         let gain = zero
         if(player.b.inBorane) gain = player.h.balloon.mul(player.he.temPoint.add(1).log10().add(1))
-        if(hasUpgrade("b",44)) gain = gain.mul(upgradeEffect2("b",44))
+        if(player.b.inBorane&&hasUpgrade("b",25)) gain = gain.mul(upgradeEffect("b",25))
+        if(player.b.inBorane&&hasUpgrade("b",35)) gain = gain.mul(upgradeEffect("b",35))
+        if(player.b.inBorane&&hasUpgrade("b",45)) gain = gain.mul(upgradeEffect("b",45))
         return gain
     },
     boraneGain(num){
         let gain = one
         if(!player.b.gainBorane.includes(num)) return zero  
         if(num==1){gain = gain.mul(player.b.boraneGainFloorN)}
-        else if(num==2)gain = gain.mul(player.b.boraneGainFloorN.add(1).log2().add(1))
-        else if(num==3)gain = gain.mul(player.b.boraneGainFloorN.add(1).ln().add(1))
-        else if(num==4)gain = gain.mul(player.b.boraneGainFloorN.add(1).log10().add(1))
-        else if(num==5)gain = gain.mul(player.b.boraneGainFloorN.add(1).log2().add(1).log2().add(1))
+        if(num==2)gain = gain.mul(player.b.boraneGainFloorN.add(1).log2().add(1))
+        if(num==2&&hasUpgrade("b",52))gain = gain.mul(player.b.boraneGainFloorN.add(1).mul(2).log2().add(1))
+        if(num==3)gain = gain.mul(player.b.boraneGainFloorN.add(1).ln().add(1))
+        if(num==3&&hasUpgrade("b",53))gain = gain.mul(player.b.boraneGainFloorN.add(1).mul(2).ln().add(1))
+        if(num==4)gain = gain.mul(player.b.boraneGainFloorN.add(1).log10().add(1))
+        if(num==4&&hasUpgrade("b",54))gain = gain.mul(player.b.boraneGainFloorN.add(1).mul(2).log10().add(1))
+        if(num==5)gain = gain.mul(player.b.boraneGainFloorN.add(1).log2().add(1).log2().add(1))
+        if(num==5&&hasUpgrade("b",55))gain = gain.mul(player.b.boraneGainFloorN.add(1).mul(2).log2().add(1).log2().add(1))
         return gain
     },
     chooseBoraneGainMax(){
         let num = 1;
-        if (hasUpgrade("b", 24)) num += 4;
+        if (hasUpgrade("b", 24)) num += 1;
             return num;
     },
     update(diff){
+        // ---- 全面防御性初始化 ----
+            if (!player.b) {
+                player.b = layers.b.startData();
+                    } else {
+                const defaults = layers.b.startData();
+                for (let key in defaults) {
+                    if (!(key in player.b) || player.b[key] === undefined) {
+                        player.b[key] = defaults[key];
+                    } else if (defaults[key] instanceof Decimal && !(player.b[key] instanceof Decimal)) {
+                        player.b[key] = new Decimal(player.b[key] || 0);
+                    }
+                }
+            }
+
+        // ===== 原有更新代码 =====
         player.b.borane1 = player.b.borane1.add(layers.b.boraneGain(1).mul(diff))
         player.b.borane2 = player.b.borane2.add(layers.b.boraneGain(2).mul(diff))
         player.b.borane3 = player.b.borane3.add(layers.b.boraneGain(3).mul(diff))
@@ -3747,17 +4203,11 @@ addLayer("b", {
                 "main-display","prestige-button",
                 ["display-text",
                     function(){return "你有 <span style='color:#FFDA00;text-shadow:0 0 10px'>"+format(player.he.temPoint)+"</span> 温度点"}],
-                ["clickables",[1]],
-                ["row",[["clickable",21],["clickables",[3,4]]]],
-                ["display-text",function(){
-                    let text1 = "";let text2 = "";let text3= "";let text4 = "";let text5 = "";let text6 = "";
-                    if(hasMilestone("b",3))text1 = "你有 <span style='color:#FF3F3F;text-shadow:0 0 10px'>"+format(player.b.borane1)+"</span> 癸硼烷<br>你的癸硼烷产量为 <span style='color:#FF3F3F;text-shadow:0 0 10px'>"+format(layers.b.boraneGain(1))+"</span> / s"
-                    if(hasMilestone("b",4))text2 = "你有 <span style='color:#FF7F3F;text-shadow:0 0 10px'>"+format(player.b.borane2)+"</span> 己硼烷<br>你的己硼烷产量为 <span style='color:#FF7F3F;text-shadow:0 0 10px'>"+format(layers.b.boraneGain(2))+"</span> / s"
-                    if(hasMilestone("b",5))text3 = "你有 <span style='color:#FFFF3F;text-shadow:0 0 10px'>"+format(player.b.borane3)+"</span> 戊硼烷<br>你的戊硼烷产量为 <span style='color:#FFFF3F;text-shadow:0 0 10px'>"+format(layers.b.boraneGain(3))+"</span> / s"
-                    if(hasMilestone("b",6))text4 = "你有 <span style='color:#3FFF3F;text-shadow:0 0 10px'>"+format(player.b.borane4)+"</span> 丁硼烷<br>你的丁硼烷产量为 <span style='color:#3FFF3F;text-shadow:0 0 10px'>"+format(layers.b.boraneGain(4))+"</span> / s"
-                    if(hasMilestone("b",7))text5 = "你有 <span style='color:#3F3FFF;text-shadow:0 0 10px'>"+format(player.b.borane5)+"</span> 乙硼烷<br>你的乙硼烷产量为 <span style='color:#3F3FFF;text-shadow:0 0 10px'>"+format(layers.b.boraneGain(5))+"</span> / s"
-                    return text1 + "<br>" + text2 + "<br>" + text3 + "<br>" + text4 + "<br>" + text5 + "<br>" + text6
-                }]
+                ["display-text", function() {
+                    return "你有 <span style='color:#7F3FFF;text-shadow:0 0 10px'>" + format(player.b.transcendCrystals) + "</span> 超越水晶";
+                }],
+                "clickables",
+                ["upgrades",[6]]
             ],
             unlocked(){return hasMilestone("b",3)}
         },
@@ -3774,7 +4224,7 @@ addLayer("b", {
                     if(hasMilestone("b",6))text4 = "你有 <span style='color:#3FFF3F;text-shadow:0 0 10px'>"+format(player.b.borane4)+"</span> 丁硼烷<br>你的丁硼烷产量为 <span style='color:#3FFF3F;text-shadow:0 0 10px'>"+format(layers.b.boraneGain(4))+"</span> / s"
                     if(hasMilestone("b",7))text5 = "你有 <span style='color:#3F3FFF;text-shadow:0 0 10px'>"+format(player.b.borane5)+"</span> 乙硼烷<br>你的乙硼烷产量为 <span style='color:#3F3FFF;text-shadow:0 0 10px'>"+format(layers.b.boraneGain(5))+"</span> / s"
                     return text1 + "<br>" + text2 + "<br>" + text3 + "<br>" + text4 + "<br>" + text5 + "<br>" + text6
-                }],["upgrades",[1,2,3,4,5,6]]
+                }],["upgrades",[1,2,3,4,5]]
             ],
             unlocked(){return hasMilestone("b",3)}
         },
@@ -3791,7 +4241,7 @@ addLayer("c", {
     startData() { return {
         unlocked: false,
         points: new Decimal(0),
-        energy: zero,
+        entropy: zero,
     }},
     branches: ["h"],
     color: "#555555",
@@ -3803,7 +4253,9 @@ addLayer("c", {
     exponent: 0.5,
     gainMult() {
         mult = one
-        if(hasUpgrade('c', 11)) mult = mult.mul(upgradeEffect('c', 11))
+        if(hasUpgrade('c', 11)) mult = mult.mul(upgradeEffect('c', 11));
+        if (hasUpgrade('b', 44)) mult = mult.mul(upgradeEffect('b', 44));
+        if(hasAchievement('a', 33)) mult = mult.mul(achievementEffect('a', 33));
         return mult
     },
     gainExp() {
@@ -3815,17 +4267,32 @@ addLayer("c", {
     resetsNothing(){
         return hasMilestone("b",3)
     },
+    getEntropyGain() {
+        let gain = one;
+        if (hasUpgrade('c', 31)) gain = gain.mul(upgradeEffect('c', 31));
+        if (hasUpgrade('c', 32)) gain = gain.mul(upgradeEffect('c', 32));
+        if (hasUpgrade('c', 33)) gain = gain.mul(upgradeEffect('c', 33));
+        if (hasUpgrade('b', 34)) gain = gain.mul(upgradeEffect('b', 34));
+        if(hasAchievement('a', 34)) gain = gain.mul(achievementEffect('a', 34));
+        return gain;
+    },
+    update(diff) {
+        const count = getBuyableAmount('c', 11).toNumber();
+        if (count > 0) {
+            player.c.entropy = player.c.entropy.add(layers.c.getEntropyGain().mul(count).mul(diff));
+        }
+    },
     upgrades:{
         11:{
             title:"CCB",
             description:"硼加成碳。",
             effect(){
-                let effect = player.b.points.add(1).pow(1.1).add(1)
+                let effect = player.b.points.add(1).pow(0.9).add(1)
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect())},
             cost: new Decimal(1),
-            unlocked(){return player.b.unlocked},
+            unlocked(){return player.c.unlocked},
         },
         12:{
             title:"离子化",
@@ -3845,19 +4312,178 @@ addLayer("c", {
             cost: new Decimal(1e85),
             unlocked(){return hasUpgrade("c",13)},
         },
-    },
-    tabFormat:{
-        "主页": {   
-            content: [
-                "main-display","prestige-button",
-                ["display-text",
-                    function(){return "你有 <span style='color:#FF66CC;text-shadow:0 0 10px'>"+format(player.h.power)+"</span> 氢能"}],
-                "upgrades",               
-            ],
-            unlocked(){return player.c.unlocked}
+        21:{
+            title:"热力学",
+            description:"熵加成中微子。",
+            effect(){
+                let effect = player.c.entropy.pow(player.c.entropy.add(1).log10().add(1))
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            cost: new Decimal(10),
+            unlocked(){return player.c.entropy.gte(10)||hasUpgrade('c',[this.id])},
+            currencyDisplayName: "熵",
+            currencyInternalName: "entropy",
+            currencyLayer: "c",
         },
+        22:{
+            title:"热机",
+            description:"熵加成氢。",
+            effect(){
+                let effect = player.c.entropy.pow(player.c.entropy.add(1).log2().add(1).log2().add(1))
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            cost: new Decimal(100),
+            unlocked(){return hasUpgrade('c',21)},
+            currencyDisplayName: "熵",
+            currencyInternalName: "entropy",
+            currencyLayer: "c",
+        },
+        23:{
+            title:"电热",
+            description:"熵加成电子。",
+            effect(){
+                let effect = player.c.entropy.add(1).log2().add(1).floor()
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            cost: new Decimal(1000),
+            unlocked(){return hasUpgrade('c',22)},
+            currencyDisplayName: "熵",
+            currencyInternalName: "entropy",
+            currencyLayer: "c",
+        },
+        24:{
+            title:"碳-13",
+            description:"解锁自动点击者。",
+            cost: new Decimal(10000),
+            unlocked(){return hasUpgrade('c',23)},
+            currencyDisplayName: "熵",
+            currencyInternalName: "entropy",
+            currencyLayer: "c",
+        },
+        31:{
+            title:"新的开始",
+            description:"硼加成熵。",
+            effect(){
+                let effect = player.b.points.add(1).pow(0.8).add(1).floor()
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            cost: new Decimal(30),
+            unlocked(){return hasUpgrade('c',21)},
+            currencyDisplayName: "熵",
+            currencyInternalName: "entropy",
+            currencyLayer: "c",
+        },
+        32:{
+            title:"热能",
+            description:"碳加成熵。",
+            effect(){
+                let effect = player.c.points.add(1).log2().add(1).log2().add(1).floor()
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            cost: new Decimal(300),
+            unlocked(){return hasUpgrade('c',22)&&hasUpgrade('c',31)},
+            currencyDisplayName: "熵",
+            currencyInternalName: "entropy",
+            currencyLayer: "c",
+        },
+        33:{
+            title:"碳-12",
+            description:"铍加成熵。",
+            effect(){
+                let effect = player.be.points.add(1).log2().add(1).log2().add(1).floor()
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            cost: new Decimal(3000),
+            unlocked(){return hasUpgrade('c',23)&&hasUpgrade('c',32)},
+            currencyDisplayName: "熵",
+            currencyInternalName: "entropy",
+            currencyLayer: "c",
+        },
+        34:{
+            title:"碳-14",
+            description:"解锁超越。",
+            cost: new Decimal(300000),
+            unlocked(){return hasUpgrade('c',24)&&hasUpgrade('c',33)},
+            currencyDisplayName: "熵",
+            currencyInternalName: "entropy",
+            currencyLayer: "c",
+        },
+    },
+    clickables: {
+        11: {
+            title: "获取熵",
+            display() {
+                let gain = layers.c.getEntropyGain();
+                return "点击以获得 <span style='color:#BBBBBB;text-shadow:0 0 10px'>"+format(gain)+"</span> 熵。";
+            },
+            unlocked() { return hasUpgrade('c', 14); },
+            canClick() { return true; },
+            onClick() {
+                player.c.entropy = player.c.entropy.add(layers.c.getEntropyGain());
+            },
+        }
+    },
+    buyables: {
+        11: {
+            title: "自动点击者",
+            cost(x) {
+                return new Decimal(1e85).mul(Decimal.pow(2, x));
+            },
+            display() {
+                return "自动点击获取熵。<br>价格：" + format(this.cost()) + "碳<br>当前数量：" + format(getBuyableAmount(this.layer, this.id)) + "<br>当前效果：每秒自动点击 " + format(this.effect()) + " 次";
+            },
+            canAfford() { return player.c.points.gte(this.cost()); },
+            buy() {
+                player.c.points = player.c.points.sub(this.cost());
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1));
+            },
+            effect(x) {
+                return x;
+            },
+            purchaseLimit() { return new Decimal(12); },
+            unlocked() { return hasUpgrade('c', 24); }
+        }
+    },
+    tabFormat: {
+        "主页": {
+            content: [
+                "main-display",
+                "prestige-button",
+                ["display-text",
+                    function(){ return "你有 <span style='color:#FF66CC;text-shadow:0 0 10px'>"+format(player.h.power)+"</span> 氢能"; }
+                ],
+                ["upgrades",[[1]]]
+            ],
+            unlocked(){ return true; }
+        },
+        "熵": {
+            content: [
+                "main-display",
+                "prestige-button",
+                ["display-text",
+                    function(){ return "你有 <span style='color:#FF66CC;text-shadow:0 0 10px'>"+format(player.h.power)+"</span> 氢能"; }
+                ],
+                "buyables",
+                "clickables",
+                ["display-text", function() {
+                    return "你有 <span style='color:#555555;text-shadow:0 0 10px'>" + format(player.c.entropy) + "</span> 熵";
+                }],
+                ["upgrades",[2,3]]
+            ],
+            unlocked(){ return hasUpgrade('c', 14); }
+        }
     },    
-},)
+    style: {
+        background: "linear-gradient(135deg, #000000, #1F1F1F)",
+        minHeight: "100vh"
+    },
+})
 addLayer("a", {
     
     startData() { return {
@@ -4057,6 +4683,42 @@ addLayer("a", {
                 }
             },
             effect() {return 0.5;},
+            unlocked() {return hasAchievement("a",26)}
+        },
+        33: {
+            name: "增长率",
+            done() {return player.c.entropy.gte(1000)},
+            tooltip: function() {
+                if (hasAchievement(this.layer, this.id)) {
+                    let eff = achievementEffect(this.layer, this.id);
+                    return `要求：获得 1000 熵。<br>奖励：已完成的成就个数加成碳。<br>当前：x${format(eff)}`;
+                } else {
+                    return `要求：获得 1000 熵。<br>奖励：已完成的成就个数加成碳。<br>当前：x1.00`;
+                }
+            },
+            effect() {
+                let len = getAchievementCount();
+                if (hasUpgrade('h', 55)) len = len * len;
+                return new Decimal(len).add(1).pow(1.2).add(1);
+            },
+            unlocked() {return hasAchievement("a",26)}
+        },
+        34: {
+            name: "突破",
+            done() {return player.b.transcendCrystals.gte(200)},
+            tooltip: function() {
+                if (hasAchievement(this.layer, this.id)) {
+                    let eff = achievementEffect(this.layer, this.id);
+                    return `要求：获得 200 超越水晶。<br>奖励：已完成的成就个数加成熵。<br>当前：x${format(eff)}`;
+                } else {
+                    return `要求：获得 200 超越水晶。<br>奖励：已完成的成就个数加成熵。<br>当前：x1.00`;
+                }
+            },
+            effect() {
+                let len = getAchievementCount();
+                if (hasUpgrade('h', 55)) len = len * len;
+                return new Decimal(len).add(1).pow(0.6).add(1);
+            },
             unlocked() {return hasAchievement("a",26)}
         },
     },
