@@ -1052,7 +1052,7 @@ addLayer("h", {
         51:{
             title:"粒子提升",
             description:"彻底优化 粒子加速器|Alef 的效果公式。",
-            cost: new Decimal(200),
+            cost: new Decimal(191),
             currencyDisplayName: "气球",
             currencyInternalName: "balloon",
             currencyLayer: "h",
@@ -1061,7 +1061,7 @@ addLayer("h", {
         52:{
             title:"发展",
             description:"削弱 温度点效果|蓐收 和 温度点效果|共工 的效果，但是移除它们的软上限。",
-            cost: new Decimal(222),
+            cost: new Decimal(209),
             currencyDisplayName: "气球",
             currencyInternalName: "balloon",
             currencyLayer: "h",
@@ -1070,7 +1070,7 @@ addLayer("h", {
         53:{
             title:"解离 I",
             description:"爆炸气球的时间始终等于爆炸后加成时间。",
-            cost: new Decimal(243),
+            cost: new Decimal(239),
             currencyDisplayName: "气球",
             currencyInternalName: "balloon",
             currencyLayer: "h",
@@ -1079,7 +1079,7 @@ addLayer("h", {
         54:{
             title:"解离 II",
             description:"爆炸氦气球的时间始终等于爆炸后加成时间。",
-            cost: new Decimal(250),
+            cost: new Decimal(243),
             currencyDisplayName: "气球",
             currencyInternalName: "balloon",
             currencyLayer: "h",
@@ -1088,7 +1088,7 @@ addLayer("h", {
         55:{
             title:"终极加速",
             description:"平方已完成成就个数。",
-            cost: new Decimal(256),
+            cost: new Decimal(245),
             effect(){
                 let eff = two
                 return eff
@@ -1126,9 +1126,9 @@ addLayer("h", {
             unlocked(){return hasUpgrade("h",43)},
         },
         5:{
-            requirementDescription: "200 气球",
+            requirementDescription: "191 气球",
             effectDescription: "解锁第五行氢升级。",
-            done(){return player.h.balloon.gte(200)},
+            done(){return player.h.balloon.gte(1)},
             unlocked(){return hasMilestone("h",4)},
         },
     },
@@ -2445,7 +2445,7 @@ addLayer("li", {
         92:{
             title:"研究-72",
             description:"总研究点加成氢能。",
-            cost: new Decimal(15000),
+            cost: new Decimal(13500),
             effect(){
                 let total = getBuyableAmount("li", 11)
                              .mul(getBuyableAmount("li", 12))
@@ -2454,7 +2454,7 @@ addLayer("li", {
                 let effect = total.add(extra).add(1);
                 return effect;
             },
-            effectDisplay(){return "/"+format(this.effect()) },
+            effectDisplay(){return "x"+format(this.effect()) },
             unlocked(){return hasUpgrade("li",81)&&hasUpgrade("li",82)},
             currencyDisplayName:"研究点",
             currencyInternalName:"researchPoint",
@@ -4027,10 +4027,10 @@ addLayer("b", {
             display() {
                 let gain = player.b.boraneGainFloorN.add(1).log2().add(1).floor();
                 if (gain.lt(1)) gain = zero;
-                return "重置制取的所有内容和硼、硼烷、碳、熵。<br>获得 <span style='color:#331177;text-shadow:0 0 10px'>"+format(gain)+"</span> 超越水晶。（至少需要 30000 硼烷产能）";
+                return "重置制取的所有内容和硼、硼烷、碳、熵。<br>获得 <span style='color:#331177;text-shadow:0 0 10px'>"+format(gain)+"</span> 超越水晶。（至少需要 27000 硼烷产能）";
             },
             unlocked() { return hasUpgrade('c', 34); },
-            canClick() { return player.b.boraneGainFloorN.gte(30000); },
+            canClick() { return player.b.boraneGainFloorN.gte(27000); },
             onClick() {
                 let gain = player.b.boraneGainFloorN.add(1).log2().add(1).floor();
                if (gain.lt(1)) gain = zero;
@@ -4309,7 +4309,7 @@ addLayer("c", {
         14:{
             title:"这是一条单行道......",
             description:"解锁熵（目前版本终局）。",
-            cost: new Decimal(1e85),
+            cost: new Decimal(1e80),
             unlocked(){return hasUpgrade("c",13)},
         },
         21:{
@@ -4334,7 +4334,7 @@ addLayer("c", {
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect())},
-            cost: new Decimal(100),
+            cost: new Decimal(200),
             unlocked(){return hasUpgrade('c',21)},
             currencyDisplayName: "熵",
             currencyInternalName: "entropy",
@@ -4348,7 +4348,7 @@ addLayer("c", {
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect())},
-            cost: new Decimal(1000),
+            cost: new Decimal(3000),
             unlocked(){return hasUpgrade('c',22)},
             currencyDisplayName: "熵",
             currencyInternalName: "entropy",
@@ -4357,7 +4357,7 @@ addLayer("c", {
         24:{
             title:"碳-13",
             description:"解锁自动点击者。",
-            cost: new Decimal(10000),
+            cost: new Decimal(40000),
             unlocked(){return hasUpgrade('c',23)},
             currencyDisplayName: "熵",
             currencyInternalName: "entropy",
@@ -4371,7 +4371,7 @@ addLayer("c", {
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect())},
-            cost: new Decimal(30),
+            cost: new Decimal(20),
             unlocked(){return hasUpgrade('c',21)},
             currencyDisplayName: "熵",
             currencyInternalName: "entropy",
@@ -4399,7 +4399,7 @@ addLayer("c", {
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect())},
-            cost: new Decimal(3000),
+            cost: new Decimal(4000),
             unlocked(){return hasUpgrade('c',23)&&hasUpgrade('c',32)},
             currencyDisplayName: "熵",
             currencyInternalName: "entropy",
@@ -4408,7 +4408,7 @@ addLayer("c", {
         34:{
             title:"碳-14",
             description:"解锁超越。",
-            cost: new Decimal(300000),
+            cost: new Decimal(1000000),
             unlocked(){return hasUpgrade('c',24)&&hasUpgrade('c',33)},
             currencyDisplayName: "熵",
             currencyInternalName: "entropy",
@@ -4433,7 +4433,7 @@ addLayer("c", {
         11: {
             title: "自动点击者",
             cost(x) {
-                return new Decimal(1e85).mul(Decimal.pow(2, x));
+                return new Decimal(1e81).mul(Decimal.pow(2, x));
             },
             display() {
                 return "自动点击获取熵。<br>价格：" + format(this.cost()) + "碳<br>当前数量：" + format(getBuyableAmount(this.layer, this.id)) + "<br>当前效果：每秒自动点击 " + format(this.effect()) + " 次";
