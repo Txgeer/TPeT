@@ -214,13 +214,14 @@
             rarity: '普通',
             description: '数字长度为偶数，且前半部分数字和等于后半部分数字和',
             check: function(d) {
-                const len = d.length;
-                if (len % 2 !== 0) return false;
+                const trimmed = d.replace(/^0+/, '');
+                const len = trimmed.length;
+                if (len === 0 || len % 2 !== 0) return false;
                 const half = len / 2;
                 let sumFirst = 0, sumSecond = 0;
                 for (let i = 0; i < half; i++) {
-                    sumFirst += parseInt(d[i], 10);
-                    sumSecond += parseInt(d[half + i], 10);
+                    sumFirst += parseInt(trimmed[i], 10);
+                    sumSecond += parseInt(trimmed[half + i], 10);
                 }
                 return sumFirst === sumSecond;
             }
