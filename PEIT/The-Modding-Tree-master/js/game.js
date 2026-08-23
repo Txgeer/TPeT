@@ -145,27 +145,40 @@ function rowReset(row, layer) {
 }
 
 function layerDataReset(layer, keep = []) {
-	let storedData = {unlocked: player[layer].unlocked, forceTooltip: player[layer].forceTooltip, noRespecConfirm: player[layer].noRespecConfirm, prevTab:player[layer].prevTab} // Always keep these
+    if (!layers[layer]) {
+        return;
+    }
 
-	for (let key of keep) {
+    if (!player[layer]) {
+        player[layer] = getStartLayerData(layer);
+    }
+
+    let storedData = {
+        unlocked: player[layer].unlocked,
+        forceTooltip: player[layer].forceTooltip,
+        noRespecConfirm: player[layer].noRespecConfirm,
+        prevTab: player[layer].prevTab
+    };
+
+    for (let key of keep) {
         if (player[layer][key] !== undefined) {
             storedData[key] = player[layer][key];
         }
     }
-    
-	player[layer].buyables = getStartBuyables(layer);
+
+    player[layer].buyables = getStartBuyables(layer);
     player[layer].clickables = getStartClickables(layer);
     player[layer].challenges = getStartChallenges(layer);
     player[layer].grid = getStartGrid(layer);
 
-	layOver(player[layer], getStartLayerData(layer))
-	player[layer].upgrades = []
-	player[layer].milestones = []
-	player[layer].achievements = []
+    layOver(player[layer], getStartLayerData(layer));
+    player[layer].upgrades = [];
+    player[layer].milestones = [];
+    player[layer].achievements = [];
 
-	for (thing in storedData) {
-		player[layer][thing] =storedData[thing]
-	}
+    for (let thing in storedData) {
+        player[layer][thing] = storedData[thing];
+    }
 }
 
 function addPoints(layer, gain) {
@@ -185,6 +198,13 @@ function generatePoints(layer, diff) {
 }
 
 function doReset(layer, force=false) {
+    if (!player[layer]) {
+        return;
+    }
+    if (layers[layer] && typeof layers[layer].doReset === 'function') {
+        layers[layer].doReset.call(layers[layer], force);
+        return;
+    }
     if (!tmp[layer] || !player[layer]) return;
 	if (tmp[layer].type == "none") return
 	let row = tmp[layer].row
@@ -859,8 +879,12 @@ function loadGameDataOnly() {
         };
     
         newBtn?.addEventListener('click', () => {
-           if (confirm('确定要开始新游戏吗？当前进度将会丢失！')) {
+            if (!hasSave) {
                 startGame(false);
+            } else {
+                if (confirm('确定要开始新游戏吗？当前进度将会丢失！')) {
+                    startGame(false);
+                }
             }
         });
     

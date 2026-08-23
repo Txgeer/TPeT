@@ -29,11 +29,14 @@ let modInfo = {
 let getModID = () => modInfo.id ?? modInfo.name.replace(/\s+/g, '-');
 // Set your version in num and name
 let VERSION = {
-	num: "0.5.5",
+	num: "0.6",
 	name: "New Game"
 }
 
 let changelog = `<h1>更新日志:</h1><br>
+    <h3>NG v0.6 2026.8.23</h3><br>
+		- 增加了新的内容（原油前）。<br>
+		- 增加了“科学”标签页。<br>
     <h3>NG v0.5.5 2026.8.11</h3><br>
 		- 增加了新的内容（氮前）。<br>
 		- 为第三行的两层补完了热键。<br>
@@ -161,6 +164,11 @@ function closeDragHint() {
 
 var displayThings = [
 	function() {
+        if (tmp.speedMult && tmp.speedMult !== 1) {
+            return `<div style="color: #777777; font-size: 20px; margin-top: 5px; text-shadow: 0 0 10px ;">⚡ 游戏速度: ${format(tmp.speedMult)}x</div>`;
+        }
+    },
+	function() {
         if (localStorage.getItem('hideDragHint') === 'true') return '';
         return '<div style="background: #ffbf00; color: #000000; padding: 4px 8px; border-radius: 8px; cursor: pointer; margin-top: 5px;" onclick="closeDragHint()">💡 提示：按住鼠标左键并拖拽可以批量购买升级和可购买！点击此处关闭提示。</div>';
     },
@@ -169,7 +177,7 @@ var displayThings = [
 
 // Determines when the game "ends"
 function isEndgame() {
-	return hasUpgrade("p",83)
+	return hasMilestone("n",8)
 }
 
 
@@ -194,8 +202,12 @@ function maxTickLength() {
 function fixOldSave(){
 }
 
-function getGameSpeedMultiplier(diff) {
-    return 1;
+function getGameSpeedMultiplier() {
+    let base = 1;
+    if (typeof player !== 'undefined' && player && player.n && player.n.balloon) {
+        base = player.n.balloon.add(1).log2().add(1);  // 1 + log2(balloon+1)
+    }
+    return base;
 }
 
 window.startScreenConfig = {

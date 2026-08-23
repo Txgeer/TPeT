@@ -115,11 +115,8 @@ var systemComponents = {
 	'overlay-head': {
     template: `
         <div class="overlayThing" style="padding-bottom:7px; width: 90%; z-index: 1000; position: relative">
-            <span v-if="player.devSpeed && player.devSpeed !== 1" class="overlayThing">
-                <br>开发者速度：{{format(player.devSpeed)}}x<br>
-            </span>
             <span v-if="player.offTime !== undefined" class="overlayThing">
-                <br>Offline Time: {{formatTime(player.offTime.remain)}}<br>
+                <br>离线时间：{{formatTime(player.offTime.remain)}}<br>
             </span>
             <span v-if="player.points.lt('1e1000')" class="overlayThing">你有 </span>
             <h2 class="overlayThing" id="points">{{format(player.points)}}</h2>
@@ -128,7 +125,7 @@ var systemComponents = {
             <span v-if="canGenPoints()" class="overlayThing">
                 ({{tmp.other.oompsMag !== 0 ? format(tmp.other.oomps) + ' OOM' + (tmp.other.oompsMag < 0 ? '^OOM' : tmp.other.oompsMag > 1 ? '^' + tmp.other.oompsMag : '') + 's' : formatSmall(getPointGen())}}/s)
             </span>
-            <div v-if="player.paused" class="overlayThing" style="color: #ffaa00; font-size: 20px; margin-top: 5px; text-shadow: 0 0 10px #ffaa00;">
+            <div v-if="player.paused" class="overlayThing" style="color: #FFAA00; font-size: 20px; margin-top: 5px; text-shadow: 0 0 10px ;">
                 ⏸ 暂停中
             </div>
             <div v-for="(thing, index) in tmp.displayThings" :key="index" class="overlayThing">
@@ -141,7 +138,7 @@ var systemComponents = {
     'info-tab': {
     data() {
         return {
-            engineVersion: '3.1'
+            engineVersion: '3.1.2'
         };
     },
     template: `
