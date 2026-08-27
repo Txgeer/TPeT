@@ -7,7 +7,7 @@ var NaNalert = false;
 var activeFunctions = [
     "startData", "onPrestige", "doReset", "update", "automate",
     "buy", "buyMax", "respec", "onPress", "onClick", "onHold", "masterButtonPress",
-    "sellOne", "sellAll", "pay", "actualCostFunction", "actualEffectFunction",
+    "sellOne", "sellAll", "pay", "actualCostFunction", "actu原初fectFunction",
     "effectDescription", "display", "fullDisplay", "effectDisplay", "rewardDisplay",
     "tabFormat", "content",
     "onComplete", "onPurchase", "onEnter", "onExit", "done",
@@ -152,7 +152,7 @@ function setupBuyables(layer) {
         if (!isPlainObject(b)) continue;
         if (b._patched) continue;
         b._originalCost = b.cost;
-        b._originalEffect = b.effect;
+        b._origin原初fect = b.effect;
         b.cost = function(x) {
             if (x === undefined) {
                 const layerData = player[this.layer];
@@ -168,7 +168,7 @@ function setupBuyables(layer) {
                 const buyables = layerData ? layerData.buyables : null;
                 x = (buyables && buyables[this.id] !== undefined) ? buyables[this.id] : new Decimal(0);
             }
-            return this._originalEffect(x);
+            return this._origin原初fect(x);
         };
         
         b._patched = true;

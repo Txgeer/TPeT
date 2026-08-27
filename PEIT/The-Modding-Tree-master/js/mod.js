@@ -29,11 +29,15 @@ let modInfo = {
 let getModID = () => modInfo.id ?? modInfo.name.replace(/\s+/g, '-');
 // Set your version in num and name
 let VERSION = {
-	num: "0.6",
+	num: "0.6.1",
 	name: "New Game"
 }
 
 let changelog = `<h1>更新日志:</h1><br>
+    <h3>NG v0.6.1 2026.8.24</h3><br>
+        - 修复了游戏速度在一开始就显示的问题。<br>
+		- 修复了氚的问题。<br>
+		- 修复了成就23的条件显示错误的问题。<br>
     <h3>NG v0.6 2026.8.23</h3><br>
 		- 增加了新的内容（原油前）。<br>
 		- 增加了“科学”标签页。<br>
@@ -145,6 +149,7 @@ function getPointGen() {
 	if(hasUpgrade("b",41)) gain = gain.mul(upgradeEffect("b",41))
 	if(hasUpgrade("li",13)) gain = gain.mul(layers.li.LiboostPoints())
     if(player.b.inBorane) gain = gain.pow(0.66686)
+	if(player.c.inExtract) gain = gain.pow(0.666)
 	return gain
 }
 
@@ -164,7 +169,7 @@ function closeDragHint() {
 
 var displayThings = [
 	function() {
-        if (tmp.speedMult && tmp.speedMult !== 1) {
+        if (tmp.speedMult && !tmp.speedMult.eq(1)) {
             return `<div style="color: #777777; font-size: 20px; margin-top: 5px; text-shadow: 0 0 10px ;">⚡ 游戏速度: ${format(tmp.speedMult)}x</div>`;
         }
     },
