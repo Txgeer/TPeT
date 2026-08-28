@@ -29,11 +29,13 @@ let modInfo = {
 let getModID = () => modInfo.id ?? modInfo.name.replace(/\s+/g, '-');
 // Set your version in num and name
 let VERSION = {
-	num: "0.6.1",
+	num: "0.6.2",
 	name: "New Game"
 }
 
 let changelog = `<h1>更新日志:</h1><br>
+    <h3>NG v0.6.2 2026.8.29</h3><br>
+        - 新增了四种原油副产品。<br>
     <h3>NG v0.6.1 2026.8.24</h3><br>
         - 修复了游戏速度在一开始就显示的问题。<br>
 		- 修复了氚的问题。<br>
@@ -131,7 +133,8 @@ function getPointGen() {
 	if(hasUpgrade("p",32)) gain = gain.mul(upgradeEffect("p",32))
 	if(hasUpgrade("p",34)) gain = gain.mul(upgradeEffect("p",34))
 	if(hasUpgrade("p",43)) gain = gain.mul(upgradeEffect("p",43))
-	if(hasUpgrade("p",61)) gain = gain.mul(upgradeEffect("p",61))
+	if(hasUpgrade("p",61&&!hasMilestone("c",4))) gain = gain.mul(upgradeEffect("p",61))
+	if(hasUpgrade("p",61&&hasMilestone("c",4))) gain = gain.div(upgradeEffect("p",61))
 	if(hasUpgrade("h",11)) gain = gain.mul(upgradeEffect("h",11))
 	if(hasUpgrade("h",12)) gain = gain.mul(upgradeEffect("h",12))
 	if(hasUpgrade("h",21)) gain = gain.mul(upgradeEffect("h",21))
@@ -182,7 +185,7 @@ var displayThings = [
 
 // Determines when the game "ends"
 function isEndgame() {
-	return hasMilestone("n",8)
+	return hasMilestone("c",4)
 }
 
 
