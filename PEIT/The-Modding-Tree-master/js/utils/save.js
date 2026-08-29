@@ -174,6 +174,9 @@ function fixSave() {
                 player[layer][key] = new Decimal(player[layer][key] || 0);
             }
         }
+        if (!(player.points instanceof Decimal)) {
+            player.points = new Decimal(0);
+        }
     }
 
 	for (layer in layers) {
@@ -305,12 +308,17 @@ function NaNcheck(data) {
 		else if (data[item] !== data[item] || checkDecimalNaN(data[item])) {
 			if (!NaNalert) {
 				NaNalert = true;
-				alert("发现未定义值, 名为 '" + item + "'。 请让模组制作者知道！ 你可以刷新界面，然后你的值会被定义。")
+				alert("发现未定义值, 名为 '" + item + "'。 请让模组制作者知道！你可以刷新界面，然后你的值会被定义。")
 				return
 			}
 		}
-		else if (data[item] instanceof Decimal) {
-		}
+		else if (data[item] instanceof Decimal && data[item].eq(NaN)) {
+            if (!NaNalert) {
+                NaNalert = true;
+                alert("发现未定义值, 名为 '" + item + "'。请让模组制作者知道！你可以刷新界面，然后你的值会被定义。");
+                return;
+            }
+        }
 		else if ((!!data[item]) && (data[item].constructor === Object)) {
 			NaNcheck(data[item]);
 		}

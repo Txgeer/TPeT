@@ -29,11 +29,13 @@ let modInfo = {
 let getModID = () => modInfo.id ?? modInfo.name.replace(/\s+/g, '-');
 // Set your version in num and name
 let VERSION = {
-	num: "0.6.2",
+	num: "0.6.3",
 	name: "New Game"
 }
 
 let changelog = `<h1>更新日志:</h1><br>
+    <h3>NG v0.6.3 2026.8.29</h3><br>
+        - 新增了五种原油副产品。<br>
     <h3>NG v0.6.2 2026.8.29</h3><br>
         - 新增了四种原油副产品。<br>
     <h3>NG v0.6.1 2026.8.24</h3><br>
@@ -133,8 +135,8 @@ function getPointGen() {
 	if(hasUpgrade("p",32)) gain = gain.mul(upgradeEffect("p",32))
 	if(hasUpgrade("p",34)) gain = gain.mul(upgradeEffect("p",34))
 	if(hasUpgrade("p",43)) gain = gain.mul(upgradeEffect("p",43))
-	if(hasUpgrade("p",61&&!hasMilestone("c",4))) gain = gain.mul(upgradeEffect("p",61))
-	if(hasUpgrade("p",61&&hasMilestone("c",4))) gain = gain.div(upgradeEffect("p",61))
+	if(hasUpgrade("p",61)&&!hasMilestone("c",4)) gain = gain.mul(upgradeEffect("p",61))
+	if(hasUpgrade("p",61)&&hasMilestone("c",4)) gain = gain.div(upgradeEffect("p",61))
 	if(hasUpgrade("h",11)) gain = gain.mul(upgradeEffect("h",11))
 	if(hasUpgrade("h",12)) gain = gain.mul(upgradeEffect("h",12))
 	if(hasUpgrade("h",21)) gain = gain.mul(upgradeEffect("h",21))
@@ -151,6 +153,7 @@ function getPointGen() {
 	if(hasUpgrade("be",21)) gain = gain.mul(upgradeEffect("be",13))
 	if(hasUpgrade("b",41)) gain = gain.mul(upgradeEffect("b",41))
 	if(hasUpgrade("li",13)) gain = gain.mul(layers.li.LiboostPoints())
+	if(hasMilestone("c",7)) gain = gain.mul(player.c.oil.pow(player.c.entropy).add(1).log2().add(1).floor())
     if(player.b.inBorane) gain = gain.pow(0.66686)
 	if(player.c.inExtract) gain = gain.pow(0.666)
 	return gain
@@ -185,7 +188,7 @@ var displayThings = [
 
 // Determines when the game "ends"
 function isEndgame() {
-	return hasMilestone("c",4)
+	return hasMilestone("c",9)
 }
 
 

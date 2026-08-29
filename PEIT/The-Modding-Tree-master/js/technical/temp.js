@@ -91,6 +91,12 @@ function setupTempData(layerData, tmpData, funcsData) {
 }
 
 function updateTemp() {
+    // ===== 防御性检查：确保 player.points 有效 =====
+    if (player) {
+        if (!(player.points instanceof Decimal) || !isFinite(player.points.toNumber())) {
+            player.points = new Decimal(0);
+        }
+    }
     if (tmp === undefined)
         setupTemp()
 

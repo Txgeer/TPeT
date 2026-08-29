@@ -362,7 +362,10 @@ function autobuyUpgrades(layer){
 }
 
 function gameLoop(diff) {
-
+    // ===== 防御性检查：确保 player.points 存在 =====
+    if (!player.points || typeof player.points.add !== 'function') {
+        player.points = new Decimal(0);
+    }
     // ===== 暂停检测 =====
     if (player.paused) {
         return;
