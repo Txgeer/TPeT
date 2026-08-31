@@ -7,7 +7,7 @@ var NaNalert = false;
 var activeFunctions = [
     "startData", "onPrestige", "doReset", "update", "automate",
     "buy", "buyMax", "respec", "onPress", "onClick", "onHold", "masterButtonPress",
-    "sellOne", "sellAll", "pay", "actualCostFunction", "actualEffectFunction",
+    "sellOne", "sellAll", "pay", "actualCostFunction", "actu原初fectFunction",
     "effectDescription", "display", "fullDisplay", "effectDisplay", "rewardDisplay",
     "tabFormat", "content",
     "onComplete", "onPurchase", "onEnter", "onExit", "done",
@@ -91,6 +91,12 @@ function setupTempData(layerData, tmpData, funcsData) {
 }
 
 function updateTemp() {
+    // ===== 防御性检查：确保 player.points 有效 =====
+    if (player) {
+        if (!(player.points instanceof Decimal) || !isFinite(player.points.toNumber())) {
+            player.points = new Decimal(0);
+        }
+    }
     if (tmp === undefined)
         setupTemp()
 
@@ -115,6 +121,9 @@ function updateTemp() {
         var text = displayThings[thing]
         if (isFunction(text)) text = text()
         tmp.displayThings.push(text)
+    }
+    if (window.tmp && window.tmp.__v_isReactive) {
+        window.tmp._forceUpdate = Date.now(); 
     }
 }
 
@@ -152,15 +161,25 @@ function setupBuyables(layer) {
         if (!isPlainObject(b)) continue;
         if (b._patched) continue;
         b._originalCost = b.cost;
-        b._originalEffect = b.effect;
+        b._origin原初fect = b.effect;
         b.cost = function(x) {
-            x = (x === undefined ? player[this.layer].buyables[this.id] : x);
+            if (x === undefined) {
+                const layerData = player[this.layer];
+                const buyables = layerData ? layerData.buyables : null;
+                x = (buyables && buyables[this.id] !== undefined) ? buyables[this.id] : new Decimal(0);
+            }
             return this._originalCost(x);
         };
+
         b.effect = function(x) {
-            x = (x === undefined ? player[this.layer].buyables[this.id] : x);
-            return this._originalEffect(x);
+            if (x === undefined) {
+                const layerData = player[this.layer];
+                const buyables = layerData ? layerData.buyables : null;
+                x = (buyables && buyables[this.id] !== undefined) ? buyables[this.id] : new Decimal(0);
+            }
+            return this._origin原初fect(x);
         };
+        
         b._patched = true;
     }
 }

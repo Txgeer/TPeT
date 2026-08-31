@@ -18,7 +18,7 @@
 
 .popup-container {
 	position: absolute;
-	z-index: 9999999999999999999999999999999999;
+	z-index: 999999;
 	right: 30px;
 	width: 300px;
 }
@@ -32,7 +32,16 @@
 	background: #D1C23C;
 }
 
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active {
+    animation: slideIn 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100px) scale(0.8); opacity: 0; }
+    to { transform: translateX(0) scale(1); opacity: 1; }
+}
+
+.fade-leave-active {
 	transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
 }
 
