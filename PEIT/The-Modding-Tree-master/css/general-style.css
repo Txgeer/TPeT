@@ -174,7 +174,7 @@ h1, h2, h3, b, input {
     background-color: transparent;
 }
 ::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.2);
     border-radius: 0 !important;
 }
 ::-webkit-scrollbar-thumb {
@@ -196,10 +196,15 @@ h1, h2, h3, b, input {
 }
 
 .bg2 {
-    background: linear-gradient(125deg, #000000, #001f3f, #003f3f, #000000);
-    background-size: 200% 200%;
-    animation: subtleShift 25s ease infinite;
-    opacity: 0.9;
+    background: linear-gradient(135deg, #000000, #001f3f, #003f3f, #000000);
+    background-size: 400% 400%;
+    animation: gradientShift 30s ease infinite;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 @keyframes subtleShift {

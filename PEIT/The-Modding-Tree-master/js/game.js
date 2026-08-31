@@ -401,8 +401,8 @@ function gameLoop(diff) {
 	player.points = player.points.add(tmp.pointGen.times(diff)).max(0)
 
 	for (let x = 0; x <= maxRow; x++){
-		for (item in TREE_LAYERS[x]) {
-			let layer = TREE_LAYERS[x][item]
+		for (item in TERR_LAYERS[x]) {
+			let layer = TERR_LAYERS[x][item]
 			player[layer].resetTime += diff
 			if (tmp[layer].passiveGeneration) generatePoints(layer, diff*tmp[layer].passiveGeneration);
 			if (layers[layer].update) layers[layer].update(diff);
@@ -419,8 +419,8 @@ function gameLoop(diff) {
 	}	
 
 	for (let x = maxRow; x >= 0; x--){
-		for (item in TREE_LAYERS[x]) {
-			let layer = TREE_LAYERS[x][item]
+		for (item in TERR_LAYERS[x]) {
+			let layer = TERR_LAYERS[x][item]
 			if (tmp[layer].autoPrestige && tmp[layer].canReset) doReset(layer);
 			if (layers[layer].automate) layers[layer].automate();
 			if (tmp[layer].autoUpgrade) autobuyUpgrades(layer)

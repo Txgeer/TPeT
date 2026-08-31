@@ -122,6 +122,9 @@ function updateTemp() {
         if (isFunction(text)) text = text()
         tmp.displayThings.push(text)
     }
+    if (window.tmp && window.tmp.__v_isReactive) {
+        window.tmp._forceUpdate = Date.now(); 
+    }
 }
 
 function updateTempData(layerData, tmpData, funcsData, useThis) {

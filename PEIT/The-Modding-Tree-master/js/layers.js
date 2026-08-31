@@ -1625,13 +1625,13 @@ addLayer("h", {
         },
         12:{
             title:"将氢能输入进气球",
-            display() {return "将你所有的氢能转化为气球。<br>转化后气球数量：" + format(player.h.power.add(1).log(layers.h.balloonFloor()).sub(2).floor().max(0)) + "<br>下一个气球：" + format(layers.h.balloonFloor().pow(player.h.power.add(1).log(layers.h.balloonFloor()).sub(2).floor().add(3))) + "氢能<br>"},
+            display() {return "将你所有的氢能转化为气球。<br>转化后气球数量：" + format(player.h.power.add(10).log(layers.h.balloonFloor()).sub(2).floor().max(0)) + "<br>下一个气球：" + format(layers.h.balloonFloor().pow(player.h.power.add(10).log(layers.h.balloonFloor()).sub(2).floor().add(3))) + "氢能<br>"},
             unlocked() {return true},
             canClick() {return player.h.power.gte(layers.h.balloonFloor().pow(player.h.balloon.add(3)))},
             onClick() {
-                player.h.balloon = player.h.power.add(1).log(layers.h.balloonFloor()).sub(2).floor().max(0);
+                player.h.balloon = player.h.power.add(10).log(layers.h.balloonFloor()).sub(2).floor().max(0);
                 if (player.h.balloon.lt(0)) player.h.balloon = zero
-                if(player.h.balloonMax.lt(player.h.power.add(1).log(layers.h.balloonFloor()).sub(2).floor())) player.h.balloonMax = player.h.power.add(1).log(10).sub(2).floor()
+                if(player.h.balloonMax.lt(player.h.power.add(10).log(layers.h.balloonFloor()).sub(2).floor())) player.h.balloonMax = player.h.power.add(10).log(10).sub(2).floor()
                 player.h.power = zero
             },
         },
@@ -1703,10 +1703,11 @@ addLayer("h", {
 },
     },
     update(diff){
-        if (!(player.h.balloon instanceof Decimal)) player.h.balloon = new Decimal(0);
-        if (!(player.h.balloonMax instanceof Decimal)) player.h.balloonMax = new Decimal(0);
-        if (!(player.he.balloon instanceof Decimal)) player.he.balloon = new Decimal(0);
-        if (!(player.n.balloon instanceof Decimal)) player.n.balloon = new Decimal(0);
+        if (!(player.h.balloon instanceof Decimal) || isNaN(player.h.balloon.toNumber())) player.h.balloon = new Decimal(0);
+        if (!(player.h.balloonMax instanceof Decimal) || isNaN(player.h.balloonMax.toNumber())) player.h.balloonMax = new Decimal(0);
+        if (!(player.he.balloon instanceof Decimal) || isNaN(player.he.balloon.toNumber())) player.he.balloon = new Decimal(0);
+        if (!player.n) player.n = getStartLayerData('n');
+        if (!(player.n.balloon instanceof Decimal) || isNaN(player.n.balloon.toNumber())) player.n.balloon = new Decimal(0);
         if(player.h.upTime.gt(0)) player.h.upTime = player.h.upTime.sub(diff)
         if(player.h.upTime.lt(0)) player.h.upTime = zero
         if(player.h.upTime.gt(layers.h.boomedBalloonBoostLimitTime())) player.h.upTime = layers.h.boomedBalloonBoostLimitTime()
@@ -1751,7 +1752,7 @@ addLayer("h", {
             let gain = layers.h.HpowerGet().div(hasMilestone("b",7)?0.1:10).mul(diff);
             player.h.power = player.h.power.add(gain).max(0);
             let floor = layers.h.balloonFloor();
-            let newBalloon = player.h.power.add(1).log(floor).sub(2).floor().max(0);
+            let newBalloon = player.h.power.add(10).log(floor).sub(2).floor().max(0);
             player.h.balloon = newBalloon;
             if (player.h.balloonMax.lt(newBalloon)) player.h.balloonMax = newBalloon;
             if (player.h.balloon.lt(player.h.balloonMax)) player.h.balloon = player.h.balloonMax;
@@ -3834,6 +3835,13 @@ addLayer("be", {
 
                 player.be.prestiGems = player.be.prestiGems.add(gain);
                 player.p.points = player.points;
+                // ==== 新增：确保所有 balloon 属性存在 ====
+                ['h', 'he', 'n'].forEach(layer => {
+                    if (!player[layer]) player[layer] = getStartLayerData(layer);
+                    if (!(player[layer].balloon instanceof Decimal)) {
+                        player[layer].balloon = new Decimal(0);
+                    }
+                });
                 needCanvasUpdate = true;
                 fixSave();
                 updateTemp();

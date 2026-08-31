@@ -67,7 +67,7 @@ function loadVue() {
     app.config.globalProperties.MS_SETTINGS = MS_SETTINGS;
     app.config.globalProperties.OTHER_LAYERS = OTHER_LAYERS;
     app.config.globalProperties.ROW_LAYERS = ROW_LAYERS;
-    app.config.globalProperties.TREE_LAYERS = TREE_LAYERS;
+    app.config.globalProperties.TERR_LAYERS = TERR_LAYERS;
     app.config.globalProperties.maxRow = maxRow;
     app.config.globalProperties.needCanvasUpdate = needCanvasUpdate;
 

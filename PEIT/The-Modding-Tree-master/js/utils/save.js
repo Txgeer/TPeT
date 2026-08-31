@@ -154,37 +154,98 @@ function getStartGrid(layer) {
 	return data;
 }
 
-function fixSave() {
-	defaultData = getStartplayer();
-    fixData(defaultData, player);
-    for (let layer in layers) {
-        if (!player[layer]) {
-            player[layer] = getStartLayerData(layer);
-            continue;
-        }
-        const defaultData = getStartLayerData(layer);
-        for (let key in defaultData) {
-            if (!(key in player[layer])) {
-                if (defaultData[key] instanceof Decimal) {
-                    player[layer][key] = new Decimal(defaultData[key]);
-                } else {
-                    player[layer][key] = defaultData[key];
-                }
-            } else if (defaultData[key] instanceof Decimal && !(player[layer][key] instanceof Decimal)) {
-                player[layer][key] = new Decimal(player[layer][key] || 0);
+function mergeObjects(target, source) {
+    for (let key in source) {
+        if (source[key] instanceof Decimal) {
+            if (!(target[key] instanceof Decimal)) {
+                target[key] = new Decimal(source[key]);
+            }
+        } else if (Array.isArray(source[key])) {
+            if (!Array.isArray(target[key])) {
+                target[key] = source[key].slice();
+            }
+        } else if (source[key] && typeof source[key] === 'object') {
+            if (!target[key] || typeof target[key] !== 'object') {
+                target[key] = {};
+            }
+            mergeObjects(target[key], source[key]);
+        } else {
+            if (!(key in target) || target[key] === undefined) {
+                target[key] = source[key];
             }
         }
-        if (!(player.points instanceof Decimal)) {
-            player.points = new Decimal(0);
+    }
+}
+
+function fixSave() {
+    const defaultPlayer = getStartplayer();
+    for (let key in defaultPlayer) {
+        if (!(key in player) || player[key] === undefined) {
+            player[key] = defaultPlayer[key];
+        } else if (defaultPlayer[key] instanceof Decimal) {
+            if (!(player[key] instanceof Decimal)) {
+                player[key] = new Decimal(player[key] || 0);
+            }
+        } else if (typeof defaultPlayer[key] === 'object' && defaultPlayer[key] !== null) {
+            if (typeof player[key] !== 'object' || player[key] === null) {
+                player[key] = {};
+            }
+            for (let subKey in defaultPlayer[key]) {
+                if (!(subKey in player[key]) || player[key][subKey] === undefined) {
+                    player[key][subKey] = defaultPlayer[key][subKey];
+                }
+            }
         }
     }
 
-	for (layer in layers) {
-        if (player[layer] && player[layer].points !== undefined) {
-            player[layer].points = new Decimal(player[layer].points);
+    for (let layer in layers) {
+        if (!player[layer]) {
+            player[layer] = getStartLayerData(layer);
+        } else {
+            const defaultData = getStartLayerData(layer);
+            mergeObjects(player[layer], defaultData);
+        }
+
+        if (player[layer].buyables && layers[layer].buyables) {
+            for (let id in layers[layer].buyables) {
+                if (isPlainObject(layers[layer].buyables[id])) {
+                    if (!(id in player[layer].buyables)) {
+                        player[layer].buyables[id] = decimalZero;
+                    } else if (!(player[layer].buyables[id] instanceof Decimal)) {
+                        player[layer].buyables[id] = new Decimal(player[layer].buyables[id] || 0);
+                    }
+                }
+            }
+        }
+
+        if (player[layer].challenges && layers[layer].challenges) {
+            for (let id in layers[layer].challenges) {
+                if (isPlainObject(layers[layer].challenges[id])) {
+                    if (!(id in player[layer].challenges)) {
+                        player[layer].challenges[id] = 0;
+                    }
+                }
+            }
         }
     }
-	
+
+    if (!(player.points instanceof Decimal)) {
+        player.points = new Decimal(player.points || 0);
+    }
+
+    for (let layer in layers) {
+        if (!player[layer]) continue;
+        if (typeof layers[layer].startData === 'function') {
+            const defaults = layers[layer].startData();
+            for (let key in defaults) {
+                if (defaults[key] instanceof Decimal) {
+                    if (!(player[layer][key] instanceof Decimal)) {
+                        player[layer][key] = new Decimal(player[layer][key] ?? 0);
+                    }
+                }
+            }
+        }
+    }
 }
 
 function fixData(defaultData, newData) {
@@ -306,6 +367,7 @@ function NaNcheck(data) {
 			NaNcheck(data[item]);
 		}
 		else if (data[item] !== data[item] || checkDecimalNaN(data[item])) {
+            data[item] = new Decimal(0);
 			if (!NaNalert) {
 				NaNalert = true;
 				alert("发现未定义值, 名为 '" + item + "'。 请让模组制作者知道！你可以刷新界面，然后你的值会被定义。")
@@ -313,6 +375,7 @@ function NaNcheck(data) {
 			}
 		}
 		else if (data[item] instanceof Decimal && data[item].eq(NaN)) {
+            data[item] = new Decimal(0);
             if (!NaNalert) {
                 NaNalert = true;
                 alert("发现未定义值, 名为 '" + item + "'。请让模组制作者知道！你可以刷新界面，然后你的值会被定义。");
