@@ -1,5 +1,5 @@
 // ************ Themes ************
-var themes = ["default", "aqua"];
+var themes = ["default", "aqua", "darkneon"];
 
 var colors = {
     default: {
@@ -22,6 +22,16 @@ var colors = {
         background: "linear-gradient(135deg, #001f3f 0%, #003f3f 100%)",
         background_tooltip: "rgba(0, 15, 31, 0.75)",
     },
+    darkneon: {
+        1: "#00ff88",
+        2: "#00cc66",
+        3: "#009944",
+        color: "#00ff88",
+        points: "#ffffff",
+        locked: "#996666",
+        background: "linear-gradient(135deg, #0a001a, #1a0033)",
+        background_tooltip: "rgba(10, 0, 26, 0.9)",
+    }
 };
 
 function changeTheme() {

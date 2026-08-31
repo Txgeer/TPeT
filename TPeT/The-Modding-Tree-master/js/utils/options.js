@@ -17,6 +17,7 @@ function getStartOptions() {
         milestonePopup: true,
         enableZoom: true,
         textSelect: true,
+        achievementFlash: true
     }
 }
 

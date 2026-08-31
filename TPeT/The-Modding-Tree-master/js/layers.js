@@ -118,9 +118,11 @@ addLayer("a", {
     position: 0, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
     startData() { return {
         unlocked: true, 
-
 		points: new Decimal(0), 
     }},
+    tooltip() {
+        return ("成就")
+    },
     color: "#ffff3f",
     requires: new Decimal(25), // Can be a function that takes requirement increases into account
     resource: "成就", // Name of prestige currency
@@ -367,8 +369,7 @@ addLayer("p", {
                 } else {
                     doPopup("info", "游戏已恢复", "▶", 2, "#00ff00");
                 }
-            },
-            unlocked: true
+            }
         },
         {key: "p", description: "P: 进行一次蛮王重置", onPress(){if (canReset(this.layer)) doReset(this.layer)}}
     ],
