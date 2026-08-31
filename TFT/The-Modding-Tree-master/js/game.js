@@ -78,7 +78,7 @@ function softcap(value, cap, power = 0.5) {
 // Return true if the layer should be highlighted. By default checks for upgrades only.
 function shouldNotify(layer){
     
-    if (!tmp[layer]) return false;
+    if (!tmp[layer] || !player[layer]) return false;
 
     if (tmp[layer].upgrades) {
         for (let id in tmp[layer].upgrades) {
@@ -121,16 +121,16 @@ function shouldNotify(layer){
 	
 }
 
-function canReset(layer)
-{	
-	if (layers[layer].canReset!== undefined)
-		return run(layers[layer].canReset, layers[layer])
-	else if(tmp[layer].type == "normal")
-		return tmp[layer].baseAmount.gte(tmp[layer].requires)
-	else if(tmp[layer].type== "static")
-		return tmp[layer].baseAmount.gte(tmp[layer].nextAt) 
-	else 
-		return false
+function canReset(layer) {    
+    if (!layers[layer] || !player[layer] || !tmp[layer]) return false;
+    if (layers[layer].canReset !== undefined)
+        return run(layers[layer].canReset, layers[layer]);
+    else if (tmp[layer].type == "normal")
+        return tmp[layer].baseAmount.gte(tmp[layer].requires);
+    else if (tmp[layer].type == "static")
+        return tmp[layer].baseAmount.gte(tmp[layer].nextAt);
+    else 
+        return false;
 }
 
 function rowReset(row, layer) {
@@ -145,31 +145,49 @@ function rowReset(row, layer) {
 }
 
 function layerDataReset(layer, keep = []) {
-	let storedData = {unlocked: player[layer].unlocked, forceTooltip: player[layer].forceTooltip, noRespecConfirm: player[layer].noRespecConfirm, prevTab:player[layer].prevTab} // Always keep these
+    if (!layers[layer]) {
+        return;
+    }
 
-	for (thing in keep) {
-		if (player[layer][keep[thing]] !== undefined)
-			storedData[keep[thing]] = player[layer][keep[thing]]
-	}
+    if (!player[layer]) {
+        player[layer] = getStartLayerData(layer);
+    }
 
-	player[layer].buyables = getStartBuyables(layer);
+    let storedData = {
+        unlocked: player[layer].unlocked,
+        forceTooltip: player[layer].forceTooltip,
+        noRespecConfirm: player[layer].noRespecConfirm,
+        prevTab: player[layer].prevTab
+    };
+
+    for (let key of keep) {
+        if (player[layer][key] !== undefined) {
+            storedData[key] = player[layer][key];
+        }
+    }
+
+    player[layer].buyables = getStartBuyables(layer);
     player[layer].clickables = getStartClickables(layer);
     player[layer].challenges = getStartChallenges(layer);
     player[layer].grid = getStartGrid(layer);
 
-	layOver(player[layer], getStartLayerData(layer))
-	player[layer].upgrades = []
-	player[layer].milestones = []
-	player[layer].achievements = []
+    layOver(player[layer], getStartLayerData(layer));
+    player[layer].upgrades = [];
+    player[layer].milestones = [];
+    player[layer].achievements = [];
 
-	for (thing in storedData) {
-		player[layer][thing] =storedData[thing]
-	}
+    for (let thing in storedData) {
+        player[layer][thing] = storedData[thing];
+    }
 }
 
-
-
 function addPoints(layer, gain) {
+    if (!player[layer]) {
+        return;
+    }
+    if (!player[layer].points || typeof player[layer].points.add !== 'function') {
+        player[layer].points = new Decimal(0);
+    }
 	player[layer].points = player[layer].points.add(gain).max(0)
 	if (player[layer].best) player[layer].best = player[layer].best.max(player[layer].points)
 	if (player[layer].total) player[layer].total = player[layer].total.add(gain)
@@ -180,6 +198,14 @@ function generatePoints(layer, diff) {
 }
 
 function doReset(layer, force=false) {
+    if (!player[layer]) {
+        return;
+    }
+    if (layers[layer] && typeof layers[layer].doReset === 'function') {
+        layers[layer].doReset.call(layers[layer], force);
+        return;
+    }
+    if (!tmp[layer] || !player[layer]) return;
 	if (tmp[layer].type == "none") return
 	let row = tmp[layer].row
 	if (!force) {
@@ -201,8 +227,6 @@ function doReset(layer, force=false) {
 		addPoints(layer, gain)
 		updateMilestones(layer)
 		updateAchievements(layer)
-
-		// game.js - doReset 函数片段
 
     if (!player[layer].unlocked) {
     player[layer].unlocked = true;
@@ -338,10 +362,22 @@ function autobuyUpgrades(layer){
 }
 
 function gameLoop(diff) {
-
+    // ===== 防御性检查：确保 player.points 存在 =====
+    if (!player.points || typeof player.points.add !== 'function') {
+        player.points = new Decimal(0);
+    }
     // ===== 暂停检测 =====
     if (player.paused) {
         return;
+    }
+
+    if (!player || !player.points || typeof player.points.add !== 'function') {
+        console.warn('player.points invalid, reinitializing');
+        if (!player) player = getStartplayer();
+        if (!player.points) player.points = new Decimal(0);
+        else if (typeof player.points.add !== 'function') {
+            player.points = new Decimal(player.points || 0);
+        }
     }
     
 	if (isEndgame() || tmp.gameEnded){
@@ -365,8 +401,8 @@ function gameLoop(diff) {
 	player.points = player.points.add(tmp.pointGen.times(diff)).max(0)
 
 	for (let x = 0; x <= maxRow; x++){
-		for (item in TREE_LAYERS[x]) {
-			let layer = TREE_LAYERS[x][item]
+		for (item in TERR_LAYERS[x]) {
+			let layer = TERR_LAYERS[x][item]
 			player[layer].resetTime += diff
 			if (tmp[layer].passiveGeneration) generatePoints(layer, diff*tmp[layer].passiveGeneration);
 			if (layers[layer].update) layers[layer].update(diff);
@@ -383,8 +419,8 @@ function gameLoop(diff) {
 	}	
 
 	for (let x = maxRow; x >= 0; x--){
-		for (item in TREE_LAYERS[x]) {
-			let layer = TREE_LAYERS[x][item]
+		for (item in TERR_LAYERS[x]) {
+			let layer = TERR_LAYERS[x][item]
 			if (tmp[layer].autoPrestige && tmp[layer].canReset) doReset(layer);
 			if (layers[layer].automate) layers[layer].automate();
 			if (tmp[layer].autoUpgrade) autobuyUpgrades(layer)
@@ -443,43 +479,48 @@ var ticking = false;
     }
 
     function handleDragMove(e) {
-		if (dragStartX === 0 && dragStartY === 0) return;
+        if (dragStartX === 0 && dragStartY === 0) return;
         if (!dragStartX && dragStartX !== 0) return;
         let coords = getClientCoords(e);
         let dx = Math.abs(coords.clientX - dragStartX);
         let dy = Math.abs(coords.clientY - dragStartY);
-        
+    
         if (!isDragging && (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD)) {
             isDragging = true;
         }
-        
+    
         if (!isDragging) return;
-        
+    
         if (e.cancelable) e.preventDefault();
-        
+    
         let elem = document.elementFromPoint(coords.clientX, coords.clientY);
         if (!elem) return;
-        
-        const btn = elem.closest('.upg, .buyable');
+    
+        const btn = elem.closest('.upg, .buyable, .clickable');
         if (!btn) return;
-        
+    
         let layer, id;
         const upgMatch = btn.id.match(/upgrade-([^-]+)-(\d+)/);
         const buyMatch = btn.id.match(/buyable-([^-]+)-(\d+)/);
+        const clickMatch = btn.id.match(/clickable-([^-]+)-(\d+)/);
+    
         if (upgMatch) {
             layer = upgMatch[1];
             id = upgMatch[2];
         } else if (buyMatch) {
             layer = buyMatch[1];
             id = buyMatch[2];
+        } else if (clickMatch) {
+            layer = clickMatch[1];
+            id = clickMatch[2];
         } else {
             return;
         }
-        
+    
         const key = `${layer}-${id}`;
         if (lastBoughtId === key) return;
         lastBoughtId = key;
-        
+    
         if (upgMatch) {
             if (typeof canAffordUpgrade !== 'undefined' && canAffordUpgrade(layer, id) && !hasUpgrade(layer, id)) {
                 buyUpg(layer, id);
@@ -488,10 +529,14 @@ var ticking = false;
             if (typeof canBuyBuyable !== 'undefined' && canBuyBuyable(layer, id)) {
                 buyBuyable(layer, id);
             }
+        } else if (clickMatch) {
+            if (tmp && tmp[layer] && tmp[layer].clickables && tmp[layer].clickables[id] && tmp[layer].clickables[id].canClick) {
+                clickClickable(layer, id);
+            }
         }
-        
+    
         setTimeout(() => { lastBoughtId = null; }, 50);
-    }
+    }    
     
     function handleDragEnd() {
         isDragging = false;
@@ -654,44 +699,78 @@ function startGameEngine() {
     if (typeof player === 'undefined' || !player || typeof tmp === 'undefined') {
         setTimeout(startGameEngine, 100);
         return;
-    };
+    }
     gameStarted = true;
     player.time = Date.now();
-    
+
     updateTemp();
     updateTemp();
-    
+    updateTabFormats();
+
     if (typeof initUtils === 'function') initUtils();
+    window.__vueMounted = false;
     loadVue();
     startIntervals();
     if (typeof startSaveInterval === 'function') startSaveInterval();
-    
+
     let bgm = getBgm();
     if (window.options.musicEnabled && bgm.paused) {
         bgm.play().catch(() => {});
     }
 
     if (typeof startTreeAnimation === 'function') {
-    startTreeAnimation();
+        startTreeAnimation();
     }
 }
 
 function resetToNewGame() {
+    if (gameIntervals.length) {
+        gameIntervals.forEach(clearInterval);
+        gameIntervals = [];
+    }
+    gameStarted = false;
+
+    window.shiftDown = false;
+    window.ctrlDown = false;
+
     localStorage.removeItem(getModID());
     localStorage.removeItem(getModID() + "_options");
+
     let newPlayer = getStartplayer();
+    newPlayer.tab = "none";
+    newPlayer.navTab = "tree-tab";
+    newPlayer.paused = false;
+
     window.player = Vue.reactive(newPlayer);
     player = window.player;
     window.options = getStartOptions();
     options = window.options;
+
     fixSave();
     updateLayers();
     setupTemp();
     updateTemp();
+    updateTemp();
+    updateLayers();
+    updateTabFormats();
+    resizeCanvas();
+
     setupModInfo();
     changeTheme();
     applyZoomSetting();
     applyTextSelectSetting();
+
+    window.__vueMounted = false;
+    window.__reactiveProxies = false;
+    if (window.__vueApp && typeof window.__vueApp.unmount === 'function') {
+        window.__vueApp.unmount();
+        window.__vueApp = null;
+    }
+    window.__vueRoot = null;
+
+    newPlayer.paused = false;
+
+    startGameEngine();
 }
 
 function loadGameDataOnly() {
@@ -749,64 +828,73 @@ function loadGameDataOnly() {
     }
 
     function initStartScreen() {
-    initBgm();
-
-    const config = window.startScreenConfig || {};
-
-    const titleEl = document.querySelector('.game-title');
-    if (titleEl) titleEl.textContent = config.title || '未命名树';
-
-    const versionEl = document.getElementById('startScreenVersion');
-    if (versionEl) {
-        versionEl.textContent = config.version || (VERSION && VERSION.withName) || '';
-    }
-
-    const creditsEl = document.querySelector('.credits');
-    if (creditsEl) {
-        creditsEl.textContent = config.credits || (config.author ? '作者：' + config.author : '作者：Txgeer');
-    }
-
-    const newBtn = document.getElementById('newGameBtn');
-    if (newBtn) newBtn.textContent = config.newGameText || '新游戏';
-
-    newBtn?.addEventListener('click', () => {
-        if (confirm('确定要开始新游戏吗？当前进度将会丢失！')) {
-            startGame(false);
-        }
-    });
-
-    const loadBtn = document.getElementById('loadGameBtn');
-    if (loadBtn) loadBtn.textContent = config.loadGameText || '继续游戏';
-
-    let hasSave = false;
-    try {
-        const saveStr = localStorage.getItem(getModID());
-        hasSave = saveStr && saveStr.length > 0;
-    } catch(e) {}
-    if (loadBtn) {
-        loadBtn.style.display = hasSave ? 'inline-block' : 'none';
-    }
-
-
-            const startGame = (loadSave) => {
-                try {
-                    if (loadSave && hasSave) {
-                        loadGameDataOnly();
-                    } else {
-                        resetToNewGame();
-                    }
-                    startGameEngine();
-                    startScreen.style.opacity = '0';
-                    setTimeout(() => startScreen.remove(), 500);
-                } catch (e) {
-                }
-            };
-
-            newBtn?.addEventListener('click', () => startGame(false));
-            if (loadBtn) loadBtn.addEventListener('click', () => startGame(true));
-         else {
+        initBgm();
+    
+        const startScreen = document.getElementById('startScreen');
+        if (!startScreen) {
             loadGameDataOnly();
             startGameEngine();
+            return;
+        }
+    
+        const config = window.startScreenConfig || {};
+    
+        const titleEl = document.querySelector('.game-title');
+        if (titleEl) titleEl.textContent = config.title || '未命名树';
+    
+        const versionEl = document.getElementById('startScreenVersion');
+        if (versionEl) {
+            versionEl.textContent = config.version || (VERSION && VERSION.withName) || '';
+        }
+    
+        const creditsEl = document.querySelector('.credits');
+        if (creditsEl) {
+            creditsEl.textContent = config.credits || (config.author ? '作者：' + config.author : '作者：Txgeer');
+        }
+    
+        const newBtn = document.getElementById('newGameBtn');
+        if (newBtn) newBtn.textContent = config.newGameText || '新游戏';
+    
+        const loadBtn = document.getElementById('loadGameBtn');
+        if (loadBtn) loadBtn.textContent = config.loadGameText || '继续游戏';
+    
+        let hasSave = false;
+        try {
+            const saveStr = localStorage.getItem(getModID());
+            hasSave = saveStr && saveStr.length > 0;
+        } catch(e) {}
+        if (loadBtn) {
+            loadBtn.style.display = hasSave ? 'inline-block' : 'none';
+        }
+    
+        const startGame = (loadSave) => {
+            try {
+                if (loadSave && hasSave) {
+                    loadGameDataOnly();
+                } else {
+                    resetToNewGame();
+                }
+                startGameEngine();
+                startScreen.style.opacity = '0';
+                setTimeout(() => startScreen.remove(), 500);
+            } catch (e) {
+            }
+        };
+    
+        newBtn?.addEventListener('click', () => {
+            if (!hasSave) {
+                startGame(false);
+            } else {
+                if (confirm('确定要开始新游戏吗？当前进度将会丢失！')) {
+                    startGame(false);
+                }
+            }
+        });
+    
+        if (loadBtn) {
+            loadBtn.addEventListener('click', () => startGame(true));
+        } else {
+            startGame(hasSave);
         }
     }
 })();

@@ -30,17 +30,17 @@ function updateHotkeys()
             }
         }
     }
-
+    
 }
 
 var ROW_LAYERS = {}
-var TREE_LAYERS = {}
+var TERR_LAYERS = {}
 var OTHER_LAYERS = {}
 
 function updateLayers(){
     LAYERS = Object.keys(layers);
     ROW_LAYERS = {}
-    TREE_LAYERS = {}
+    TERR_LAYERS = {}
     OTHER_LAYERS = {}
     for (layer in layers){
         setuplayer(layer)
@@ -50,16 +50,16 @@ function updateLayers(){
         for (layer in OTHER_LAYERS[row])
             OTHER_LAYERS[row][layer] = OTHER_LAYERS[row][layer].layer 
     }
-    for (row in TREE_LAYERS) {
-        TREE_LAYERS[row].sort((a, b) => (a.position > b.position) ? 1 : -1)
-            for (layer in TREE_LAYERS[row])
-            TREE_LAYERS[row][layer] = TREE_LAYERS[row][layer].layer
+    for (row in TERR_LAYERS) {
+        TERR_LAYERS[row].sort((a, b) => (a.position > b.position) ? 1 : -1)
+            for (layer in TERR_LAYERS[row])
+            TERR_LAYERS[row][layer] = TERR_LAYERS[row][layer].layer
     }
     let treeLayers2 = []
     for (x = 0; x < maxRow + 1; x++) {
-        if (TREE_LAYERS[x]) treeLayers2.push(TREE_LAYERS[x])
+        if (TERR_LAYERS[x]) treeLayers2.push(TERR_LAYERS[x])
     }
-    TREE_LAYERS = treeLayers2
+    TERR_LAYERS = treeLayers2
     updateHotkeys()
 }
 
@@ -196,13 +196,13 @@ function setuplayer(layer){
     let displayRow = layers[layer].displayRow
 
     if(!ROW_LAYERS[row]) ROW_LAYERS[row] = {}
-    if(!TREE_LAYERS[displayRow] && !isNaN(displayRow)) TREE_LAYERS[displayRow] = []
+    if(!TERR_LAYERS[displayRow] && !isNaN(displayRow)) TERR_LAYERS[displayRow] = []
     if(!OTHER_LAYERS[displayRow] && isNaN(displayRow)) OTHER_LAYERS[displayRow] = []
 
     ROW_LAYERS[row][layer]=layer;
     let position = (layers[layer].position !== undefined ? layers[layer].position : layer)
     
-    if (!isNaN(displayRow) || displayRow < 0) TREE_LAYERS[displayRow].push({layer: layer, position: position})
+    if (!isNaN(displayRow) || displayRow < 0) TERR_LAYERS[displayRow].push({layer: layer, position: position})
     else OTHER_LAYERS[displayRow].push({layer: layer, position: position})
 
     if (maxRow < layers[layer].displayRow) maxRow = layers[layer].displayRow

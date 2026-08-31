@@ -110,7 +110,7 @@ function maxTickLength() {
 function fixOldSave(){
 }
 
-function getGameSpeedMultiplier(diff) {
+function getGameSpeedMultiplier() {
     return 1;
 }
 
