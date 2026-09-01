@@ -17,11 +17,8 @@ addLayer("p", {
         waves: zero, 
         radiation: zero, 
     }},
-    what(){//你猜这是什么
-        player.p.points = player.points
-    },    
     resource: "中微子",
-    color: "white",
+    color: "#FFFFFF",
     type: "none",
     row: "side",
     layerShown(){return true},
@@ -1138,6 +1135,7 @@ addLayer("p", {
         },
     },
     update(diff) {
+        player.p.points = new Decimal(player.points.toString());
         let wavesPerSec = player.p.photons.mul(player.p.balance);
         let radPerSec = player.p.photons.mul(Decimal.sub(1, player.p.balance));
         if (hasUpgrade("p", 91)) wavesPerSec = wavesPerSec.mul(upgradeEffect("p", 91));
@@ -1340,7 +1338,7 @@ addLayer("h", {
                 if (hasUpgrade("p", 85)) {
                     return player.h.points.add(1).log2().add(1)
                 } else {
-                    return player.h.points.add(1).log10().root(1.4);
+                    return player.h.points.add(1).log10().root(1.4).add(1);
                 }
             },
             effectDisplay(){return "x"+format(this.effect())},
@@ -1677,6 +1675,11 @@ addLayer("h", {
                 if (hasMilestone("c",9)) return;
                 player.he.upTime = player.he.upTime.add(layers.he.addUpTime())
                 player.he.balloon = player.he.balloon.sub(player.he.balloon.div(2).floor())
+            },
+            style() { 
+                return { 
+                    'background-color': this.canClick() ? "#FFBBCC" : "#BF8F8F",
+                };
             },
             unlocked() {return hasMilestone("h",4)},
         },
@@ -2106,7 +2109,7 @@ addLayer("he", {
             description:" 氦提升前两个温度点效果的软上限。",
             cost: new Decimal(85),
             effect(){
-                let effect = player.he.points
+                let effect = player.he.points.add(1)
                 if(hasUpgrade("b",34)) effect = effect.pow(upgradeEffect("b",34))
                 return effect
             },
@@ -3026,7 +3029,7 @@ addLayer("li", {
         92: {
             title: "研究-72",
             description: "总研究点加成氢能。",
-            cost: new Decimal(13500),
+            cost: new Decimal(1500),
             effect() {
                 if(hasMilestone("c",7)) {
                     return one

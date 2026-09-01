@@ -245,8 +245,7 @@ function doReset(layer, force=false) {
     }
     }
 
-	if (run(layers[layer].resetsNothing, layers[layer])) return
-	tmp[layer].baseAmount = decimalZero // quick fix
+	if (run(layers[layer].resetsNothing, layers[layer])) return // quick fix
 
 
 	for (layerResetting in layers) {
@@ -898,3 +897,34 @@ function loadGameDataOnly() {
         }
     }
 })();
+
+let fontOverrideStyle = null;
+
+function applyFont() {
+    if (!options) return;
+    if (!fontOverrideStyle) {
+        fontOverrideStyle = document.createElement('style');
+        fontOverrideStyle.id = 'font-override-style';
+        document.head.appendChild(fontOverrideStyle);
+    }
+    if (options.fontFamily === 'bahnschrift') {
+        fontOverrideStyle.textContent = `
+            body, * {
+                font-family: 'Bahnschrift', sans-serif !important;
+            }
+        `;
+    } else {
+        fontOverrideStyle.textContent = `
+            body, * {
+                font-family: sans-serif !important;
+            }
+        `;
+    }
+}
+
+function switchFont() {
+    if (!options) return;
+    options.fontFamily = (options.fontFamily === 'bahnschrift') ? 'default' : 'bahnschrift';
+    applyFont();
+    save();
+}
