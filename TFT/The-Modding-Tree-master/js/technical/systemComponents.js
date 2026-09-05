@@ -175,13 +175,13 @@ var systemComponents = {
 
     'options-tab': {
     template: `
-        <div>
+         <div>
             <table class="options-table">
                 <tbody>
                     <tr>
                         <td><button class="opt" @click="() => save()">保存</button></td>
                         <td><button class="opt" @click="() => toggleOpt('autosave')">自动保存: {{ options.autosave ? "开" : "关" }}</button></td>
-                        <td><button class="hard-reset-btn" @click="() => hardReset()">硬复位</button></td>
+                        <td><button class="opt" @click="() => switchFont()">字体: {{ options.fontFamily === 'bahnschrift' ? 'Bahnschrift' : '系统字体' }}</button></td>
                         <td><button class="opt" @click="() => exportSave()">导出到剪切板</button></td>
                     </tr>
                     <tr>
@@ -202,12 +202,15 @@ var systemComponents = {
                         <td><button class="opt" @click="() => toggleTextSelect()">文本选择: {{ options.textSelect ? "开" : "关" }}</button></td>
                         <td><button class="opt" @click="() => toggleOpt('achievementFlash')">成就闪光: {{ options.achievementFlash ? "开" : "关" }}</button></td>
                     </tr>
+                    <tr>
+                        <td><button class="hard-reset-btn" @click="() => hardReset()">硬复位</button></td>
+                    </tr>
                 </tbody>
             </table>
         </div>
     `
     },
-
+    
     'back-button': {
         template: `
         <button v-bind:class="back" onclick="goBack()">←</button>

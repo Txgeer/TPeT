@@ -87,7 +87,8 @@ function loadVue() {
         'getThemeName', 'toggleMusic', 'toggleZoom', 'toggleTextSelect',
         'exportSave', 'importSave', 'hardReset', 'save', 'toggleOpt',
         'switchTheme', 'adjustMSDisp', 'closeDragHint',
-        'updateBackgroundStyle', 'resizeCanvas', 'keepGoing','milestoneShown', 'constructBarStyle'
+        'updateBackgroundStyle', 'resizeCanvas', 'keepGoing','milestoneShown', 'constructBarStyle',
+        'switchFont', 'applyFont', 'getFontDisplay'
     ];
     for (const fn of globalFunctionNames) {
         if (typeof window[fn] === 'function') {
