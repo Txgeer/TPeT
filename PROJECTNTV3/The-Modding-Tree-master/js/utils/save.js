@@ -330,6 +330,7 @@ function load() {
 	resizeCanvas();
 	applyZoomSetting();
 	applyTextSelectSetting();
+    applyFont();
 }
 
 function loadOptions() {

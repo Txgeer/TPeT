@@ -245,8 +245,7 @@ function doReset(layer, force=false) {
     }
     }
 
-	if (run(layers[layer].resetsNothing, layers[layer])) return
-	tmp[layer].baseAmount = decimalZero // quick fix
+	if (run(layers[layer].resetsNothing, layers[layer])) return // quick fix
 
 
 	for (layerResetting in layers) {
@@ -665,11 +664,11 @@ function startIntervals() {
             if (!options.offlineProd || player.offTime.remain <= 0) player.offTime = undefined;
         }
         if (typeof getGameSpeedMultiplier === 'function') {
-        let speedMult = getGameSpeedMultiplier(diff);
-        diff *= speedMult;
-        tmp.speedMult = speedMult;
+            let speedMult = getGameSpeedMultiplier(diff);
+            diff *= speedMult;
+            tmp.speedMult = new Decimal(speedMult);
         } else {
-        tmp.speedMult = 1;
+             tmp.speedMult = new Decimal(1);
         }
         player.time = now;
         if (needCanvasUpdate) {
@@ -898,3 +897,34 @@ function loadGameDataOnly() {
         }
     }
 })();
+
+let fontOverrideStyle = null;
+
+function applyFont() {
+    if (!options) return;
+    if (!fontOverrideStyle) {
+        fontOverrideStyle = document.createElement('style');
+        fontOverrideStyle.id = 'font-override-style';
+        document.head.appendChild(fontOverrideStyle);
+    }
+    if (options.fontFamily === 'bahnschrift') {
+        fontOverrideStyle.textContent = `
+            body, * {
+                font-family: 'Bahnschrift', sans-serif !important;
+            }
+        `;
+    } else {
+        fontOverrideStyle.textContent = `
+            body, * {
+                font-family: sans-serif !important;
+            }
+        `;
+    }
+}
+
+function switchFont() {
+    if (!options) return;
+    options.fontFamily = (options.fontFamily === 'bahnschrift') ? 'default' : 'bahnschrift';
+    applyFont();
+    save();
+}
