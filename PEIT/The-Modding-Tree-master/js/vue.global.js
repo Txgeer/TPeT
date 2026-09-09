@@ -4,7 +4,7 @@
 * @license MIT
 **/
 var Vue = (function (exports) {
-  'use strict';
+  
 
   // @__NO_SIDE_EFFECTS__
   function makeMap(str) {

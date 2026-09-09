@@ -1,4 +1,8 @@
+
 // ************ Big Feature related ************
+
+var shiftDown = false;
+var ctrlDown = false;
 
 function respecBuyables(layer) {
 	if (!layers[layer].buyables) return
@@ -310,12 +314,9 @@ function addTime(diff, layer) {
 	else data.timePlayed = time
 }
 
-shiftDown = false
-ctrlDown = false
-
 function initUtils() {
-    window.shiftDown = false;
-    window.ctrlDown = false;
+    shiftDown = false;
+    ctrlDown = false;
 
     document.onkeydown = function (e) {
         if (typeof player === 'undefined' || player === null) return;

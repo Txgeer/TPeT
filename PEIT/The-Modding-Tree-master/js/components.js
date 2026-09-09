@@ -1,3 +1,4 @@
+
 function loadVue() {
     if (typeof Vue === 'undefined' || !tmp) {
         setTimeout(loadVue, 50);

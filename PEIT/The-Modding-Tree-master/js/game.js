@@ -1,3 +1,4 @@
+
 var needCanvasUpdate = true;
 var isTogglingMusic = false;
 
@@ -202,7 +203,7 @@ function doReset(layer, force=false) {
         return;
     }
     if (layers[layer] && typeof layers[layer].doReset === 'function') {
-        layers[layer].doReset.call(layers[layer], force);
+        layers[layer].doReset.call(layers[layer], layer, force);
         return;
     }
     if (!tmp[layer] || !player[layer]) return;
@@ -664,11 +665,11 @@ function startIntervals() {
             if (!options.offlineProd || player.offTime.remain <= 0) player.offTime = undefined;
         }
         if (typeof getGameSpeedMultiplier === 'function') {
-        let speedMult = getGameSpeedMultiplier(diff);
-        diff *= speedMult;
-        tmp.speedMult = speedMult;
+            let speedMult = getGameSpeedMultiplier(diff);
+            diff *= speedMult;
+            tmp.speedMult = new Decimal(speedMult);
         } else {
-        tmp.speedMult = 1;
+             tmp.speedMult = new Decimal(1);
         }
         player.time = now;
         if (needCanvasUpdate) {
@@ -729,8 +730,8 @@ function resetToNewGame() {
     }
     gameStarted = false;
 
-    window.shiftDown = false;
-    window.ctrlDown = false;
+    shiftDown = false;
+    ctrlDown = false;
 
     localStorage.removeItem(getModID());
     localStorage.removeItem(getModID() + "_options");
