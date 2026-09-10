@@ -279,8 +279,7 @@ addLayer("p", {
             title:"氦量粒子",
             description:"氦加成中微子。",
             effect(){
-                let base = hasUpgrade('p',76) ? 1.1 : 1.34;
-                let a = n(base).pow(player.he.points.root(2))
+                let a = n(1.34).pow(player.he.points.root(2))
                 if(a.gte(50)&&!hasUpgrade('p',76)) a = a.sub(40).log(10).mul(50)
                 return a
             },
@@ -324,6 +323,7 @@ addLayer("p", {
             effect(){
                 let effect = player.h.points.add(1).log(10).root(2).sub(1)
                 if(hasUpgrade("p",35)) effect = player.h.points.add(1).log(8).root(1.8).sub(0.8).max(0)
+                if(hasUpgrade("p",86)) effect = player.h.points.add(1).log(2).add(1)
                 return effect
             },
             effectDisplay(){return "+"+format(this.effect())},
@@ -381,7 +381,7 @@ addLayer("p", {
             description: "电子加成中微子。",
             effect() {
                 if (hasUpgrade("li", 101)) {
-                    return player.p.electrons;
+                    return player.p.electrons.add(2);
                 } else {
                     return player.p.electrons.add(1).log2().add(1);
                 }
@@ -658,7 +658,7 @@ addLayer("p", {
         },
         76: {
             title: "为什么不继续呢......",
-            description: "略微削弱 氦量粒子 的基础，但移除 氦量粒子 的软上限。",
+            description: "移除 氦量粒子 的软上限。",
             cost: new Decimal(2e18),
             currencyDisplayName: "电子",
             currencyInternalName: "electrons",
@@ -681,6 +681,28 @@ addLayer("p", {
             currencyDisplayName: "电子",
             currencyInternalName: "electrons",
             currencyLayer: "p",
+            unlocked() { return hasMilestone("c",7); },
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#3F3FFF'};
+                } else {
+                    return {};
+                }
+            }
+        },
+        78: {
+            title: "本应如此",
+            description: "电子增益电能上限。",
+            cost: new Decimal(5e20),
+            currencyDisplayName: "电子",
+            currencyInternalName: "electrons",
+            currencyLayer: "p",
+            effect() {
+                return player.p.electrons.add(1);
+            },
+            effectDisplay() { return "x" + format(this.effect()); },
             unlocked() { return hasMilestone("c",7); },
             style() {
                 if (hasUpgrade(this.layer, this.id)) {
@@ -777,6 +799,70 @@ addLayer("p", {
             currencyInternalName: "radiation",
             currencyLayer: "p",
             unlocked() { return player.p.radiation.gte(10)||hasUpgrade("p",[this.id]); },
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#FF7F7F'};
+                } else {
+                    return {};
+                }
+            }
+        },
+        86: {
+            title: "储氢",
+            description: "优化 粒子究强器 的公式。",
+            cost: new Decimal(200000000),
+            currencyDisplayName: "光波",
+            currencyInternalName: "waves",
+            currencyLayer: "p",
+            unlocked() { return hasMilestone("c",9); },
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#7FFFFF'};
+                } else {
+                    return {};
+                }
+            }
+        },
+        87: {
+            title: "要继续加速吗？",
+            description: "光子加成电子获取。",
+            cost: new Decimal(50000),
+            currencyDisplayName: "光子",
+            currencyInternalName: "photons",
+            currencyLayer: "p",
+            effect(){
+                let effect = player.p.photons.add(1)
+                return effect
+            },
+            effectDisplay(){return "/"+format(this.effect())},
+            unlocked() { return hasUpgrade("p",82)&&hasUpgrade("p",84); },
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#FFFF7F'};
+                } else {
+                    return {};
+                }
+            }
+        },
+        88: {
+            title: "年代测量",
+            description: "放射性降低自动点击者价格。",
+            cost: new Decimal(200000000),
+            currencyDisplayName: "放射性",
+            currencyInternalName: "radiation",
+            currencyLayer: "p",
+            effect(){
+                let effect = player.p.radiation.add(1)
+                return effect
+            },
+            effectDisplay(){return "/"+format(this.effect())},
+            unlocked() { return hasMilestone("c",9); },
             style() {
                 if (hasUpgrade(this.layer, this.id)) {
                     return {};
@@ -922,7 +1008,7 @@ addLayer("p", {
                     let a = x.mul(0.166686).add(1)
                     if(hasUpgrade("p",15)) a = x.mul(0.66686).add(1)
                     if(getBuyableAmount("p",12).gte(1)) a = x.mul(buyableEffect("p",12).add(0.66686))
-                        if(hasUpgrade("p",67)&&getBuyableAmount("p",14).gte(1)) a = a.mul(buyableEffect("p",14))
+                    if(hasUpgrade("p",67)&&getBuyableAmount("p",14).gte(1)) a = a.mul(buyableEffect("p",14))
                     return a
                 }              
             },
@@ -1041,6 +1127,7 @@ addLayer("p", {
                 if (hasUpgrade('c',23)) gain = gain.mul(upgradeEffect("c",23)).floor();
                 if (hasAchievement('a',35)) gain = gain.mul(achievementEffect("a",35)).floor();
                 if (hasMilestone('c', 1)) gain = gain.mul(player.c.entropy.pow(player.c.oil).add(1).log2().add(1)).floor();
+                if (hasUpgrade('p',87)) gain = gain.mul(upgradeEffect("p",87)).floor();
                 if(player.b.inBorane) gain = gain.pow(0.66686).floor();
                 if(player.c.inExtract) gain = gain.pow(0.666).floor();
                 return "消耗 <span style='color:#FFFFFF;text-shadow:0 0 10px'>"+format(player.points)+"</span> 中微子，获得 <span style='color:#111177;text-shadow:0 0 10px'>"+format(gain)+"</span> 电子。<br>（至少转化 1e100 中微子）";
@@ -1056,6 +1143,7 @@ addLayer("p", {
                 if (hasUpgrade('c',23)) gain = gain.mul(upgradeEffect("c",23)).floor();
                 if (hasAchievement('a',35)) gain = gain.mul(achievementEffect("a",35)).floor();
                 if (hasMilestone('c', 1)) gain = gain.mul(player.c.entropy.pow(player.c.oil).add(1).log2().add(1)).floor();
+                if (hasUpgrade('p',87)) gain = gain.mul(upgradeEffect("p",87)).floor();
                 if(player.b.inBorane) gain = gain.pow(0.66686).floor();
                 if(player.c.inExtract) gain = gain.pow(0.666).floor();
                 player.points = zero
@@ -1412,8 +1500,10 @@ addLayer("h", {
             title:"氢气分子",
             description:" 氢能加成氢。",
             effect(){
-                let effect = player.h.power.add(1).root(4)
-                if(effect.gte(10)) effect = effect.log(4).add(9)
+                let effect = player.h.power
+                if(hasUpgrade("n",13)) effect = effect.add(1).log2().add(1)
+                if(!hasUpgrade("n",13)) effect = effect.add(1).root(4)
+                if(effect.gte(10)&&!hasUpgrade("n",13)) effect = effect.log(4).add(9)
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect())},
@@ -1427,8 +1517,8 @@ addLayer("h", {
             title:"氢离子",
             description:" 气球加成氢能。",
             effect(){
-                let effect = player.h.balloon.add(1).max(1)
-                if(effect.gte(10)) effect = effect.log(2).add(10)
+                let effect = player.h.balloon.add(1)
+                if(effect.gte(10)&&!hasUpgrade("n",12)) effect = effect.log(2).add(10)
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect())},
@@ -1442,8 +1532,10 @@ addLayer("h", {
             title:"氢负离子",
             description:"氢能加成自身。",
             effect(){
-                let effect = player.h.power.add(1).root(5)
-                if(effect.gte(10)) effect = effect.log(5).add(9)
+                let effect = player.h.power
+                if(hasUpgrade("n",13)) effect = effect.add(1).ln().add(1)
+                if(!hasUpgrade("n",13)) effect = effect.add(1).root(5)
+                if(effect.gte(10)&&!hasUpgrade("n",13)) effect = effect.log(5).add(9)
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect())},
@@ -1970,7 +2062,7 @@ addLayer("he", {
         if(hasUpgrade("li",72)) mult = mult.div(upgradeEffect("li",72))
         if(hasUpgrade("b",24)) mult = mult.div(upgradeEffect("b",24))
         if(hasUpgrade("b",42)) mult = mult.div(upgradeEffect("b",42))
-        if(hasMilestone("c",9)) mult = mult.div(player.c.oil.pow(player.c.oil))
+        if(hasMilestone("c",8)) mult = mult.div(player.c.oil.pow(player.c.oil))
         return mult
     },
     gainExp() {
@@ -2002,7 +2094,7 @@ addLayer("he", {
             description:" 氦加成中微子。",
             effect(){
                 let effect = player.he.points.add(1)
-                if(effect.gte(10)) effect = effect.root(2).add(10)
+                if(effect.gte(10)&&!hasUpgrade("n",11)) effect = effect.root(2).add(10)
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect())},
@@ -3074,7 +3166,7 @@ addLayer("li", {
         103: {
             title: "研究-c1",
             description: "削弱 研究-32 的基础，但让后三种研究点也可以加成 研究-32 的效果。",
-            cost: new Decimal(20000000),
+            cost: new Decimal(999999999),
             unlocked() { return hasUpgrade("li", 91) && hasUpgrade("li", 92); },
             currencyDisplayName: "研究点",
             currencyInternalName: "researchPoint",
@@ -3086,7 +3178,7 @@ addLayer("li", {
         104: {
             title: "研究-d1",
             description: "大幅加成锂的第七个效果。",
-            cost: new Decimal(35000000),
+            cost: new Decimal(6767670),
             unlocked() { return hasUpgrade("li", 91) && hasUpgrade("li", 92); },
             currencyDisplayName: "研究点",
             currencyInternalName: "researchPoint",
@@ -3098,7 +3190,7 @@ addLayer("li", {
         111: {
             title: "研究-a2",
             description: "移除 粒子加速器|原初 的第一个软上限。",
-            cost: new Decimal(1810000),
+            cost: new Decimal(3200000),
             unlocked() { return hasUpgrade("li", 101); },
             currencyDisplayName: "研究点",
             currencyInternalName: "researchPoint",
@@ -3421,6 +3513,7 @@ addLayer("li", {
         if(hasUpgrade("b",31)) capacity = capacity.mul(upgradeEffect("b",31));
         if(hasUpgrade("li",22)) capacity = capacity.mul(layers.li.LiboostCap());
         if(hasMilestone("c",3)) capacity = capacity.mul(player.c.oil.mul(2));
+        if(hasUpgrade("p",78)) capacity = capacity.mul(upgradeEffect("p",78));
         if(player.b.inBorane) capacity = capacity.pow(0.66686);
         if(player.c.inExtract) capacity = capacity.pow(0.666)
         return capacity
@@ -3799,6 +3892,7 @@ addLayer("be", {
             if (hasUpgrade('c', 23)) gain = gain.mul(upgradeEffect("c",23)).floor();
             if (hasAchievement('a',35)) gain = gain.mul(achievementEffect("a",35)).floor();
             if (hasMilestone('c', 1)) gain = gain.mul(player.c.entropy.pow(player.c.oil).add(1).log2().add(1)).floor();
+            if (hasUpgrade('p',87)) gain = gain.mul(upgradeEffect("p",87)).floor();
             if(player.b.inBorane) gain = gain.pow(0.66686).floor();
             if(player.c.inExtract) gain = gain.pow(0.666).floor();
             
@@ -4898,7 +4992,7 @@ addLayer("b", {
         if(player.b.inBorane&&hasMilestone("n",2)) gain = gain.mul(player.be.prestiGems)
         if(player.b.inBorane&&hasAchievement("a",41)) gain = gain.mul(achievementEffect("a",41))
         if(hasMilestone("he",12)) gain = gain.mul(layers.he.temPointEffect8())
-        if(hasMilestone("c",8)) gain = gain.mul(player.c.oil.pow(player.c.oil).add(1).log2().add(1))
+        if(hasMilestone("c",9)) gain = gain.mul(player.c.oil.pow(player.c.oil).add(1).log2().add(1))
         if(player.c.inExtract) gain = gain.pow(0.666)
         return gain
     },
@@ -5241,7 +5335,9 @@ addLayer("c", {
         11: {
             title: "自动点击者",
             cost(x) {
-                return new Decimal(1e90).mul(Decimal.pow(2, x));
+                let cost = new Decimal(1e90).mul(Decimal.pow(2, x));
+                if (hasUpgrade("p", 88)) cost = cost.div(upgradeEffect("p", 88));
+                return cost;
             },
             display() {
                 return "自动点击获取熵。<br>价格：" + format(this.cost()) + "碳<br>当前数量：" + format(getBuyableAmount(this.layer, this.id)) + "<br>当前效果：每秒自动点击 " + format(this.effect()) + " 次";
@@ -5289,33 +5385,33 @@ addLayer("c", {
             unlocked(){return hasMilestone("c",3)},
         },
         5:{
-            requirementDescription: "1355 原油",
+            requirementDescription: "1325 原油",
             effectDescription: "减益：取消 己硼烷助力氦 的第二个效果；解锁柴油。",
-            done(){return player.c.oil.gte(1355)},
+            done(){return player.c.oil.gte(1325)},
             unlocked(){return hasMilestone("c",4)},
         },
         6:{
-            requirementDescription: "1645 原油",
+            requirementDescription: "1585 原油",
             effectDescription: "减益：反转 电子加速 II 的效果；解锁润滑油。",
-            done(){return player.c.oil.gte(1645)},
+            done(){return player.c.oil.gte(1585)},
             unlocked(){return hasMilestone("c",5)},
         },
         7:{
-            requirementDescription: "2355 原油",
+            requirementDescription: "1685 原油",
             effectDescription: "减益：所有基于总研究点的升级无效化；解锁凡士林和新的电子升级。",
-            done(){return player.c.oil.gte(2355)},
+            done(){return player.c.oil.gte(1685)},
             unlocked(){return hasMilestone("c",6)},
         },
         8:{
-            requirementDescription: "2565 原油",
+            requirementDescription: "1805 原油",
             effectDescription: "减益：移除 爆炸气球；解锁石蜡。",
-            done(){return player.c.oil.gte(2565)},
+            done(){return player.c.oil.gte(1805)},
             unlocked(){return hasMilestone("c",7)},
         },
         9:{
-            requirementDescription: "2915 原油",
-            effectDescription: "减益：移除 爆炸氦气球；解锁沥青和新的光子升级（还没有）。",
-            done(){return player.c.oil.gte(2915)},
+            requirementDescription: "2035 原油",
+            effectDescription: "减益：移除 爆炸氦气球；解锁沥青和新的光子升级。",
+            done(){return player.c.oil.gte(2035)},
             unlocked(){return hasMilestone("c",8)},
         },
     },
@@ -5384,11 +5480,12 @@ addLayer("c", {
                     function(){ if(hasMilestone("c",7)) return "凡士林：加成中微子 <span style='color:#FFFFFF;text-shadow:0 0 10px'>"+format(player.c.oil.pow(player.c.entropy).add(1).log2().add(1))+"</span> 倍"; }
                 ],
                 ["display-text",
-                    function(){ if(hasMilestone("c",8)) return "石蜡：加成硼烷产能 <span style='color:#992222;text-shadow:0 0 10px'>"+format(player.c.oil.pow(player.c.oil).add(1).log2().add(1))+"</span> 倍"; }
+                    function(){ if(hasMilestone("c",8)) return "石蜡：降低氦价格 / <span style='color:#FFBBCC;text-shadow:0 0 10px'>"+format(player.c.oil.pow(player.c.oil))+"</span> "; }
                 ],
                 ["display-text",
-                    function(){ if(hasMilestone("c",8)) return "沥青：降低氦价格 / <span style='color:#FFBBCC;text-shadow:0 0 10px'>"+format(player.c.oil.pow(player.c.oil))+"</span> "; }
+                    function(){ if(hasMilestone("c",9)) return "沥青：加成硼烷产能 <span style='color:#992222;text-shadow:0 0 10px'>"+format(player.c.oil.pow(player.c.oil).add(1).log2().add(1))+"</span> 倍"; }
                 ],
+                
             ],
             unlocked(){ return hasMilestone('n', 8); }
         },
@@ -5566,6 +5663,38 @@ addLayer("n", {
             done(){return player.n.points.gte(1e9)},
             unlocked(){return hasMilestone("n",7)},
         },
+        9:{
+            requirementDescription: "6.7e67 氮",
+            effectDescription: "解锁氮升级。",
+            done(){return player.n.points.gte(6.7e67)},
+            unlocked(){return hasMilestone("n",8)},
+        },
+    },
+    upgrades:{
+        11:{
+            title:"氰气",
+            description:"移除 氦原子核 的软上限。",
+            cost: new Decimal(6.7e67),
+            unlocked(){return hasMilestone("n",9)},
+        },
+        12:{
+            title:"氢氰酸",
+            description:"移除 氢离子 的软上限。",
+            cost: new Decimal(1e68),
+            unlocked(){return hasUpgrade("n",11)},
+        },
+        13:{
+            title:"氮-14",
+            description:"优化 氢气分子 的公式。",
+            cost: new Decimal(1.33e68),
+            unlocked(){return hasUpgrade("n",12)},
+        },
+        14:{
+            title:"氮-15",
+            description:"优化 氢负离子 的公式，并解锁氧（目前没有内容）。",
+            cost: new Decimal(6.8e68),
+            unlocked(){return hasUpgrade("n",13)},
+        },
     },
     tabFormat: {
         "主页": {
@@ -5576,7 +5705,7 @@ addLayer("n", {
                     function(){ return "你有 <span style='color:#DDDD33;text-shadow:0 0 10px'>"+format(player.li.currentElectricity)+"</span> 电能"; }
                 ],
                 "milestones",
-                
+                "upgrades"
             ],
             unlocked(){ return true; }
         }
@@ -5589,6 +5718,57 @@ addLayer("n", {
         upgrade: { color: "#FFFFFF" },
         "prestige-button": { color: "#FFFFFF" },
     }
+})
+addLayer("o", {
+    name: "o",
+    symbol: "O",
+    position: 1, 
+    startData() { return {
+        unlocked: false,
+        points: zero,
+    }},
+    branches: ["be"],
+    color: "#BBDDFF",
+    requires: new Decimal(2.5e9),
+    resource: "氧",
+    baseResource: "转生宝石",
+    baseAmount() {return player.be.prestiGems},
+    type: "normal", 
+    exponent: 0.5,
+    gainMult() {
+        let mult = one
+        return mult
+    },
+    gainExp() {
+        let exp = one
+        return exp
+    },
+    row: 3,
+    layerShown(){return player.o.unlocked||hasUpgrade("n",14)},
+    resetsNothing(){
+        return hasMilestone("n",5)
+    },
+    hotkeys: [
+        {key: "o", description: "O: 进行一次氧重置", onPress(){if(canReset(this.layer)) doReset(this.layer)}},
+    ],
+    tabFormat: {
+        "主页": {
+            content: [
+                "main-display",
+                "prestige-button",
+                ["display-text",
+                    function(){ return "你有 <span style='color:#3FFFFF;text-shadow:0 0 10px'>"+format(player.be.prestiGems)+"</span> 转生宝石"; }
+                ],
+                "milestones",
+                "upgrades"
+            ],
+            unlocked(){ return true; }
+        }
+    },    
+    style: {
+        background: "radial-gradient( #000000, #1F1F2F, #000000)",
+        minHeight: "100vh"
+    },
 })
 addLayer("a", {
     name: "a",
@@ -5867,13 +6047,13 @@ addLayer("a", {
         },
         42: {
             name: "粘稠的",
-            done() {return player.c.oil.gte(2700)},
+            done() {return player.c.oil.gte(1855)},
             tooltip: function() {
                 if (hasAchievement(this.layer, this.id)) {
                     let eff = achievementEffect(this.layer, this.id);
-                    return `要求：获得 2700 原油。<br>奖励：原油加成成就 14 的效果基础。<br>当前：x${format(eff)}`;
+                    return `要求：获得 1855 原油。<br>奖励：原油加成成就 14 的效果基础。<br>当前：x${format(eff)}`;
                 } else {
-                    return `要求：获得 2700 原油。<br>奖励：原油加成成就 14 的效果基础。<br>当前：x1.00`;
+                    return `要求：获得 1855 原油。<br>奖励：原油加成成就 14 的效果基础。<br>当前：x1.00`;
                 }
             },
             effect() {

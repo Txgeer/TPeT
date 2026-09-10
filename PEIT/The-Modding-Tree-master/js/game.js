@@ -708,6 +708,7 @@ function startGameEngine() {
     updateTabFormats();
 
     if (typeof initUtils === 'function') initUtils();
+    if (typeof applyFont === 'function') applyFont();
     window.__vueMounted = false;
     loadVue();
     startIntervals();

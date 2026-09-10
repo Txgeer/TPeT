@@ -1,3 +1,4 @@
+
 // Load files
 const modFiles = modInfo.modFiles;
 let loadedCount = 0;

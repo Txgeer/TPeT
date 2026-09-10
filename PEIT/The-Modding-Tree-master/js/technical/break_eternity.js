@@ -2,7 +2,7 @@
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
   (global = global || self, global.Decimal = factory());
-}(this, function () { 'use strict';
+}(this, function () { 
 
   var padEnd = function (string, maxLength, fillString) {
 

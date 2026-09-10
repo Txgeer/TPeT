@@ -1,3 +1,4 @@
+
 var tmp = {}
 var temp = tmp
 var funcs = {}
@@ -7,16 +8,16 @@ var NaNalert = false;
 var activeFunctions = [
     "startData", "onPrestige", "doReset", "update", "automate",
     "buy", "buyMax", "respec", "onPress", "onClick", "onHold", "masterButtonPress",
-    "sellOne", "sellAll", "pay", "actualCostFunction", "actu原初fectFunction",
+    "sellOne", "sellAll", "pay", "actualCostFunction", "actualEffectFunction", "update", 
     "effectDescription", "display", "fullDisplay", "effectDisplay", "rewardDisplay",
     "tabFormat", "content",
     "onComplete", "onPurchase", "onEnter", "onExit", "done",
     "getUnlocked", "getStyle", "getCanClick", "getTitle", "getDisplay"
 ]
 
-var noCall = doNotCallTheseFunctionsEveryTick
-for (item in noCall) {
-    activeFunctions.push(noCall[item])
+var noCall = typeof doNotCallTheseFunctionsEveryTick !== 'undefined' ? doNotCallTheseFunctionsEveryTick : [];
+for (let item in noCall) {
+    activeFunctions.push(noCall[item]);
 }
 
 var traversableClasses = []
@@ -93,7 +94,7 @@ function setupTempData(layerData, tmpData, funcsData) {
 function updateTemp() {
     // ===== 防御性检查：确保 player.points 有效 =====
     if (player) {
-        if (!(player.points instanceof Decimal) || !isFinite(player.points.toNumber())) {
+        if (!player || !(player.points instanceof Decimal)) {
             player.points = new Decimal(0);
         }
     }
@@ -101,6 +102,34 @@ function updateTemp() {
         setupTemp()
 
     updateTempData(layers, tmp, funcs)
+
+    for (let layer in layers) {
+        if (typeof layers[layer].baseAmount === 'function') {
+            tmp[layer].baseAmount = layers[layer].baseAmount();
+        }
+        if (typeof layers[layer].requires === 'function') {
+            tmp[layer].requires = layers[layer].requires();
+        }
+        if (typeof layers[layer].gainMult === 'function') {
+            tmp[layer].gainMult = layers[layer].gainMult();
+        }
+        if (typeof layers[layer].gainExp === 'function') {
+            tmp[layer].gainExp = layers[layer].gainExp();
+        }
+        if (typeof layers[layer].exponent === 'function') {
+            tmp[layer].exponent = layers[layer].exponent();
+        }
+        if (typeof layers[layer].directMult === 'function') {
+            tmp[layer].directMult = layers[layer].directMult();
+        }
+        if (typeof layers[layer].softcap === 'function') {
+            tmp[layer].softcap = layers[layer].softcap();
+        }
+        if (typeof layers[layer].softcapPower === 'function') {
+            tmp[layer].softcapPower = layers[layer].softcapPower();
+        }
+    }
+
 
     for (var layer in layers) {
         tmp[layer].resetGain = getResetGain(layer)

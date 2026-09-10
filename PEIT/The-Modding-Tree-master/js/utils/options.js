@@ -1,3 +1,4 @@
+
 /// ************ Options ************
 
 let options = {}
@@ -17,7 +18,8 @@ function getStartOptions() {
         milestonePopup: true,
         enableZoom: true,
         textSelect: true,
-        achievementFlash: true
+        achievementFlash: true,
+        fontFamily: 'bahnschrift',
     }
 }
 

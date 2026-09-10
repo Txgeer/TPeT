@@ -1,3 +1,4 @@
+
 // particleSystem.js - Vue 3 响应式版本
 const particles = Vue.reactive({});
 let particleID = 0;

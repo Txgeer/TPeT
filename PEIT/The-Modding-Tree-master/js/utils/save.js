@@ -1,3 +1,4 @@
+
 // ************ Save stuff ************
 function utf8_to_b64(str) {
     return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
@@ -50,16 +51,16 @@ function startplayerBase() {
 	};
 }
 function getStartplayer() {
-	playerdata = startplayerBase();
+	let playerdata = startplayerBase();
 
 	if (addePlayerData) {
-		extradata = addePlayerData();
-		for (thing in extradata)
+		let extradata = addePlayerData();
+		for (let thing in extradata)
 			playerdata[thing] = extradata[thing];
 	}
 
 	playerdata.infoboxes = {};
-	for (layer in layers) {
+	for (let layer in layers) {
 		playerdata[layer] = getStartLayerData(layer);
 
 		if (layers[layer].tabFormat && !Array.isArray(layers[layer].tabFormat)) {
@@ -69,16 +70,15 @@ function getStartplayer() {
 		if (layers[layer].microtabs) {
 			if (playerdata.subtabs[layer] == undefined)
 				playerdata.subtabs[layer] = {};
-			for (item in layers[layer].microtabs)
+			for (let item in layers[layer].microtabs)
 				playerdata.subtabs[layer][item] = Object.keys(layers[layer].microtabs[item])[0];
 		}
 		if (layers[layer].infoboxes) {
 			if (playerdata.infoboxes[layer] == undefined)
 				playerdata.infoboxes[layer] = {};
-			for (item in layers[layer].infoboxes)
+			for (let item in layers[layer].infoboxes)
 				playerdata.infoboxes[layer][item] = false;
 		}
-
 	}
 	return playerdata;
 }
@@ -178,21 +178,76 @@ function mergeObjects(target, source) {
 }
 
 function fixSave() {
+    // ===== 新增辅助函数：基于默认模板递归转换 Decimal =====
+    function convertDecimalFromDefault(obj, defaultObj) {
+        if (!obj || typeof obj !== 'object' || !defaultObj || typeof defaultObj !== 'object') return;
+        for (let key in defaultObj) {
+            let defaultValue = defaultObj[key];
+            if (defaultValue instanceof Decimal) {
+                if (obj[key] !== undefined && !(obj[key] instanceof Decimal)) {
+                    try {
+                        obj[key] = new Decimal(obj[key]);
+                    } catch (e) {
+                        obj[key] = new Decimal(0);
+                    }
+                }
+            } else if (defaultValue && typeof defaultValue === 'object') {
+                if (obj[key] && typeof obj[key] === 'object') {
+                    convertDecimalFromDefault(obj[key], defaultValue);
+                }
+            }
+        }
+    }
+
+    // 1️⃣ 转换根对象中的 Decimal 字段
     const defaultPlayer = getStartplayer();
-    for (let key in defaultPlayer) {
+    convertDecimalFromDefault(player, defaultPlayer);
+
+    // 2️⃣ 转换每个 Layer 中的 Decimal 字段
+    for (let layer in layers) {
+        if (player[layer]) {
+            const defaultData = getStartLayerData(layer);
+            convertDecimalFromDefault(player[layer], defaultData);
+        }
+    }
+
+    // ===== 保留原有的 restoreDecimals，用于处理序列化为 {sign, layer, mag} 的 Decimal =====
+    function restoreDecimals(obj) {
+        if (!obj || typeof obj !== 'object') return;
+        for (let key in obj) {
+            let val = obj[key];
+            if (val && typeof val === 'object' && val.sign !== undefined && val.layer !== undefined && val.mag !== undefined) {
+                obj[key] = new Decimal(val);
+            } else if (Array.isArray(val)) {
+                for (let i = 0; i < val.length; i++) {
+                    restoreDecimals(val[i]);
+                }
+            } else if (val && typeof val === 'object') {
+                restoreDecimals(val);
+            }
+        }
+    }
+    restoreDecimals(player);
+    for (let layer in layers) {
+        if (player[layer]) restoreDecimals(player[layer]);
+    }
+
+    // ===== 以下为原有的合并逻辑，保持不变 =====
+    const defaultPlayer2 = getStartplayer();  // 重新获取以防被修改
+    for (let key in defaultPlayer2) {
         if (!(key in player) || player[key] === undefined) {
-            player[key] = defaultPlayer[key];
-        } else if (defaultPlayer[key] instanceof Decimal) {
+            player[key] = defaultPlayer2[key];
+        } else if (defaultPlayer2[key] instanceof Decimal) {
             if (!(player[key] instanceof Decimal)) {
                 player[key] = new Decimal(player[key] || 0);
             }
-        } else if (typeof defaultPlayer[key] === 'object' && defaultPlayer[key] !== null) {
+        } else if (typeof defaultPlayer2[key] === 'object' && defaultPlayer2[key] !== null) {
             if (typeof player[key] !== 'object' || player[key] === null) {
                 player[key] = {};
             }
-            for (let subKey in defaultPlayer[key]) {
+            for (let subKey in defaultPlayer2[key]) {
                 if (!(subKey in player[key]) || player[key][subKey] === undefined) {
-                    player[key][subKey] = defaultPlayer[key][subKey];
+                    player[key][subKey] = defaultPlayer2[key][subKey];
                 }
             }
         }
@@ -330,6 +385,7 @@ function load() {
 	resizeCanvas();
 	applyZoomSetting();
 	applyTextSelectSetting();
+    applyFont();
 }
 
 function loadOptions() {
