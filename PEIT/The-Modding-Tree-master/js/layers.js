@@ -6421,7 +6421,7 @@ addLayer("a", {
         44: {
             name: "这不是胀树",
             done() {return player.b.boraneGainFloorN.gte(1e39)},
-            tooltip: "求：获得 1e39 硼烷产能。<br>奖励：移除 粒子加速器|核心 的上限，。",
+            tooltip: "要求：获得 1e39 硼烷产能。<br>奖励：移除 粒子加速器|核心 的上限，。",
             effect() {
                 let len = getAchievementCount();
                 return new Decimal(len).add(1).pow(0.65).add(1).floor();
