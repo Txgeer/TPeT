@@ -151,9 +151,6 @@ function updateTemp() {
         if (isFunction(text)) text = text()
         tmp.displayThings.push(text)
     }
-    if (window.tmp && window.tmp.__v_isReactive) {
-        window.tmp._forceUpdate = Date.now(); 
-    }
 }
 
 function updateTempData(layerData, tmpData, funcsData, useThis) {
@@ -190,7 +187,7 @@ function setupBuyables(layer) {
         if (!isPlainObject(b)) continue;
         if (b._patched) continue;
         b._originalCost = b.cost;
-        b._origin原初fect = b.effect;
+        b._originalEffect = b.effect;
         b.cost = function(x) {
             if (x === undefined) {
                 const layerData = player[this.layer];
@@ -206,7 +203,7 @@ function setupBuyables(layer) {
                 const buyables = layerData ? layerData.buyables : null;
                 x = (buyables && buyables[this.id] !== undefined) ? buyables[this.id] : new Decimal(0);
             }
-            return this._origin原初fect(x);
+            return this._originalEffect(x);
         };
         
         b._patched = true;

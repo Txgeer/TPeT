@@ -30,11 +30,13 @@ let modInfo = {
 let getModID = () => modInfo.id ?? modInfo.name.replace(/\s+/g, '-');
 // Set your version in num and name
 let VERSION = {
-	num: "0.7",
+	num: "0.7.1",
 	name: "New Game"
 }
 
 let changelog = `<h1>更新日志:</h1><br>
+    <h3>NG v0.7.1 2026.9.13</h3><br>
+        - 增加了新的内容（氧前中期）。<br>
     <h3>NG v0.7 2026.9.10</h3><br>
         - 增加了新的内容（氧前）。<br>
     <h3>NG v0.6.3 2026.8.29</h3><br>
@@ -117,7 +119,7 @@ function getStartPoints(){
 
 // Determines if it should show points/sec
 function canGenPoints(){
-	return hasUpgrade("p",11);
+	return hasUpgrade("o",34);
 }
 
 // Calculate points/sec!
@@ -188,6 +190,25 @@ var displayThings = [
 	function() {
         if (localStorage.getItem('hideDragHint') === 'true') return '';
         return '<div style="background: #ffbf00; color: #000000; padding: 4px 8px; border-radius: 8px; cursor: pointer; margin-top: 5px;" onclick="closeDragHint()">💡 提示：按住鼠标左键并拖拽可以批量购买升级和可购买！点击此处关闭提示。</div>';
+    },
+    function() {
+        if (typeof player === 'undefined' || !player) return '';
+        const inBorane  = player.b && player.b.inBorane;
+        const inExtract = player.c && player.c.inExtract;
+        if (!inBorane && !inExtract) return '';
+
+        let label, color;
+        if (inBorane && inExtract) {
+            label = '制取 &amp; 提炼';
+            color = '#770000';
+        } else if (inBorane) {
+            label = '制取';
+            color = '#992222';
+        } else {
+            label = '提炼';
+            color = '#555555';
+        }
+        return `<div style="color:${color}; font-size:20px; margin-top:5px; text-shadow:0 0 10px ${color}; font-weight:bold;">当前挑战：${label}</div>`;
     },
 	"群号: 951232913"
 ]

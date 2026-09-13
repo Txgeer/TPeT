@@ -1,8 +1,12 @@
-
 const NAMES = ["中微子","氢","氦","锂","铍","硼","碳","氮","氧","氟","氖"]
 function getAchievementCount() {
     if (!player || !player.a || !player.a.achievements) return 0;
-    return player.a.achievements.filter(id => id !== '17').length;
+    let count = player.a.achievements.filter(id => id !== '17').length;
+    if (hasUpgrade('h', 55)) count = count * count;
+    if (player.o && player.o.balloon instanceof Decimal) {
+        count = count * player.o.balloon.add(1).toNumber();
+    }
+    return count;
 }
 addLayer("p", {
     name: "p",
@@ -336,7 +340,7 @@ addLayer("p", {
             title:"加速生产 VIIII",
             description:" 锂加成氢。",
             effect(){
-                let effect = player.li.points.root(4).max(1)
+                let effect = player.li.points.root(4).add(1)
                 if(hasUpgrade("p",62)) effect = effect.mul(upgradeEffect("p",62))
                 if(effect.gte(10)&&!hasUpgrade("p",68)) effect = effect.root(8).add(10)
                 return effect
@@ -812,7 +816,7 @@ addLayer("p", {
         86: {
             title: "储氢",
             description: "优化 粒子究强器 的公式。",
-            cost: new Decimal(200000000),
+            cost: new Decimal(20000000),
             currencyDisplayName: "光波",
             currencyInternalName: "waves",
             currencyLayer: "p",
@@ -838,8 +842,8 @@ addLayer("p", {
                 let effect = player.p.photons.add(1)
                 return effect
             },
-            effectDisplay(){return "/"+format(this.effect())},
-            unlocked() { return hasUpgrade("p",82)&&hasUpgrade("p",84); },
+            effectDisplay(){return "x"+format(this.effect())},
+            unlocked() { return hasUpgrade("p",86)&&hasUpgrade("p",88); },
             style() {
                 if (hasUpgrade(this.layer, this.id)) {
                     return {};
@@ -853,7 +857,7 @@ addLayer("p", {
         88: {
             title: "年代测量",
             description: "放射性降低自动点击者价格。",
-            cost: new Decimal(200000000),
+            cost: new Decimal(20000000),
             currencyDisplayName: "放射性",
             currencyInternalName: "radiation",
             currencyLayer: "p",
@@ -905,7 +909,7 @@ addLayer("p", {
             currencyLayer: "p",
             unlocked() { return hasUpgrade("p",91); },
             effect() {
-                return player.p.waves
+                return player.p.waves.add(1)
             },
             effectDisplay() { return "x" + format(this.effect()); },
             style() {
@@ -940,12 +944,12 @@ addLayer("p", {
             title: "放射光子",
             description: "放射性加成光子转化基础。",
             cost: new Decimal(100000),
-            currencyDisplayName: "光波",
-            currencyInternalName: "waves",
+            currencyDisplayName: "放射性",
+            currencyInternalName: "radiation",
             currencyLayer: "p",
             unlocked() { return hasUpgrade("p",95); },
             effect() {
-                return player.p.radiation
+                return player.p.radiation.add(1)
             },
             effectDisplay() { return "x" + format(this.effect()); },
             style() {
@@ -981,6 +985,69 @@ addLayer("p", {
                 }
             }
         },
+        96: {
+            title: "净化",
+            description: "中微子降低硼价格。",
+            cost: new Decimal(100000000),
+            currencyDisplayName: "光波",
+            currencyInternalName: "waves",
+            currencyLayer: "p",
+            unlocked() { return hasUpgrade("o",14); },
+            effect() {
+                return player.points.add(1)
+            },
+            effectDisplay() { return "/" + format(this.effect()); },
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#7FFFFF'};
+                } else {
+                    return {};
+                }
+            }
+        },
+        97: {
+            title: "光子的中点",
+            description: "自动获取转化时的 100% 光子 /s，并让光子和硼加成温度点。",
+            cost: new Decimal(2e10),
+            currencyDisplayName: "光子",
+            currencyInternalName: "photons",
+            currencyLayer: "p",
+            effect(){
+                let effect = player.p.photons.pow(player.b.points).add(1)
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            unlocked() { return hasUpgrade("p",96)&&hasUpgrade("p",98); },
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#FFFF7F'};
+                } else {
+                    return {};
+                }
+            }
+        },
+        98: {
+            title: "阿尔法穿透",
+            description: "移除 氦-3 的上限。",
+            cost: new Decimal(100000000),
+            currencyDisplayName: "放射性",
+            currencyInternalName: "radiation",
+            currencyLayer: "p",
+            unlocked() { return hasUpgrade("o",14); },
+            style() {
+                if (hasUpgrade(this.layer, this.id)) {
+                    return {};
+                } else if (canAffordUpgrade(this.layer, this.id)) {
+                    return {'background-color': '#FF7F7F'};
+                } else {
+                    return {};
+                }
+            }
+        },
     },
     buyables:{
         11: {
@@ -1002,6 +1069,7 @@ addLayer("p", {
                     let a = five.add(buyableEffect("p",12)).pow(x) 
                     if(!hasUpgrade("li",111))a = powsoftcap(a,n(1e30),five)
                     if(hasUpgrade("p",67)&&getBuyableAmount("p",14).gte(1)) a = a.mul(buyableEffect("p",14))
+                    if(hasUpgrade("o",32)) a = a.mul(buyableEffect("p",13))
                     return a
                 }
                 else {
@@ -1009,6 +1077,7 @@ addLayer("p", {
                     if(hasUpgrade("p",15)) a = x.mul(0.66686).add(1)
                     if(getBuyableAmount("p",12).gte(1)) a = x.mul(buyableEffect("p",12).add(0.66686))
                     if(hasUpgrade("p",67)&&getBuyableAmount("p",14).gte(1)) a = a.mul(buyableEffect("p",14))
+                    if(hasUpgrade("o",32)) a = a.mul(buyableEffect("p",13))
                     return a
                 }              
             },
@@ -1035,10 +1104,9 @@ addLayer("p", {
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
             effect(x){
-                let addeff = buyableEffect("p",13)
                 let a = x.mul(0.166686)
                 if(hasUpgrade("p",51)) a = x.mul(n(0.166686).add(upgradeEffect("p",51)))
-                a = a.mul(addeff).max(0)
+                a = a.mul(buyableEffect("p",13))
                 if(hasUpgrade("p",67)&&getBuyableAmount("p",14).gte(1)) a = a.mul(buyableEffect("p",14))
                 return a
             },
@@ -1064,7 +1132,7 @@ addLayer("p", {
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
             effect(x){
-                let a = x.mul(12.5).max(1)
+                let a = x.mul(12.5).add(1)
                 if(hasUpgrade("p",67)&&getBuyableAmount("p",14).gte(1)) a = a.mul(buyableEffect("p",14))
                 return a
             },
@@ -1089,11 +1157,12 @@ addLayer("p", {
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
             effect(x){
-                let a = x.pow(1.66686).max(1)
+                let a = x.pow(1.66686).add(1)
                 return a
             },
             purchaseLimit(){
                 let a = ten
+                if(hasAchievement("a",44)) a = Infinity
                 return a
             },
             unlocked(){return hasUpgrade("p",67)},
@@ -1128,6 +1197,7 @@ addLayer("p", {
                 if (hasAchievement('a',35)) gain = gain.mul(achievementEffect("a",35)).floor();
                 if (hasMilestone('c', 1)) gain = gain.mul(player.c.entropy.pow(player.c.oil).add(1).log2().add(1)).floor();
                 if (hasUpgrade('p',87)) gain = gain.mul(upgradeEffect("p",87)).floor();
+                if (hasMilestone('he',14)) gain = gain.mul(layers.he.temPointEffect10()).floor();
                 if(player.b.inBorane) gain = gain.pow(0.66686).floor();
                 if(player.c.inExtract) gain = gain.pow(0.666).floor();
                 return "消耗 <span style='color:#FFFFFF;text-shadow:0 0 10px'>"+format(player.points)+"</span> 中微子，获得 <span style='color:#111177;text-shadow:0 0 10px'>"+format(gain)+"</span> 电子。<br>（至少转化 1e100 中微子）";
@@ -1144,6 +1214,7 @@ addLayer("p", {
                 if (hasAchievement('a',35)) gain = gain.mul(achievementEffect("a",35)).floor();
                 if (hasMilestone('c', 1)) gain = gain.mul(player.c.entropy.pow(player.c.oil).add(1).log2().add(1)).floor();
                 if (hasUpgrade('p',87)) gain = gain.mul(upgradeEffect("p",87)).floor();
+                if (hasMilestone('he',14)) gain = gain.mul(layers.he.temPointEffect10()).floor();
                 if(player.b.inBorane) gain = gain.pow(0.66686).floor();
                 if(player.c.inExtract) gain = gain.pow(0.666).floor();
                 player.points = zero
@@ -1164,6 +1235,8 @@ addLayer("p", {
                 if (!hasUpgrade("p", 93)) gain = gain.add(1).ln().add(1).ln().add(1).floor();
                 if (hasUpgrade("p", 93)) gain = gain.add(1).log2().add(1).log2().add(1).floor();
                 if (hasUpgrade("li", 24)) gain = gain.mul(layers.li.LiboostPhotons());
+                if (hasMilestone("c", 10)) gain = gain.mul(player.c.oil.pow(player.c.oil).add(1).ln().add(1));
+                if (hasAchievement('a',43)) gain = gain.mul(achievementEffect("a",43)).floor();
                 if(player.c.inExtract) gain = gain.pow(0.666);
                 return "消耗你所有的中微子和电子，获得 <span style='color:#777733;text-shadow:0 0 10px'>"+format(gain)+"</span> 光子。<br>（至少转化 1e9 电子）";
             },
@@ -1176,6 +1249,8 @@ addLayer("p", {
                 if (!hasUpgrade("p", 93)) gain = gain.add(1).ln().add(1).ln().add(1).floor();
                 if (hasUpgrade("p", 93)) gain = gain.add(1).log2().add(1).log2().add(1).floor();
                 if (hasUpgrade("li", 24)) gain = gain.mul(layers.li.LiboostPhotons());
+                if (hasMilestone("c", 10)) gain = gain.mul(player.c.oil.pow(player.c.oil).add(1).ln().add(1));
+                if (hasAchievement('a',43)) gain = gain.mul(achievementEffect("a",43)).floor();
                 if(player.c.inExtract) gain = gain.pow(0.666);
                 player.points = zero;
                 player.p.electrons = zero;
@@ -1241,6 +1316,18 @@ addLayer("p", {
             if (tmp.c && tmp.c.buyables && tmp.c.buyables[11] && tmp.c.buyables[11].canAfford) {
                 buyBuyable("c", 11);
             }
+        }
+        if (hasUpgrade("p", 97)) {
+            let gain = player.points.pow(player.p.electrons);
+            if (hasUpgrade("p", 92)) gain = gain.pow(upgradeEffect("p", 92));
+            if (hasUpgrade("p", 94)) gain = gain.pow(upgradeEffect("p", 94));
+            if (!hasUpgrade("p", 93)) gain = gain.add(1).ln().add(1).ln().add(1).floor();
+            if (hasUpgrade("p", 93)) gain = gain.add(1).log2().add(1).log2().add(1).floor();
+            if (hasUpgrade("li", 24)) gain = gain.mul(layers.li.LiboostPhotons());
+            if (hasMilestone("c", 10)) gain = gain.mul(player.c.oil.pow(player.c.oil).add(1).ln().add(1));
+            if (hasAchievement('a',43)) gain = gain.mul(achievementEffect("a",43)).floor();
+            if (player.c.inExtract) gain = gain.pow(0.666);
+            player.p.photons = player.p.photons.add(gain.mul(diff));
         }
     },
     tabFormat: {
@@ -1364,6 +1451,7 @@ addLayer("h", {
         if(hasUpgrade("be",22)) mult = mult.mul(upgradeEffect("be",22))
         if(hasUpgrade("b",41)) mult = mult.mul(upgradeEffect("b",41))
 	    if(hasAchievement('a', 16)) mult = mult.mul(achievementEffect('a', 16))
+        if(hasMilestone("c",11)) mult = mult.mul(player.c.oil.pow(player.c.points).add(1).log2().add(1))
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -1381,15 +1469,17 @@ addLayer("h", {
         let a = new Decimal(0)
         if(hasUpgrade("h",44)) a = upgradeEffect("h",44).div(100)
         if(hasMilestone("li",3)&&player.h.upgradeAutobuy) a = a.max(0.01)
-        if(hasMilestone("li",8)) a = a.max(1)
+        if(hasMilestone("li",8)) a = a.add(1)
         return a
-     },
+    },
     upgrades:{
         11:{
             title:"氢原子",
             description:"氢加成中微子。",
             effect(){
-                let effect = one.add(player.h.points.add(1).mul(10).log(10))
+                let effect = one
+                if(!hasUpgrade("o",21)) effect = effect.add(player.h.points.add(1).mul(10).log(10))
+                if(hasUpgrade("o",21)) effect = effect.add(player.h.points.add(1).ln().add(1))
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect())},
@@ -1484,7 +1574,7 @@ addLayer("h", {
         },     
         25:{
             title:"扩容",
-            description:"气球数量增幅锂电池上限。",
+            description:"气球数量增幅电能上限。",
             effect(){
                 let effect = player.h.balloon.pow(0.6).add(1)
                 return effect
@@ -1796,7 +1886,29 @@ addLayer("h", {
                 player.n.balloon = player.n.points.add(1).log2().add(1).floor();
                 player.n.points = zero;
             },
-},
+        },
+        32: {
+            title: "将氧转化为氧气球",
+            display() {
+                return "将你所有的氧转化为氧气球。<br>转化后氧气球数量：" +
+                    format(layers.o.oxygenBalloonGain()) +
+                    "<br>下一个氧气球：" +
+                    format(layers.o.nextOxygenBalloonNeed()) + " 氧";
+            },
+            unlocked() { return hasUpgrade("o", 22); },
+            canClick() {
+                return player.o.points.gte(layers.o.nextOxygenBalloonNeed());
+            },
+            style() { 
+                return { 
+                    'background-color': this.canClick() ? "#BBDDFF" : "#BF8F8F",
+                };
+            },
+            onClick() {
+                player.o.balloon = layers.o.oxygenBalloonGain();
+                player.o.points = zero;
+            },
+        },
     },
     update(diff){
         if (!(player.h.balloon instanceof Decimal) || isNaN(player.h.balloon.toNumber())) player.h.balloon = new Decimal(0);
@@ -1804,6 +1916,8 @@ addLayer("h", {
         if (!(player.he.balloon instanceof Decimal) || isNaN(player.he.balloon.toNumber())) player.he.balloon = new Decimal(0);
         if (!player.n) player.n = getStartLayerData('n');
         if (!(player.n.balloon instanceof Decimal) || isNaN(player.n.balloon.toNumber())) player.n.balloon = new Decimal(0);
+        if (!player.o) player.o = getStartLayerData('o');
+        if (!(player.o.balloon instanceof Decimal) || isNaN(player.o.balloon.toNumber())) player.o.balloon = new Decimal(0);
         if(player.h.upTime.gt(0)) player.h.upTime = player.h.upTime.sub(diff)
         if(player.h.upTime.lt(0)) player.h.upTime = zero
         if(player.h.upTime.gt(layers.h.boomedBalloonBoostLimitTime())) player.h.upTime = layers.h.boomedBalloonBoostLimitTime()
@@ -1861,8 +1975,8 @@ addLayer("h", {
         }
         if(hasMilestone("li",9)&&player.p.buyableAutobuy) {
             if(hasUpgrade("p",54)){
-                let amount11 = player.p.points.root(2).max(1).ssqrt().pow(2).floor().add(1)
-                let amount12 = player.p.points.max(1).ssqrt().floor().add(1)
+                let amount11 = player.p.points.root(2).add(1).ssqrt().pow(2).floor().add(1)
+                let amount12 = player.p.points.add(1).ssqrt().floor().add(1)
                 if(getBuyableAmount("p",11).lt(amount11)) setBuyableAmount("p",11,amount11)
                 if(getBuyableAmount("p",12).lt(amount12)) setBuyableAmount("p",12,amount12)
             }
@@ -1870,8 +1984,9 @@ addLayer("h", {
         }
     },
     balloonBoostH(){
-        let mult = player.h.balloon.add(1).pow(2)
-        if(hasUpgrade("h",34)) mult = player.h.balloon.add(1).pow(3)        
+        let mult = player.h.balloon.add(1).pow(2).add(1)
+        if(hasUpgrade("h",34)&&!hasUpgrade("li",112)) mult = player.h.balloon.add(1).pow(3).add(1)
+        if(hasUpgrade("li",112)) mult = player.h.balloon.pow(player.h.balloon.add(1).log2().add(1)).add(1)
         return mult
     },
     HpowerGet(){
@@ -1889,6 +2004,7 @@ addLayer("h", {
         if(hasUpgrade("li",92)) get = get.mul(upgradeEffect("li",92))
         if(hasMilestone("he",8)) get = get.mul(layers.he.temPointBoostHpower())
         if(hasUpgrade("b",33)) get = get.mul(upgradeEffect("b",33))
+        if(hasUpgrade("o",24)) get = get.mul(upgradeEffect("o",24))
 
         if (!hasUpgrade('c', 13)) {
             if (get.gte(1e61)) get = powsoftcap(get, layers.h.HpowerGetsoftcap1start(), three);
@@ -1974,7 +2090,12 @@ addLayer("h", {
                 }],
                 ["display-text",function(){
                     let a = ""
-                    if(hasMilestone("n",6)) a = "你有 <span style='color:#000000;text-shadow:0 0 10px'>"+format(player.n.balloon)+"</span> 氮气球，氮气球加成游戏速度 <span style='color:#000000;text-shadow:0 0 10px'>"+format(tmp.speedMult)+"</span> 倍"
+                    if(hasMilestone("n",6)) a = "你有 <span style='color:#000000;text-shadow:0 0 10px'>"+format(player.n.balloon)+"</span> 氮气球，氮气球加成游戏速度 <span style='color:#777777;text-shadow:0 0 10px'>"+format(tmp.speedMult)+"</span> 倍"
+                    return a
+                }],
+                ["display-text",function(){
+                    let a = ""
+                    if(hasMilestone("o",22)) a = "你有 <span style='color:#BBDDFF;text-shadow:0 0 10px'>"+format(player.o.balloon)+"</span> 氧气球，氧气球加成已完成的成就个数 <span style='color:#FFFF3F;text-shadow:0 0 10px'>"+format(player.o.balloon.add(1))+"</span> 倍"
                     return a
                 }],
                 ["milestones", function() {
@@ -2063,6 +2184,8 @@ addLayer("he", {
         if(hasUpgrade("b",24)) mult = mult.div(upgradeEffect("b",24))
         if(hasUpgrade("b",42)) mult = mult.div(upgradeEffect("b",42))
         if(hasMilestone("c",8)) mult = mult.div(player.c.oil.pow(player.c.oil))
+        if(hasUpgrade("o",33)) mult = mult.div(upgradeEffect("o",33))
+        if(hasUpgrade("o",34)) mult = mult.div(upgradeEffect("p",96))
         return mult
     },
     gainExp() {
@@ -2371,19 +2494,26 @@ addLayer("he", {
                 let a = x.pow(2).add(1).floor()
                 return a
             },
-            display() { return "加成氢能。<br>价格：" + format(this.cost()) + "氦（不消耗）<br>当前数量：" + format(getBuyableAmount(this.layer, this.id)) + "<br>当前效果：" + format(this.effect()) + "x<br>上限数量：" + format(this.purchaseLimit())},
-            canAfford() { return player.he.points.gte(this.cost())},
+            display() {
+                if (hasMilestone("c", 12)) return "氦-3 已被移除。";
+                return "加成氢能。<br>价格：" + format(this.cost()) + "氦（不消耗）<br>当前数量：" + format(getBuyableAmount(this.layer, this.id)) + "<br>当前效果：" + format(this.effect()) + "x<br>上限数量：" + format(this.purchaseLimit())
+            },
+            canAfford() {
+                if (hasMilestone("c", 12)) return false;
+                return player.he.points.gte(this.cost())
+            },
             buy() {
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
             effect(x){
+                if (hasMilestone("c", 12)) return one;
                 let a = x.add(1)
                 if(hasUpgrade("he",33)) a = a.pow(1.5)
                 return a
             },
             purchaseLimit(){
-                let a = n(100)
-                return a
+                if (hasUpgrade("p", 98)) return new Decimal(Infinity);
+                return n(100);
             },
             unlocked(){return hasMilestone("h",2)},
         },
@@ -2391,27 +2521,31 @@ addLayer("he", {
             title: "氦-4",
             cost(x) {
                 let a = x.add(1)
-                if(x.gte(35)) a = x.pow(1.03).add(1).floor()
                 return a
             },
-            display() { return "加成氢。<br>价格：" + format(this.cost()) + "氦（不消耗）<br>当前数量：" + format(getBuyableAmount(this.layer, this.id)) + "<br>当前效果：" + format(this.effect()) + "x<br>上限数量：" + format(this.purchaseLimit())},
-            canAfford() { return player.he.points.gte(this.cost()) },
+            display() {
+                if (hasMilestone("c", 11)) return "氦-4 已被移除。";
+                return "加成氢。<br>价格：" + format(this.cost()) + "氦（不消耗）<br>当前数量：" + format(getBuyableAmount(this.layer, this.id)) + "<br>当前效果：" + format(this.effect()) + "x<br>上限数量：" + format(this.purchaseLimit())
+            },
+            canAfford() {
+                if (hasMilestone("c", 11)) return false;
+                return player.he.points.gte(this.cost())
+            },
             buy() {
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
             effect(x){
+                if (hasMilestone("c", 11)) return one;
                 let a = x.pow(2).add(1)
                 if(hasUpgrade("he",34)) a = x.pow(2).add(x.mul(50).add(1))
-                return a
+                        return a
             },
             purchaseLimit(){
-                if (hasUpgrade("p", 74)) {
-                    return new Decimal(Infinity);
-                }
-                return new Decimal(100);
+                if (hasUpgrade("p", 74)) return new Decimal(Infinity);
+                return n(100);
             },
             unlocked(){return hasMilestone("h",2)},
-        }, 
+        },
     },
     milestones:{
         1:{
@@ -2488,9 +2622,21 @@ addLayer("he", {
         },
         13:{
             requirementDescription: "回调后氦温度低于 2e21",
-            effectDescription: "解锁 温度点效果|翕兹。",
+            effectDescription: "解锁 温度点效果|龠兹。",
             done(){return hasMilestone("n",3)&&player.he.temperature.lte(2e21)},
-            unlocked(){return hasMilestone("n",3)},
+            unlocked(){return hasMilestone("he",12)},
+        },
+        14:{
+            requirementDescription: "回调后氦温度低于 8e19",
+            effectDescription: "解锁 温度点效果|帝江。",
+            done(){return hasMilestone("n",3)&&player.he.temperature.lte(8e19)},
+            unlocked(){return hasMilestone("he",13)},
+        },
+        15:{
+            requirementDescription: "回调后氦温度低于 2.2e19",
+            effectDescription: "超级加成 温度点效果|祝融。",
+            done(){return hasMilestone("n",3)&&player.he.temperature.lte(2.2e19)},
+            unlocked(){return hasMilestone("he",14)},
         },
     },
     clickables:{
@@ -2542,6 +2688,7 @@ addLayer("he", {
     },
     balloonBoostPoints(){//气球加点
         let mult = player.he.balloon.add(1)
+        if(hasUpgrade("li",112)) mult = player.he.balloon.pow(player.he.balloon.add(1).log2().add(1)).add(1)
         return mult
     },
     addUpTime(){//气球炸的时间
@@ -2580,6 +2727,7 @@ addLayer("he", {
         if(hasUpgrade("b",21)) get = get.mul(upgradeEffect("b",21))
         if(hasUpgrade("b",41)) get = get.mul(upgradeEffect("b",41))
         if(hasAchievement("a",26)) get = get.mul(achievementEffect("a",26))
+        if(hasUpgrade("p",97)) get = get.mul(upgradeEffect("p",97))
         if(hasMilestone("c",2)) get = get.mul(player.c.entropy.pow(player.c.entropy.add(1).log2().add(1)))
 
         if(player.b.inBorane) get = get.pow(0.66686)
@@ -2598,7 +2746,9 @@ addLayer("he", {
         return mult
     },
     temPointBoostHpower(){//温度点加氢能
-        let mult = player.he.temPoint.add(1).log(10).add(1).pow(3).add(1)
+        let mult = player.he.temPoint
+        if(!hasUpgrade("li",112)) mult = mult.add(1).log(10).add(1).pow(3).add(1)
+        if(hasUpgrade("li",112)) mult = pala(player.he.temPoint, player.he.temPoint.add(1).log2().add(1).log2().add(1).floor()).add(1).log2().add(1)
         //if(mult.gte(layers.he.temPointEffect5SoftcapStart())) mult = powsoftcap(mult,layers.he.temPointEffect5SoftcapStart(),five)
         return mult
     },
@@ -2647,23 +2797,36 @@ addLayer("he", {
         if(!hasUpgrade("li",102)) divt = divt.add(1).log(1.7).mul(3)
         if(hasMilestone("he",5)&&!hasUpgrade("li",102)) divt = divt.pow(3)
         if(hasMilestone("he",9)&&!hasUpgrade("li",102)) divt = divt.pow(5)
-        if(hasUpgrade("li",102)) divt = divt.pow(0.3)
+        if(hasUpgrade("li",102)&&!hasMilestone("he",15)) divt = divt.pow(0.3)
         return divt
     },
     temPointEffect6(){//温度点加铍
-        let num = player.he.temPoint.div(1e140).max(1).add(1).log2().add(1)
+        let num = player.he.temPoint
+        if (!hasUpgrade("o",11)) num = num.div(1e140)
+        num = num.add(1).log2().add(1)
         return num
     },
     temPointEffect7(){//温度点加电能上限
-        let num = player.he.temPoint.div(1e240).max(1).add(1).log10().add(1)
+        let num = player.he.temPoint
+        if (!hasUpgrade("o",12)) num = num.div(1e240)
+        num = num.add(1).log10().add(1)
         return num
     },
     temPointEffect8(){//温度点加硼烷产能
-        let num = player.he.temPoint.div(1e300).max(1).add(1).ln().add(1)
+        let num = player.he.temPoint
+        if (!hasUpgrade("o",13)) num = num.div(1e300)
+        num = num.add(1).ln().add(1)
         return num
     },
     temPointEffect9(){//温度点加熵
-        let num = player.he.temPoint.div(1e300).max(1).add(1).log2().add(1).log2().add(1)
+        let num = player.he.temPoint
+        if (!hasUpgrade("o",14)) num = num.div(1e308)
+        num = num.add(1).log2().add(1).log2().add(1)
+        return num
+    },
+    temPointEffect10(){//温度点加电子
+        let num = player.he.temPoint
+        num = num.pow(0.001)
         return num
     },
     addtemPointUpTime(){//温度点提升时间
@@ -2709,46 +2872,50 @@ addLayer("he", {
                 ["display-text",function(){
                     let a = "<h4>"
                     if(hasMilestone("he",1)) {
-                        a = a + "温度点效果|蓐收：使氢获取变为原来的 <span style='color:#FF66CC;text-shadow:0 0 10px'> "+format(layers.he.temPointBoostH())+"</span> 倍"
+                        a = a + "温度点效果|蓐收：加成氢 <span style='color:#FF66CC;text-shadow:0 0 10px'> "+format(layers.he.temPointBoostH())+"</span> 倍"
                         if (!hasUpgrade('h', 52) && layers.he.temPointBoostPoints().gte(layers.he.temPointEffect3SoftcapStart())) a = a + "（受软上限限制）"
                         a = a + "<br>"     
                     }       
                     if(hasMilestone("he",2)) {
-                        a = a + "温度点效果|句芒：使氦价格 / <span style='color:#FFBBCC;text-shadow:0 0 10px'> "+format(layers.he.temPointdivHecost())+"</span>"
+                        a = a + "温度点效果|句芒：降低氦价格 / <span style='color:#FFBBCC;text-shadow:0 0 10px'> "+format(layers.he.temPointdivHecost())+"</span>"
                         if(!hasUpgrade("b",23) && layers.he.temPointdivHecost().gte(layers.he.temPointEffect2SoftcapStart())) a = a + "（受软上限限制）"
                         a = a + "<br>"
                     }
                     if(hasMilestone("he",3)) {
-                        a = a + "温度点效果|共工：使中微子获取变为原来的 <span style='color:#FFFFFF;text-shadow:0 0 10px'> "+format(layers.he.temPointBoostPoints())+"</span> 倍"
+                        a = a + "温度点效果|共工：加成中微子 <span style='color:#FFFFFF;text-shadow:0 0 10px'> "+format(layers.he.temPointBoostPoints())+"</span> 倍"
                         if (!hasUpgrade('h', 52) && layers.he.temPointBoostPoints().gte(layers.he.temPointEffect3SoftcapStart())) a = a + "（受软上限限制）"
                         a = a + "<br>"     
                     }  
                     if(hasMilestone("he",4)) {
-                        a = a + "温度点效果|祝融：使锂价格 / <span style='color:#DD0033;text-shadow:0 0 10px'> "+format(layers.he.temPointdivLicost().add(1))+"</span>"
+                        a = a + "温度点效果|祝融：降低锂价格 / <span style='color:#DD0033;text-shadow:0 0 10px'> "+format(layers.he.temPointdivLicost().add(1))+"</span>"
                         a = a + "<br>"     
                     }     
                     if(hasMilestone("he",8)) {
-                        a = a + "温度点效果|后土：使氢能获取变为原来的 <span style='color:#FF66CC;text-shadow:0 0 10px'> "+format(layers.he.temPointBoostHpower())+"</span> 倍"
+                        a = a + "温度点效果|后土：加成氢能 <span style='color:#FF66CC;text-shadow:0 0 10px'> "+format(layers.he.temPointBoostHpower())+"</span> 倍"
                         //if(layers.he.temPointBoostHpower().gte(layers.he.temPointEffect5SoftcapStart())) a = a + "（已达软上限）"
                         a = a + "<br>"     
                     }  
                     if(hasMilestone("he",10)) {
-                        a = a + "温度点效果|天吴：使铍获取变为原来的 <span style='color:#55CC77;text-shadow:0 0 10px'> "+format(layers.he.temPointEffect6())+"</span> 倍"
+                        a = a + "温度点效果|天吴：加成铍 <span style='color:#55CC77;text-shadow:0 0 10px'> "+format(layers.he.temPointEffect6())+"</span> 倍"
                         //if(layers.he.temPointEffect6().gte(layers.he.temPointEffect6SoftcapStart())) a = a + "（受软上限限制）"
                         a = a + "<br>"     
                     }   
                     if(hasMilestone("he",11)) {
-                        a = a + "温度点效果|玄冥：使电能上限变为原来的 <span style='color:#DDDD33;text-shadow:0 0 10px'> "+format(layers.he.temPointEffect7())+"</span> 倍"
+                        a = a + "温度点效果|玄冥：加成电能上限 <span style='color:#DDDD33;text-shadow:0 0 10px'> "+format(layers.he.temPointEffect7())+"</span> 倍"
                         a = a + "<br>"     
                     }
                     if(hasMilestone("he",12)) {
-                        a = a + "温度点效果|强良：使硼烷产能变为原来的 <span style='color:#992222;text-shadow:0 0 10px'> "+format(layers.he.temPointEffect8())+"</span> 倍"
+                        a = a + "温度点效果|强良：加成硼烷产能 <span style='color:#992222;text-shadow:0 0 10px'> "+format(layers.he.temPointEffect8())+"</span> 倍"
                         a = a + "<br>"     
                     }
                     if(hasMilestone("he",13)) {
-                        a = a + "温度点效果|翕兹：使熵变为原来的 <span style='color:#555555;text-shadow:0 0 10px'> "+format(layers.he.temPointEffect9())+"</span> 倍"
+                        a = a + "温度点效果|龠兹：加成熵 <span style='color:#555555;text-shadow:0 0 10px'> "+format(layers.he.temPointEffect9())+"</span> 倍"
                         a = a + "<br>"     
-                    }   
+                    }
+                    if(hasMilestone("he",14)) {
+                        a = a + "温度点效果|帝江：加成电子 <span style='color:#3F3FFF;text-shadow:0 0 10px'> "+format(layers.he.temPointEffect10())+"</span> 倍"
+                        a = a + "<br>"     
+                    }
                     return a + "</h4>"  
                 }],"clickables",["upgrades",[4,5,6,7]],
             ],
@@ -2812,14 +2979,17 @@ addLayer("li", {
         let mult = one
         if(hasMilestone("he",3)) mult = mult.div(layers.he.temPointdivLicost().add(1))
         if(hasUpgrade("li",51)) mult = mult.div(upgradeEffect("li",51))
+        if(hasUpgrade("li",72)) mult = mult.div(upgradeEffect("li",72))
+        if(hasUpgrade("li",114)) mult = mult.div(upgradeEffect("li",114))
         if(hasMilestone("be",1)) mult = mult.div(2)
         if(hasAchievement('a', 22)) mult = mult.div(achievementEffect('a',22))
         if(hasUpgrade("p",73)) mult = mult.div(upgradeEffect("p",73))
-        if(hasUpgrade("li",72)) mult = mult.div(upgradeEffect("li",72))
         if(hasUpgrade("p",75)) mult = mult.div(upgradeEffect("p",75))
         if(hasUpgrade("b",12)) mult = mult.div(upgradeEffect("b",12))
         if(hasUpgrade("b",42)) mult = mult.div(upgradeEffect("b",42))
         if(hasMilestone("c",6)) mult = mult.div(player.c.entropy.pow(player.c.entropy.add(1).ln().add(1)))
+        if(hasUpgrade("o",33)) mult = mult.div(upgradeEffect("o",33))
+        if(hasUpgrade("o",34)) mult = mult.div(upgradeEffect("p",96))
         return mult
     },
     gainExp() {
@@ -2957,7 +3127,9 @@ addLayer("li", {
             description:" 电能降低锂价格。",
             cost: new Decimal(4),
             effect(){
-                let effect = player.li.currentElectricity.add(1).pow(6)
+                let effect = player.li.currentElectricity
+                if(!hasUpgrade("o",23)) effect = effect.add(1).pow(6).add(1)
+                if(hasUpgrade("o",23)) effect = effect.add(1).pow(player.li.currentElectricity.add(1).log2().add(1).log2().add(1)).add(1)
                 return effect
             },
             effectDisplay(){return "/"+format(this.effect())},
@@ -2979,7 +3151,7 @@ addLayer("li", {
             effect(){
                 let effect = new Decimal(1.7)
                 if(!hasUpgrade("li",103)) effect = effect.pow(getBuyableAmount("li",11))
-                if(hasUpgrade("li",103)) effect = effect.sub(0.69).pow(getBuyableAmount("li",11).mul(getBuyableAmount("li",12)).mul(getBuyableAmount("li",13)).mul(getBuyableAmount("li",14)))
+                if(hasUpgrade("li",103)) effect = effect.sub(0.69999766686).pow(getBuyableAmount("li",11).mul(getBuyableAmount("li",12)).mul(getBuyableAmount("li",13)).mul(getBuyableAmount("li",14).add(1).log(2).add(1)))
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect())},
@@ -3015,7 +3187,7 @@ addLayer("li", {
         62:{
             title:"研究-42",
             description:"研究点的计算公式更改为乘算。",
-            cost: new Decimal(12),
+            cost: new Decimal(15),
             unlocked(){return hasUpgrade("be",14)},
             currencyDisplayName:"研究点",
             currencyInternalName:"researchPoint",
@@ -3166,7 +3338,7 @@ addLayer("li", {
         103: {
             title: "研究-c1",
             description: "削弱 研究-32 的基础，但让后三种研究点也可以加成 研究-32 的效果。",
-            cost: new Decimal(999999999),
+            cost: new Decimal(1e303),
             unlocked() { return hasUpgrade("li", 91) && hasUpgrade("li", 92); },
             currencyDisplayName: "研究点",
             currencyInternalName: "researchPoint",
@@ -3197,6 +3369,35 @@ addLayer("li", {
             currencyLayer: "li",
             canAfford() {
                 return hasUpgrade("li", 101);
+            },
+        },
+        112: {
+            title: "研究-b2",
+            description: "加成 温度点效果|后土，并进一步优化氢气球和氦气球的公式。",
+            cost: new Decimal(40000000),
+            unlocked() { return hasUpgrade("li", 102); },
+            currencyDisplayName: "研究点",
+            currencyInternalName: "researchPoint",
+            currencyLayer: "li",
+            canAfford() {
+                return hasUpgrade("li", 102);
+            },
+        },
+        114: {
+            title: "研究-d2",
+            description: "大幅加成锂的第三个效果，并让铍降低锂价格。",
+            cost: new Decimal(50000000),
+            effect() {
+
+                return player.be.points.add(1);
+            },
+            effectDisplay() { return "/" + format(this.effect()); },
+            unlocked() { return hasUpgrade("li", 104); },
+            currencyDisplayName: "研究点",
+            currencyInternalName: "researchPoint",
+            currencyLayer: "li",
+            canAfford() {
+                return hasUpgrade("li", 104);
             },
         },
     },
@@ -3281,7 +3482,7 @@ addLayer("li", {
             },
             display() { 
                 if (hasMilestone("c", 3)) return "电容增幅已被移除。";
-                return "加成电能上限。<br>价格：" + format(this.cost()) + "电能<br>当前数量：" + format(getBuyableAmount(this.layer, this.id)) + "<br>当前效果：" + format(this.effect()) + "x<br>上限数量：" + format(this.purchaseLimit())
+                return "重置所有电能，加成电能上限。<br>价格：" + format(this.cost()) + "电能<br>当前数量：" + format(getBuyableAmount(this.layer, this.id)) + "<br>当前效果：" + format(this.effect()) + "x<br>上限数量：" + format(this.purchaseLimit())
             },
             effect(x){
                 if (hasMilestone("c", 3)) return one;
@@ -3293,7 +3494,7 @@ addLayer("li", {
                 return player.li.currentElectricity.gte(this.cost()) 
             },
             buy() {
-                player.li.currentElectricity = player.li.currentElectricity.sub(this.cost())
+                player.li.currentElectricity = zero
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
             purchaseLimit() {
@@ -3462,6 +3663,7 @@ addLayer("li", {
         return mult
     }, 
     LidivHecost(){//锂减氦价格
+        if (hasUpgrade('li', 114)) return two.pow(player.li.points.pow(2));
         let divt = player.li.points
         if (!hasUpgrade("li",23)) divt = divt.add(1).pow(1.5).add(1)
         if (hasUpgrade("li",23)) divt = divt.add(1).pow(10).add(1)
@@ -3662,6 +3864,7 @@ addLayer("be", {
         if(hasUpgrade('b', 13)) mult = mult.mul(upgradeEffect('b', 13))
         if(hasAchievement('a', 24)) mult = mult.mul(achievementEffect('a', 24))
         if(hasMilestone("c",4)) mult = mult.mul(player.c.oil.pow(player.c.oil.add(1).log2().add(1)))
+        if(hasUpgrade('o', 24)) mult = mult.mul(upgradeEffect('o', 24))
         return mult
     },
     gainExp() {
@@ -3677,7 +3880,7 @@ addLayer("be", {
         if(hasUpgrade("be",11)) a = one
         return a
     },
-    resetsNothing() {return hasMilestone("li",1)},
+    resetsNothing() {return hasAchievement("a",15)},
     hotkeys: [
         {key: "b", description: "B: 进行一次铍重置", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
@@ -3893,6 +4096,7 @@ addLayer("be", {
             if (hasAchievement('a',35)) gain = gain.mul(achievementEffect("a",35)).floor();
             if (hasMilestone('c', 1)) gain = gain.mul(player.c.entropy.pow(player.c.oil).add(1).log2().add(1)).floor();
             if (hasUpgrade('p',87)) gain = gain.mul(upgradeEffect("p",87)).floor();
+            if (hasMilestone('he',14)) gain = gain.mul(layers.he.temPointEffect10()).floor();
             if(player.b.inBorane) gain = gain.pow(0.66686).floor();
             if(player.c.inExtract) gain = gain.pow(0.666).floor();
             
@@ -4045,8 +4249,11 @@ addLayer("b", {
         if(hasUpgrade("b",14)) mult = mult.div(upgradeEffect("b",14))
         if(hasUpgrade("b",42)) mult = mult.div(upgradeEffect("b",42))
         if(hasUpgrade("li",91)) mult = mult.div(upgradeEffect("li",91))
-        if(hasAchievement('a', 31)) mult = mult.div(achievementEffect('a',31))
+        if(hasAchievement('a',31)) mult = mult.div(achievementEffect('a',31))
         if(hasMilestone("c",5)) mult = mult.div(player.c.points.pow(player.c.points.add(1).log2().add(1).log2().add(1)))
+        if(hasUpgrade("p",96)) mult = mult.div(upgradeEffect("p",96))
+        if(hasUpgrade("o",31)) mult = mult.div(upgradeEffect("o",31))
+        if(hasUpgrade("o",33)) mult = mult.div(upgradeEffect("o",33))
         return mult
     },
     gainExp() {
@@ -4343,7 +4550,7 @@ addLayer("b", {
             },
             effectDisplay(){return format(this.effect())+"x"},
             cost: new Decimal(600),
-            unlocked(){return hasUpgrade("b",21)},
+            unlocked(){return hasUpgrade("b",31)},
             currencyDisplayName:"己硼烷",
             currencyInternalName:"borane2",
             currencyLayer:"b",
@@ -4538,7 +4745,7 @@ addLayer("b", {
         },
         41:{
             title:"丁硼烷助力转生",
-            description:"转生宝石加成中微子、氢、温度点获取。",
+            description:"转生宝石加成中微子、氢、温度点。",
             effect(){
                 let effect = player.be.prestiGems.add(1)
                 return effect
@@ -4991,8 +5198,9 @@ addLayer("b", {
         if(player.b.inBorane&&hasUpgrade("b",45)) gain = gain.mul(upgradeEffect("b",45))
         if(player.b.inBorane&&hasMilestone("n",2)) gain = gain.mul(player.be.prestiGems)
         if(player.b.inBorane&&hasAchievement("a",41)) gain = gain.mul(achievementEffect("a",41))
-        if(hasMilestone("he",12)) gain = gain.mul(layers.he.temPointEffect8())
-        if(hasMilestone("c",9)) gain = gain.mul(player.c.oil.pow(player.c.oil).add(1).log2().add(1))
+        if(player.b.inBorane&&hasMilestone("he",12)) gain = gain.mul(layers.he.temPointEffect8())
+        if(player.b.inBorane&&hasMilestone("c",9)) gain = gain.mul(player.c.oil.pow(player.c.oil).add(1).log2().add(1))
+        if(player.b.inBorane&&hasUpgrade("o",24)) gain = gain.mul(upgradeEffect("o",24))
         if(player.c.inExtract) gain = gain.pow(0.666)
         return gain
     },
@@ -5120,12 +5328,21 @@ addLayer("c", {
     baseResource: "氢能",
     baseAmount() {return player.h.power},
     type: "normal", 
-    exponent: 0.5,
+    exponent() {
+        let exp = 0.5;
+        if (hasMilestone('c', 12)) {
+            exp -= 0.25;
+        }
+        return exp
+    },
     gainMult() {
         let mult = one
         if(hasUpgrade('c', 11)) mult = mult.mul(upgradeEffect('c', 11));
         if (hasUpgrade('b', 44)) mult = mult.mul(upgradeEffect('b', 44));
         if(hasAchievement('a', 33)) mult = mult.mul(achievementEffect('a', 33));
+        if(hasMilestone('c', 12)) mult = mult.mul(player.c.points.pow(player.c.oil).add(1).log2().add(1));
+        if(hasUpgrade('o', 24)) mult = mult.mul(upgradeEffect('o', 24));
+        if(hasUpgrade('o', 32)) mult = mult.mul(upgradeEffect('o', 32));
         return mult
     },
     gainExp() {
@@ -5154,14 +5371,14 @@ addLayer("c", {
         if (hasUpgrade('b', 34)) gain = gain.mul(upgradeEffect('b', 34));
         if(hasAchievement('a', 34)) gain = gain.mul(achievementEffect('a', 34));
         if(hasMilestone('he', 13)) gain = gain.mul(layers.he.temPointEffect9());
+        if(hasMilestone('c', 13)) gain = gain.mul(player.c.oil.pow(player.c.oil).add(1).log10().add(1));
         if(player.c.inExtract) gain = gain.pow(0.666);
         return gain;
     },
     update(diff){
-        const count = getBuyableAmount('c', 11).toNumber();
-        if (count > 0) {
-            player.c.entropy = player.c.entropy.add(layers.c.getEntropyGain().mul(count).mul(diff));
-        }
+        let count = getBuyableAmount('c', 11).toNumber();
+        if (hasMilestone("c", 10) && count > 0) count = 1;
+        if (count > 0) player.c.entropy = player.c.entropy.add(layers.c.getEntropyGain().mul(count).mul(diff));
     },
     upgrades:{
         11:{
@@ -5348,12 +5565,11 @@ addLayer("c", {
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1));
             },
             effect(x) {
+                if (hasMilestone("c", 10) && x.gt(0)) return one;
                 return x;
             },
             purchaseLimit() {
-                if (hasUpgrade("p", 84)) {
-                    return new Decimal(Infinity);
-                }
+                if (hasUpgrade("p", 84)) return new Decimal(Infinity);
                 return new Decimal(12);
             },
             unlocked() { return hasUpgrade('c', 24); }
@@ -5413,6 +5629,30 @@ addLayer("c", {
             effectDescription: "减益：移除 爆炸氦气球；解锁沥青和新的光子升级。",
             done(){return player.c.oil.gte(2035)},
             unlocked(){return hasMilestone("c",8)},
+        },
+        10:{
+            requirementDescription: "7777 原油",
+            effectDescription: "减益：自动点击者的点击倍率在任何时候都为1；解锁人造原油。",
+            done(){return player.c.oil.gte(7777)},
+            unlocked(){return hasMilestone("c",9)},
+        },
+        11:{
+            requirementDescription: "10234 原油",
+            effectDescription: "减益：移除 氦-4；解锁煤焦油。",
+            done(){return player.c.oil.gte(10234)},
+            unlocked(){return hasMilestone("c",10)},
+        },
+        12:{
+            requirementDescription: "11451 原油",
+            effectDescription: "减益：移除 氦-3；解锁木焦油和新的氧升级。",
+            done(){return player.c.oil.gte(11451)},
+            unlocked(){return hasMilestone("c",11)},
+        },
+        13:{
+            requirementDescription: "17900 原油",
+            effectDescription: "减益：碳的指数-0.25；解锁粗氨水和新的氧升级。",
+            done(){return player.c.oil.gte(17900)},
+            unlocked(){return hasMilestone("c",12)},
         },
     },
     oilGainFloor(){
@@ -5485,7 +5725,18 @@ addLayer("c", {
                 ["display-text",
                     function(){ if(hasMilestone("c",9)) return "沥青：加成硼烷产能 <span style='color:#992222;text-shadow:0 0 10px'>"+format(player.c.oil.pow(player.c.oil).add(1).log2().add(1))+"</span> 倍"; }
                 ],
-                
+                ["display-text",
+                    function(){ if(hasMilestone("c",10)) return "人造原油：加成光子 <span style='color:#FFFF7F;text-shadow:0 0 10px'>"+format(player.c.oil.pow(player.c.oil).add(1).ln().add(1))+"</span> 倍"; }
+                ],
+                ["display-text",
+                    function(){ if(hasMilestone("c",11)) return "煤焦油：加成氢 <span style='color:#FF66CC;text-shadow:0 0 10px'>"+format(player.c.oil.pow(player.c.points).add(1).log2().add(1))+"</span> 倍"; }
+                ],
+                ["display-text",
+                    function(){ if(hasMilestone("c",11)) return "木焦油：加成碳 <span style='color:#555555;text-shadow:0 0 10px'>"+format(player.c.points.pow(player.c.oil).add(1).log2().add(1))+"</span> 倍"; }
+                ],
+                ["display-text",
+                    function(){ if(hasMilestone("c",12)) return "粗氨水：加成熵 <span style='color:#555555;text-shadow:0 0 10px'>"+format(player.c.oil.pow(player.c.oil).add(1).log10().add(1))+"</span> 倍"; }
+                ],
             ],
             unlocked(){ return hasMilestone('n', 8); }
         },
@@ -5678,7 +5929,7 @@ addLayer("n", {
             unlocked(){return hasMilestone("n",9)},
         },
         12:{
-            title:"氢氰酸",
+            title:"氰化氢",
             description:"移除 氢离子 的软上限。",
             cost: new Decimal(1e68),
             unlocked(){return hasUpgrade("n",11)},
@@ -5691,7 +5942,7 @@ addLayer("n", {
         },
         14:{
             title:"氮-15",
-            description:"优化 氢负离子 的公式，并解锁氧（目前没有内容）。",
+            description:"优化 氢负离子 的公式，并解锁氧。",
             cost: new Decimal(6.8e68),
             unlocked(){return hasUpgrade("n",13)},
         },
@@ -5726,6 +5977,7 @@ addLayer("o", {
     startData() { return {
         unlocked: false,
         points: zero,
+        balloon: zero,
     }},
     branches: ["be"],
     color: "#BBDDFF",
@@ -5751,6 +6003,106 @@ addLayer("o", {
     hotkeys: [
         {key: "o", description: "O: 进行一次氧重置", onPress(){if(canReset(this.layer)) doReset(this.layer)}},
     ],
+    upgrades:{
+        11:{
+            title:"氧-16",
+            description:"加成 温度点效果|天吴。",
+            cost: new Decimal(100),
+            unlocked(){return hasMilestone("n",9)},
+        },
+        12:{
+            title:"氧-17",
+            description:"加成 温度点效果|玄冥。",
+            cost: new Decimal(200),
+            unlocked(){return hasUpgrade("o",11)},
+        },
+        13:{
+            title:"氧-18",
+            description:"加成 温度点效果|强良。",
+            cost: new Decimal(300),
+            unlocked(){return hasUpgrade("o",12)},
+        },
+        14:{
+            title:"大氧化事件",
+            description:"加成 温度点效果|龠兹，并解锁新的光子升级。",
+            cost: new Decimal(400),
+            unlocked(){return hasUpgrade("o",13)},
+        },
+        21:{
+            title:"氧化-氢",
+            description:"优化 氢原子 的公式。",
+            cost: new Decimal(500),
+            unlocked(){return hasMilestone("c",12)},
+        },
+        22:{
+            title:"过氧化-氢",
+            description:"解锁氧气球。",
+            cost: new Decimal(600),
+            unlocked(){return hasUpgrade("o",21)},
+        },
+        23:{
+            title:"氧化-锂",
+            description:"优化 研究-31 的公式。",
+            cost: new Decimal(1100),
+            unlocked(){return hasUpgrade("o",22)},
+        },
+        24:{
+            title:"氧化-铍",
+            description:"转生宝石加成氢能，铍，硼烷产能，碳。",
+            cost: new Decimal(1800),
+            effect(){
+                let effect = player.be.prestiGems.add(1).pow(0.9).add(1)
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            unlocked(){return hasUpgrade("o",22)},
+        },
+        31:{
+            title:"氧化-硼",
+            description:"放射性降低硼价格。",
+            cost: new Decimal(5000),
+            effect(){
+                let effect = pala(player.p.radiation,player.p.radiation.add(1).log10().add(1).log10().add(1).log10().add(1).floor())
+                return effect
+            },
+            effectDisplay(){return "/"+format(this.effect())},
+            unlocked(){return hasMilestone("c",13)},
+        },
+        32:{
+            title:"氧化-碳",
+            description:"氦和锂加成碳，并让 粒子加速器|相织 也能加成 粒子加速器|原初。",
+            cost: new Decimal(10000),
+            effect(){
+                let effect = player.he.points.mul(player.li.points).add(1)
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            unlocked(){return hasUpgrade("o",31)},
+        },
+        33:{
+            title:"氧化-氮",
+            description:"氮降低氦，锂，硼的价格。",
+            cost: new Decimal(15000),
+            effect(){
+                let effect = player.n.points.add(1)
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            unlocked(){return hasUpgrade("o",32)},
+        },
+        34:{
+            title:"氧气",
+            description:"净化 也同样降低氦和锂的价格（目前版本终局）。",
+            cost: new Decimal(25000),
+            unlocked(){return hasUpgrade("o",33)},
+        },
+    },
+    nextOxygenBalloonNeed() {
+        return Decimal.exp(player.o.balloon).sub(1).max(0);
+    },
+    oxygenBalloonGain() {
+        return player.o.points.add(1).ln().add(1).floor();
+    },
     tabFormat: {
         "主页": {
             content: [
@@ -5815,7 +6167,6 @@ addLayer("a", {
             },
             effect() {
                 let len = getAchievementCount();
-                if (hasUpgrade('h', 55)) len = len * len;
                 if (hasAchievement('a', 42)) len = len * achievementEffect('a', 42);
                 return new Decimal(len).add(1).pow(0.5).add(1);
             },
@@ -5840,7 +6191,6 @@ addLayer("a", {
             },
             effect() {
                 let len = getAchievementCount();
-                if (hasUpgrade('h', 55)) len = len * len;
                 return new Decimal(len).add(1).pow(0.4).add(1);
             },
             unlocked: true
@@ -5865,7 +6215,6 @@ addLayer("a", {
             },
             effect() {
                 let len = getAchievementCount();
-                if (hasUpgrade('h', 55)) len = len * len;
                 return new Decimal(len).add(1).pow(0.9).add(1);
             },
             unlocked() {return hasAchievement("a",16)}
@@ -5883,7 +6232,6 @@ addLayer("a", {
             },
             effect() {
                 let len = getAchievementCount();
-                if (hasUpgrade('h', 55)) len = len * len;
                 return new Decimal(len).add(1).pow(0.8).add(1);
             },
             unlocked() {return hasAchievement("a",16)}
@@ -5891,10 +6239,9 @@ addLayer("a", {
         23: {
             name: "科学万岁",
             done() {return player.li.researchPoint.gte(10)},
-            tooltip: "要求：获得 10 研究点。<br>奖励：成就 14 的效果同样加成电能上限，并让电能流失速度降低 0.4%。", 
+            tooltip: "要求：获得 10 研究点。<br>奖励：成就 14 的效果也同样加成电能上限，并让电能流失速度降低 0.4%。", 
             effect() {
                 let len = getAchievementCount();
-                if (hasUpgrade('h', 55)) len = len * len;
                 return new Decimal(len).add(1).pow(0.3).add(1);
             },
             unlocked() {return hasAchievement("a",16)}
@@ -5912,7 +6259,6 @@ addLayer("a", {
             },
             effect() {
                 let len = getAchievementCount();
-                if (hasUpgrade('h', 55)) len = len * len;
                 return new Decimal(len).add(1).pow(0.2).add(1);
             },
             unlocked() {return hasAchievement("a",16)}
@@ -5936,7 +6282,6 @@ addLayer("a", {
             },
             effect() {
                 let len = getAchievementCount();
-                if (hasUpgrade('h', 55)) len = len * len;
                 return new Decimal(len).add(1).pow(1.1).add(1);
             },
             unlocked() {return hasAchievement("a",16)}
@@ -5954,7 +6299,6 @@ addLayer("a", {
             },
             effect() {
                 let len = getAchievementCount();
-                if (hasUpgrade('h', 55)) len = len * len;
                 return new Decimal(len).add(1).pow(0.7).add(1);
             },
             unlocked() {return hasAchievement("a",26)}
@@ -5986,7 +6330,6 @@ addLayer("a", {
             },
             effect() {
                 let len = getAchievementCount();
-                if (hasUpgrade('h', 55)) len = len * len;
                 return new Decimal(len).add(1).pow(1.2).add(1);
             },
             unlocked() {return hasAchievement("a",26)}
@@ -6004,7 +6347,6 @@ addLayer("a", {
             },
             effect() {
                 let len = getAchievementCount();
-                if (hasUpgrade('h', 55)) len = len * len;
                 return new Decimal(len).add(1).pow(0.6).add(1);
             },
             unlocked() {return hasAchievement("a",26)}
@@ -6022,7 +6364,6 @@ addLayer("a", {
             },
             effect() {
                 let len = getAchievementCount();
-                if (hasUpgrade('h', 55)) len = len * len;
                 return new Decimal(len).add(1).pow(0.66686).add(1).floor();
             },
             unlocked() {return hasAchievement("a",26)}
@@ -6040,7 +6381,6 @@ addLayer("a", {
             },
             effect() {
                 let len = getAchievementCount();
-                if (hasUpgrade('h', 55)) len = len * len;
                 return new Decimal(len).add(1);
             },
             unlocked() {return hasAchievement("a",35)}
@@ -6061,6 +6401,33 @@ addLayer("a", {
             },
             unlocked() {return hasAchievement("a",35)}
         },
+        43: {
+            name: "一个元-成就",
+            done() {return getAchievementCount() >= 3240},
+            tooltip: function() {
+                if (hasAchievement(this.layer, this.id)) {
+                    let eff = achievementEffect(this.layer, this.id);
+                    return `要求：获得 3240 已完成的成就个数。<br>奖励：已完成的成就个数加成光子。<br>当前：x${format(eff)}`;
+                } else {
+                    return `要求：获得 3240 已完成的成就个数。<br>奖励：已完成的成就个数加成光子。<br>当前：x1.00`;
+                }
+            },
+            effect() {
+                let len = getAchievementCount();
+                return new Decimal(len).add(1).pow(0.65).add(1).floor();
+            },
+            unlocked() {return hasAchievement("a",35)}
+        },
+        44: {
+            name: "这不是胀树",
+            done() {return player.b.boraneGainFloorN.gte(1e39)},
+            tooltip: "求：获得 1e39 硼烷产能。<br>奖励：移除 粒子加速器|核心 的上限，。",
+            effect() {
+                let len = getAchievementCount();
+                return new Decimal(len).add(1).pow(0.65).add(1).floor();
+            },
+            unlocked() {return hasAchievement("a",35)}
+        },
     },
     tabFormat:{
         '成就':{
@@ -6068,12 +6435,7 @@ addLayer("a", {
             //['infoboxes','main-text'],
             ['display-text', function() {
                 let count = getAchievementCount();
-                let effective = hasUpgrade('h', 55) ? count * count : count;
-                if (hasUpgrade('h', 55)) {
-                    return `你有 <h3 style="color: #FFFF3F; text-shadow:0 0 10px">${formatWhole(effective)}</h3> 成就`;
-                } else {
                     return `你有 <h3 style="color: #FFFF3F; text-shadow:0 0 10px">${formatWhole(count)}</h3> 成就`;
-                }
             }],
             'achievements',
             ],
@@ -6165,7 +6527,14 @@ addLayer("t", {
             style: { "border-color": "#000000" },
             titleStyle: { "background-color": "#000000","color":"#FFFFFF" },
             bodyStyle: { "color": "#FFFFFF" }
-        }
+        },
+        "o": {
+            title: "氧",
+            body: "氧，元素周期表第二周期、第ⅥA族非金属元素，元素符号O，原子序数8，相对原子质量15.9994，电负性仅次于氟。氧是地壳中最丰富、分布最广的元素，也是构成生物界与非生物界最重要的元素，在地壳的含量为48.6%。单质氧在大气中占20.9%。除了¹⁶O外，还有¹⁷O和¹⁸O等同位素。<br>氧通常的单质形态氧气，无色无味，密度为1.43g/L，液态相对密度为1.14（-183℃），固态相对密度为1.426（-252.5℃），熔点-218.8℃，沸点-183.1℃。氧气不易溶于水、乙醇和有机溶剂。 [1]实验室可用氯酸钾或硝酸钾热分解制备氧气，也可用重金属氧化物热分解或金属过氧化物与水和酸反应制备；工业上采用液态空气分馏方法制备氧气。 氧气是动物维持生命过程和燃烧过程的必要物质，广泛应用于冶金、化工、环保等领域。<br>除惰性气体、卤素及一些不活泼金属（如金元素）外，氧能与所有的金属和非金属直接反应。可与活泼金属形成过氧化物和超氧化物。",
+            style: { "border-color": "#BBDDFF" },
+            titleStyle: { "background-color": "#BBDDFF" },
+            bodyStyle: { "color": "#FFFFFF" }
+        },
     },
     tabFormat:{
         '科学':{
@@ -6182,6 +6551,7 @@ addLayer("t", {
                 if (player.b.unlocked) components.push(['infobox', 'b']);
                 if (player.c.unlocked) components.push(['infobox', 'c']);
                 if (player.n.unlocked) components.push(['infobox', 'n']);
+                if (player.o.unlocked) components.push(['infobox', 'o']);
                 return components;
             },
         },

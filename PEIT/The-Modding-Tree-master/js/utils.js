@@ -545,3 +545,15 @@ if(mode==1){
 return num
 }
 //*/
+function pala(x, times = 1) {
+    x = new Decimal(x);
+    if (x.lte(0)) return zero;
+    let r = x;
+    for (let i = 0; i < times; i++) {
+        r = x.pow(r.add(1).log2().add(1));
+        if (isNaN(r.sign) || isNaN(r.layer) || isNaN(r.mag)) {
+            return zero;
+        }
+    }
+    return r;
+}
