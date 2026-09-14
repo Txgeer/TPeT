@@ -30,11 +30,13 @@ let modInfo = {
 let getModID = () => modInfo.id ?? modInfo.name.replace(/\s+/g, '-');
 // Set your version in num and name
 let VERSION = {
-	num: "0.7.1",
+	num: "0.7.2",
 	name: "New Game"
 }
 
 let changelog = `<h1>更新日志:</h1><br>
+    <h3>NG v0.7.2 2026.9.14</h3><br>
+        - 增加了新的内容（合成氨前）。<br>
     <h3>NG v0.7.1 2026.9.13</h3><br>
         - 增加了新的内容（氧前中期）。<br>
 		- 增加了当前挑战的提示。<br>
@@ -120,7 +122,7 @@ function getStartPoints(){
 
 // Determines if it should show points/sec
 function canGenPoints(){
-	return hasUpgrade("o",34);
+	return hasUpgrade("p",11);
 }
 
 // Calculate points/sec!
@@ -216,7 +218,7 @@ var displayThings = [
 
 // Determines when the game "ends"
 function isEndgame() {
-	return hasMilestone("c",9)
+	return hasMilestone("c",14)
 }
 
 

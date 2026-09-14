@@ -2005,6 +2005,7 @@ addLayer("h", {
         if(hasMilestone("he",8)) get = get.mul(layers.he.temPointBoostHpower())
         if(hasUpgrade("b",33)) get = get.mul(upgradeEffect("b",33))
         if(hasUpgrade("o",24)) get = get.mul(upgradeEffect("o",24))
+        if(hasMilestone("c",14)) get = get.mul(pala(player.c.oil,player.c.oil.add(1).log2().add(1)).add(1).log(2).add(1))
 
         if (!hasUpgrade('c', 13)) {
             if (get.gte(1e61)) get = powsoftcap(get, layers.h.HpowerGetsoftcap1start(), three);
@@ -2736,6 +2737,7 @@ addLayer("he", {
     },
     temPointBoostH(){//温度点加氢
         let exp = hasUpgrade('h',52) ? 0.4 : 2.386466;
+        if (hasMilestone('c', 14)) exp -= 0.3;
         let mult = player.he.temPoint.add(1).pow(exp).add(1);
         if (!hasUpgrade('h', 52)) {
             if(mult.gte(layers.he.temPointEffect1SoftcapStart())) mult = mult.div(layers.he.temPointEffect1SoftcapStart()).root(2).add(layers.he.temPointEffect1SoftcapStart())
@@ -3150,8 +3152,8 @@ addLayer("li", {
             cost: new Decimal(3),
             effect(){
                 let effect = new Decimal(1.7)
-                if(!hasUpgrade("li",103)) effect = effect.pow(getBuyableAmount("li",11))
-                if(hasUpgrade("li",103)) effect = effect.sub(0.69999766686).pow(getBuyableAmount("li",11).mul(getBuyableAmount("li",12)).mul(getBuyableAmount("li",13)).mul(getBuyableAmount("li",14).add(1).log(2).add(1)))
+                if(!hasUpgrade("li",113)) effect = effect.pow(getBuyableAmount("li",11))
+                if(hasUpgrade("li",113)) effect = effect.sub(0.2).pow(getBuyableAmount("li",11).add(getBuyableAmount("li",12)).add(getBuyableAmount("li",13)).add(getBuyableAmount("li",14)))
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect())},
@@ -3337,8 +3339,8 @@ addLayer("li", {
         },
         103: {
             title: "研究-c1",
-            description: "削弱 研究-32 的基础，但让后三种研究点也可以加成 研究-32 的效果。",
-            cost: new Decimal(1e303),
+            description: "电能上限始终等于电能每秒产量。",
+            cost: new Decimal(325000000),
             unlocked() { return hasUpgrade("li", 91) && hasUpgrade("li", 92); },
             currencyDisplayName: "研究点",
             currencyInternalName: "researchPoint",
@@ -3383,12 +3385,23 @@ addLayer("li", {
                 return hasUpgrade("li", 102);
             },
         },
+        113: {
+            title: "研究-c2",
+            description: "削弱 研究-32 的基础，但让后三种研究点也可以加成 研究-32 的效果。",
+            cost: new Decimal(1.25e9),
+            unlocked() { return hasUpgrade("li", 103); },
+            currencyDisplayName: "研究点",
+            currencyInternalName: "researchPoint",
+            currencyLayer: "li",
+            canAfford() {
+                return hasUpgrade("li", 103);
+            },
+        },
         114: {
             title: "研究-d2",
             description: "大幅加成锂的第三个效果，并让铍降低锂价格。",
             cost: new Decimal(50000000),
             effect() {
-
                 return player.be.points.add(1);
             },
             effectDisplay() { return "/" + format(this.effect()); },
@@ -3398,6 +3411,18 @@ addLayer("li", {
             currencyLayer: "li",
             canAfford() {
                 return hasUpgrade("li", 104);
+            },
+        },
+        121: {
+            title: "研究-sp2",
+            description: "不消耗资源，自动并批量购买前四种研究点。",
+            cost: new Decimal(1e10),
+            unlocked() { return hasUpgrade("li", 111)&&hasUpgrade("li", 112)&&hasUpgrade("li", 113)&&hasUpgrade("li", 114); },
+            currencyDisplayName: "研究点",
+            currencyInternalName: "researchPoint",
+            currencyLayer: "li",
+            canAfford() {
+                return hasUpgrade("li", 111)&&hasUpgrade("li", 112)&&hasUpgrade("li", 113)&&hasUpgrade("li", 114);
             },
         },
     },
@@ -3518,7 +3543,7 @@ addLayer("li", {
                     player.li.currentElectricity = zero;
                     player.li.confirmRespec = false;
                     
-                    let U = [31,32,41,42,51,52,61,62,71,72,81,82,91,92,101,102,103,104,111];
+                    let U = [31,32,41,42,51,52,61,62,71,72,81,82,91,92,101,102,103,104,111,112,113,114,121];
                     for (let id in U) {
                         if (hasUpgrade("li", U[id])) {
                             player.li.upgrades.splice(player.li.upgrades.indexOf(U[id]), 1);
@@ -3703,6 +3728,7 @@ addLayer("li", {
         return mult
     },
     getElectricityCap(){//获取电量上限
+        if (hasUpgrade("li", 103)) return layers.li.electricityGain();
         let capacity = new Decimal(100);
         if (hasUpgrade("p", 84)) capacity = capacity.mul(getBuyableAmount("c", 11).add(1));
         if(hasMilestone("he",11)) capacity = capacity.mul(layers.he.temPointEffect7());
@@ -3755,8 +3781,55 @@ addLayer("li", {
         let extra = zero;
         return base.add(extra);
     },
+    freeBatchBuyResearchPoints() {
+        const configs = [
+            { id: 11, getRes: () => player.li.points }, 
+            { id: 12, getRes: () => player.li.currentElectricity },
+            { id: 13, getRes: () => player.be.prestiGems },
+            { id: 14, getRes: () => player.p.waves },
+        ];
+
+        let oldTotal = layers.li.totalResearchPoints();
+        let anyBought = false;
+
+        for (const cfg of configs) {
+            const b = layers.li.buyables[cfg.id];
+            if (!b) continue;
+            if (typeof b.unlocked === 'function' && !b.unlocked()) continue;
+    
+            let amt = getBuyableAmount("li", cfg.id);
+            let limit = (typeof b.purchaseLimit === 'function')
+                ? b.purchaseLimit()
+                : (b.purchaseLimit ?? new Decimal(Infinity));
+            if (!(limit instanceof Decimal)) limit = new Decimal(limit);
+            let simRes = cfg.getRes();
+
+            let count = 0;
+            while (count < 200 && amt.add(count).lt(limit)) {
+                let cost = b.cost(amt.add(count));
+                if (simRes.lt(cost)) break;
+                simRes = simRes.sub(cost);
+                count++;
+            }
+    
+            if (count > 0) {
+                setBuyableAmount("li", cfg.id, amt.add(count));
+                anyBought = true;
+            }
+        }
+    
+        if (anyBought) {
+            let newTotal = layers.li.totalResearchPoints();
+            if (newTotal.gt(oldTotal)) {
+                player.li.researchPoint = player.li.researchPoint.add(newTotal.sub(oldTotal));
+            }
+        }
+    },
     update(diff){
         if(player.li.resetTime - player.li.confirmTime > 5) player.li.confirmRespec = false
+        if (hasUpgrade("li", 121)) {
+            layers.li.freeBatchBuyResearchPoints();
+        }
         if(layers.li.canGainElectricity()){
             player.li.currentElectricity = player.li.currentElectricity.add(layers.li.electricityGain().mul(diff)).min(layers.li.getElectricityCap())
             let consume = player.h.power.mul(player.li.hPowerConsumingPercentage).div(100);
@@ -3819,7 +3892,7 @@ addLayer("li", {
                 "main-display",
                 "prestige-button",
                 ["buyables",[1]],["display-text", function(){return "你有 <span style='color:#DD0033;text-shadow:0 0 10px'>"+format(player.li.researchPoint)+"</span> 研究点"}],
-                ["upgrades",[3,4,5,6,7,8,9,10,11]],
+                ["upgrades",[3,4,5,6,7,8,9,10,11,12]],
                 "clickables"
             ],
             unlocked(){return hasUpgrade("li",21)}
@@ -5654,6 +5727,12 @@ addLayer("c", {
             done(){return player.c.oil.gte(17900)},
             unlocked(){return hasMilestone("c",12)},
         },
+        14:{
+            requirementDescription: "1500000 原油",
+            effectDescription: "减益：削弱 温度点效果|蓐收；解锁精氨水和合成氨（目前版本终局）。",
+            done(){return player.c.oil.gte(1500000)},
+            unlocked(){return hasMilestone("c",13)},
+        },
     },
     oilGainFloor(){
         let gain = zero
@@ -5736,6 +5815,9 @@ addLayer("c", {
                 ],
                 ["display-text",
                     function(){ if(hasMilestone("c",12)) return "粗氨水：加成熵 <span style='color:#555555;text-shadow:0 0 10px'>"+format(player.c.oil.pow(player.c.oil).add(1).log10().add(1))+"</span> 倍"; }
+                ],
+                ["display-text",
+                    function(){ if(hasMilestone("c",12)) return "精氨水：加成氢能 <span style='color:#FF66CC;text-shadow:0 0 10px'>"+format(pala(player.c.oil,player.c.oil.add(1).log2().add(1)).add(1).log(2).add(1))+"</span> 倍"; }
                 ],
             ],
             unlocked(){ return hasMilestone('n', 8); }
@@ -6421,7 +6503,7 @@ addLayer("a", {
         44: {
             name: "这不是胀树",
             done() {return player.b.boraneGainFloorN.gte(1e39)},
-            tooltip: "要求：获得 1e39 硼烷产能。<br>奖励：移除 粒子加速器|核心 的上限，。",
+            tooltip: "要求：获得 1e39 硼烷产能。<br>奖励：移除 粒子加速器|核心 的上限。",
             effect() {
                 let len = getAchievementCount();
                 return new Decimal(len).add(1).pow(0.65).add(1).floor();
