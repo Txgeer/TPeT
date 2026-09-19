@@ -440,8 +440,7 @@ function loadVue() {
                     const action = clickable.onHold || clickable.onClick;
                     if (!action) return;
                     this.interval = setInterval(() => {
-                        // 添加 canClick 检查
-                        if (this.canClick) {
+                        if (tmp[this.layer] && tmp[this.layer].clickables && tmp[this.layer].clickables[this.data] && tmp[this.layer].clickables[this.data].canClick) {
                             run(action, clickable);
                             this.time = this.time + 1;
                         }

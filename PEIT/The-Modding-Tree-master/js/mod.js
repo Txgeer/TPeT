@@ -30,11 +30,14 @@ let modInfo = {
 let getModID = () => modInfo.id ?? modInfo.name.replace(/\s+/g, '-');
 // Set your version in num and name
 let VERSION = {
-	num: "0.7.2",
+	num: "0.7.3",
 	name: "New Game"
 }
 
 let changelog = `<h1>更新日志:</h1><br>
+    <h3>NG v0.7.3 2026.9.19</h3><br>
+        - 增加了新的内容（氟前）。<br>
+		- 增加了硼烷的高亮提示。<br>
     <h3>NG v0.7.2 2026.9.14</h3><br>
         - 增加了新的内容（合成氨前）。<br>
     <h3>NG v0.7.1 2026.9.13</h3><br>
@@ -163,6 +166,7 @@ function getPointGen() {
 	if(hasUpgrade("be",13)) gain = gain.mul(upgradeEffect("be",13))
 	if(hasUpgrade("be",21)) gain = gain.mul(upgradeEffect("be",13))
 	if(hasUpgrade("b",41)) gain = gain.mul(upgradeEffect("b",41))
+	if(hasUpgrade("b",75)) gain = gain.mul(upgradeEffect("b",75))
 	if(hasUpgrade("li",13)) gain = gain.mul(layers.li.LiboostPoints())
 	if(hasMilestone("c",7)) gain = gain.mul(player.c.oil.pow(player.c.entropy).add(1).log2().add(1).floor())
     if(player.b.inBorane) gain = gain.pow(0.66686)
