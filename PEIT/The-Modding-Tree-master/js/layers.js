@@ -1198,6 +1198,7 @@ addLayer("p", {
                 if (hasMilestone('c', 1)) gain = gain.mul(player.c.entropy.pow(player.c.oil).add(1).log2().add(1)).floor();
                 if (hasUpgrade('p',87)) gain = gain.mul(upgradeEffect("p",87)).floor();
                 if (hasMilestone('he',14)) gain = gain.mul(layers.he.temPointEffect10()).floor();
+                if (hasAchievement('a',51)) gain = gain.mul(player.f.balloon.add(1)).floor();
                 if(player.b.inBorane) gain = gain.pow(0.66686).floor();
                 if(player.c.inExtract) gain = gain.pow(0.666).floor();
                 return "消耗 <span style='color:#FFFFFF;text-shadow:0 0 10px'>"+format(player.points)+"</span> 中微子，获得 <span style='color:#111177;text-shadow:0 0 10px'>"+format(gain)+"</span> 电子。<br>（至少转化 1e100 中微子）";
@@ -1215,6 +1216,7 @@ addLayer("p", {
                 if (hasMilestone('c', 1)) gain = gain.mul(player.c.entropy.pow(player.c.oil).add(1).log2().add(1)).floor();
                 if (hasUpgrade('p',87)) gain = gain.mul(upgradeEffect("p",87)).floor();
                 if (hasMilestone('he',14)) gain = gain.mul(layers.he.temPointEffect10()).floor();
+                if (hasAchievement('a',51)) gain = gain.mul(player.f.balloon.add(1)).floor();
                 if(player.b.inBorane) gain = gain.pow(0.66686).floor();
                 if(player.c.inExtract) gain = gain.pow(0.666).floor();
                 player.points = zero
@@ -1795,6 +1797,12 @@ addLayer("h", {
             done(){return player.h.balloon.gte(200)},
             unlocked(){return hasMilestone("h",4)},
         },
+        6:{
+            requirementDescription: "4 氟气球",
+            effectDescription: "进一步优化氦气球加成中微子的公式。",
+            done(){return player.f.balloon.gte(4)},
+            unlocked(){return player.f.balloon.gte(2)},
+        },
     },
     clickables:{
         11:{
@@ -1869,7 +1877,7 @@ addLayer("h", {
             },
             unlocked() {return hasMilestone("h",4)},
         },
-    // ========== 新增：氮气球转化 ==========
+        // ========== 新增：氮气球转化 ==========
         31: {
             title: "将氮转化为氮气球",
             display() {
@@ -1912,6 +1920,25 @@ addLayer("h", {
                 player.o.points = zero;
             },
         },
+        33: {
+            title: "将氟转化为氟气球",
+            display() {
+                let gain = player.f.points.add(1).log10().add(1).floor();
+                let nextNeed = ten.pow(player.f.balloon).sub(1);
+                return "将你所有的氟转化为氟气球。<br>转化后氟气球数量：" + format(gain) + "<br>下一个氟气球：" + format(nextNeed) + " 氟";
+            },
+            unlocked() { return hasAchievement("a", 51); },
+            canClick() { return player.f.points.gte(ten.pow(player.f.balloon).sub(1)); },
+            style() { 
+                return { 
+                    'background-color': this.canClick() ? "#7FFF3F" : "#BF8F8F",
+                };
+            },
+            onClick() {
+                player.f.balloon = player.f.points.add(1).log10().add(1).floor();
+                player.f.points = zero;
+            },
+        },
     },
     update(diff){
         if (!(player.h.balloon instanceof Decimal) || isNaN(player.h.balloon.toNumber())) player.h.balloon = new Decimal(0);
@@ -1921,6 +1948,8 @@ addLayer("h", {
         if (!(player.n.balloon instanceof Decimal) || isNaN(player.n.balloon.toNumber())) player.n.balloon = new Decimal(0);
         if (!player.o) player.o = getStartLayerData('o');
         if (!(player.o.balloon instanceof Decimal) || isNaN(player.o.balloon.toNumber())) player.o.balloon = new Decimal(0);
+        if (!player.f) player.o = getStartLayerData('f');
+        if (!(player.f.balloon instanceof Decimal) || isNaN(player.f.balloon.toNumber())) player.f.balloon = new Decimal(0);
         if(player.h.upTime.gt(0)) player.h.upTime = player.h.upTime.sub(diff)
         if(player.h.upTime.lt(0)) player.h.upTime = zero
         if(player.h.upTime.gt(layers.h.boomedBalloonBoostLimitTime())) player.h.upTime = layers.h.boomedBalloonBoostLimitTime()
@@ -1929,6 +1958,7 @@ addLayer("h", {
         if(player.he.temPointUpTime.gt(0)) player.he.temPointUpTime = player.he.temPointUpTime.sub(diff)
         if(player.he.temPointUpTime.lt(0)) player.he.temPointUpTime = zero
         if(player.he.upTime.gt(layers.he.boomedBalloonBoostLimitTime())) player.he.upTime = layers.he.boomedBalloonBoostLimitTime()
+        if (player.h.balloonMax.lt(player.h.balloon)) player.h.balloonMax = player.h.balloon;
         // ---------- 氢气球爆炸时间 ----------
         if (hasUpgrade('h', 53)) {
             player.h.upTime = layers.h.addUpTime();
@@ -2099,13 +2129,18 @@ addLayer("h", {
                 }],
                 ["display-text",function(){
                     let a = ""
-                    if(hasMilestone("o",22)) a = "你有 <span style='color:#BBDDFF;text-shadow:0 0 10px'>"+format(player.o.balloon)+"</span> 氧气球，氧气球加成已完成的成就个数 <span style='color:#FFFF3F;text-shadow:0 0 10px'>"+format(player.o.balloon.add(1))+"</span> 倍"
+                    if(hasUpgrade("o",22)) a = "你有 <span style='color:#BBDDFF;text-shadow:0 0 10px'>"+format(player.o.balloon)+"</span> 氧气球，氧气球加成已完成的成就个数 <span style='color:#FFFF3F;text-shadow:0 0 10px'>"+format(player.o.balloon.add(1))+"</span> 倍"
+                    return a
+                }],
+                ["display-text",function(){
+                    let a = ""
+                    if(hasAchievement("a",51)) a = "你有 <span style='color:#7FFF3F;text-shadow:0 0 10px'>"+format(player.f.balloon)+"</span> 氟气球，氟气球加成电子 <span style='color:#3F3FFF;text-shadow:0 0 10px'>"+format(player.f.balloon.add(1))+"</span> 倍"
                     return a
                 }],
                 ["milestones", function() {
                     let data = {};
                     if (tmp.h && tmp.h.milestones) {
-                        for (let id = 3; id <= 5; id++) {
+                        for (let id = 3; id <= 6; id++) {
                             if (tmp.h.milestones[id]) data[id] = tmp.h.milestones[id];
                         }
                     }
@@ -2693,6 +2728,7 @@ addLayer("he", {
     balloonBoostPoints(){//气球加点
         let mult = player.he.balloon.add(1)
         if(hasUpgrade("li",112)) mult = player.he.balloon.pow(player.he.balloon.add(1).log2().add(1)).add(1)
+        if(hasMilestone("h",6)) mult = mult.pow(player.he.balloon.add(1).log2().add(1))
         return mult
     },
     addUpTime(){//气球炸的时间
@@ -4178,6 +4214,7 @@ addLayer("be", {
             if (hasMilestone('c', 1)) gain = gain.mul(player.c.entropy.pow(player.c.oil).add(1).log2().add(1)).floor();
             if (hasUpgrade('p',87)) gain = gain.mul(upgradeEffect("p",87)).floor();
             if (hasMilestone('he',14)) gain = gain.mul(layers.he.temPointEffect10()).floor();
+            if (hasAchievement('a',51)) gain = gain.mul(player.f.balloon.add(1)).floor();
             if(player.b.inBorane) gain = gain.pow(0.66686).floor();
             if(player.c.inExtract) gain = gain.pow(0.666).floor();
             
@@ -5607,6 +5644,7 @@ addLayer("c", {
         if(hasMilestone('he', 13)) gain = gain.mul(layers.he.temPointEffect9());
         if(hasMilestone('c', 13)) gain = gain.mul(player.c.oil.pow(player.c.oil).add(1).log10().add(1));
         if (hasUpgrade('n', 24)) gain = gain.mul(upgradeEffect('n', 24));
+        if (hasUpgrade('n', 31)) gain = gain.mul(upgradeEffect('n', 31));
         if(player.c.inExtract) gain = gain.pow(0.666);
         return gain;
     },
@@ -6235,6 +6273,17 @@ addLayer("n", {
             effectDisplay(){return "x"+format(this.effect())},
             unlocked(){return player.n.ammoniaTier >= 4},
         },
+        31: {
+            title:"叠氮酸",
+            description:"硼加成熵。",
+            cost: new Decimal("1e3195"),
+            effect(){
+                let effect = player.b.points.add(1).pow(1.1).add(1)
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            unlocked(){return player.n.ammoniaTier >= 5},
+        },
     },
     clickables: {
         11: {
@@ -6389,6 +6438,7 @@ addLayer("n", {
             2: { h: "1e21950", n: "1e3005", c: "1e2825", o: "35000" },
             3: { h: "1e22050", n: "1e3010", c: "1e2880", o: "40000" }, 
             4: { h: "1e22375", n: "1e3040", c: "1e3010", o: "45000" }, 
+            5: { h: "1e24775", n: "1e3190", c: "1e3320", o: "50000" }, 
         };
         return table[tier] || null;
     },
@@ -6430,7 +6480,7 @@ addLayer("n", {
                     function(){ return "你有 <span style='color:#DDDD33;text-shadow:0 0 10px'>"+format(player.li.currentElectricity)+"</span> 电能"; }
                 ],
                 ["clickables", [1,2]],
-                ["upgrades",[2]]
+                ["upgrades",[2,3]]
             ],
             unlocked(){ return hasMilestone("c",14); }
         },
@@ -6449,8 +6499,9 @@ addLayer("n", {
                         html += "加成氮升级数量 <span style='color:#FFFFFF;text-shadow:0 0 10px'>" + formatWhole(tier) + "</span> 个<br>";
                         html += "加成铍指数 <span style='color:#55CC77;text-shadow:0 0 10px'>" + formatWhole(tier) + "</span><br>";
                         if (tier >= 2) html += "加成碳 <span style='color:#555555;text-shadow:0 0 10px'>" + formatWhole(n(tier).pow(64)) + "</span> 倍<br>";
-                        if (tier >= 3) html += "解锁氨硼烷";
-                        if (tier >= 4) html += "解锁新层级";
+                        if (tier >= 3) html += "解锁氨硼烷<br>";
+                        if (tier >= 4) html += "解锁新层级<br>";
+                        if (tier >= 5) html += "解锁氟化挑战 <span style='color:#7FFF3F;text-shadow:0 0 10px'>" + formatWhole(tier - 4) + "</span> 个（现在还没有做ww）<br>";
                         return html;
                     }
                 ],
@@ -6627,9 +6678,10 @@ addLayer("f", {
     startData() { return {
         unlocked: false,
         points: zero,
+        balloon: zero,
     }},
     branches: ["c"],
-    color: "#8FFF4F",
+    color: "#7FFF3F",
     requires: new Decimal(1e24),
     resource: "氟",
     baseResource: "熵",
@@ -6977,6 +7029,12 @@ addLayer("a", {
             },
             unlocked() {return hasAchievement("a",35)}
         },
+        51: {
+            name: "魔丸降世",
+            done() {return player.f.points.gte(10)},
+            tooltip: "要求：获得 10 氟。<br>奖励：解锁氟气球。",
+            unlocked() {return hasAchievement("a",44)}
+        },
     },
     tabFormat:{
         '成就':{
@@ -7065,7 +7123,7 @@ addLayer("t", {
         },
         "c": {
             title: "碳",
-            body: "碳（Carbon）是一种非金属元素，化学符号为C，位于元素周期表的第二周期IVA族。拉丁语为Carbonium，意为“煤、木炭”。汉字“碳”字由木炭的“炭”字加石字旁构成，从“炭”字音。碳是一种很常见的元素，以多种形式广泛存在于大气和地壳之中。<br>碳的稳定同位素是¹²C和¹³C，二者在自然界的相对丰度是98.892%（¹²C）和1.108%（¹³C）；在碳的放射性同位素中，寿命最长的是¹⁴C。¹⁴C在¹⁴N（n，p）¹⁴C反应中形成，会发生β衰变，其半衰期为5730a。 [7]<br>碳是生命的关键，而且根据定义也出现在所有的有机化合物中。对生命的研究属于生物化学的研究范畴。例如乙烯气体（C₂H₄）可以催熟西红柿。<br>碳是生物界的支柱元素，是当今的主要能源，也是化工、冶金等工业的重要原料以及合金的重要组分。一般由天然游离矿开采。",
+            body: "碳（Carbon）是一种非金属元素，化学符号为C，位于元素周期表的第二周期IVA族。拉丁语为Carbonium，意为“煤、木炭”。汉字“碳”字由木炭的“炭”字加石字旁构成，从“炭”字音。碳是一种很常见的元素，以多种形式广泛存在于大气和地壳之中。<br>碳的稳定同位素是¹²C和¹³C，二者在自然界的相对丰度是98.892%（¹²C）和1.108%（¹³C）；在碳的放射性同位素中，寿命最长的是¹⁴C。¹⁴C在¹⁴N（n，p）¹⁴C反应中形成，会发生β衰变，其半衰期为5730a。<br>碳是生命的关键，而且根据定义也出现在所有的有机化合物中。对生命的研究属于生物化学的研究范畴。例如乙烯气体（C₂H₄）可以催熟西红柿。<br>碳是生物界的支柱元素，是当今的主要能源，也是化工、冶金等工业的重要原料以及合金的重要组分。一般由天然游离矿开采。",
             style: { "border-color": "#555555" },
             titleStyle: { "background-color": "#555555" },
             bodyStyle: { "color": "#FFFFFF" }
@@ -7082,6 +7140,13 @@ addLayer("t", {
             body: "氧，元素周期表第二周期、第ⅥA族非金属元素，元素符号O，原子序数8，相对原子质量15.9994，电负性仅次于氟。氧是地壳中最丰富、分布最广的元素，也是构成生物界与非生物界最重要的元素，在地壳的含量为48.6%。单质氧在大气中占20.9%。除了¹⁶O外，还有¹⁷O和¹⁸O等同位素。<br>氧通常的单质形态氧气，无色无味，密度为1.43g/L，液态相对密度为1.14（-183℃），固态相对密度为1.426（-252.5℃），熔点-218.8℃，沸点-183.1℃。氧气不易溶于水、乙醇和有机溶剂。 [1]实验室可用氯酸钾或硝酸钾热分解制备氧气，也可用重金属氧化物热分解或金属过氧化物与水和酸反应制备；工业上采用液态空气分馏方法制备氧气。 氧气是动物维持生命过程和燃烧过程的必要物质，广泛应用于冶金、化工、环保等领域。<br>除惰性气体、卤素及一些不活泼金属（如金元素）外，氧能与所有的金属和非金属直接反应。可与活泼金属形成过氧化物和超氧化物。",
             style: { "border-color": "#BBDDFF" },
             titleStyle: { "background-color": "#BBDDFF" },
+            bodyStyle: { "color": "#FFFFFF" }
+        },
+        "f": {
+            title: "氟",
+            body: "氟（Fluorine）是一种非金属化学元素，化学符号为F，原子序数为9。氟是卤族元素之一，属周期系ⅦA族，在元素周期表中位于第二周期。氟元素的单质是F2，它是一种淡黄色 [1]、有剧毒的气体。氟气的腐蚀性很强，化学性质极为活泼，是氧化性最强的物质之一，甚至可以和部分惰性气体在一定条件下反应 [2]。氟是特种塑料、橡胶和冷冻剂（氟氯烷）中的关键元素。",
+            style: { "border-color": "#7FFF3F" },
+            titleStyle: { "background-color": "#7FFF3F" },
             bodyStyle: { "color": "#FFFFFF" }
         },
     },
@@ -7101,6 +7166,7 @@ addLayer("t", {
                 if (player.c.unlocked) components.push(['infobox', 'c']);
                 if (player.n.unlocked) components.push(['infobox', 'n']);
                 if (player.o.unlocked) components.push(['infobox', 'o']);
+                if (player.f.unlocked) components.push(['infobox', 'f']);
                 return components;
             },
         },

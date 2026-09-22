@@ -30,11 +30,13 @@ let modInfo = {
 let getModID = () => modInfo.id ?? modInfo.name.replace(/\s+/g, '-');
 // Set your version in num and name
 let VERSION = {
-	num: "0.7.3",
+	num: "0.7.4",
 	name: "New Game"
 }
 
 let changelog = `<h1>更新日志:</h1><br>
+    <h3>NG v0.7.4 2026.9.23</h3><br>
+        - 增加了新的内容（氟化挑战前）。<br>
     <h3>NG v0.7.3 2026.9.19</h3><br>
         - 增加了新的内容（氟前）。<br>
 		- 增加了硼烷的高亮提示。<br>
@@ -222,7 +224,7 @@ var displayThings = [
 
 // Determines when the game "ends"
 function isEndgame() {
-	return hasMilestone("c",14)
+	return hasMilestone("n",31)
 }
 
 
