@@ -1,0 +1,2012 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Endless Dilation v2.5 严格递减实装版</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --paper:#f7f3ec; --surface:#fffdf9; --surface-2:#f3ede2;
+    --line:#e6ddce; --line-2:#d9cebb;
+    --ink:#2b2620; --ink-2:#5f574d; --ink-3:#8a7f72;
+    --accent:#b0412f; --accent-hi:#c9553f; --accent-tint:#f8e9e3;
+    --ok:#35705f; --amber:#8f5a17;
+    --r-sm:8px; --r-md:12px; --r-lg:16px;
+    --sh-1:0 1px 2px rgba(94,74,54,.06);
+    --sh-2:0 6px 20px rgba(94,74,54,.09);
+    --sh-3:0 20px 54px rgba(94,74,54,.16);
+  }
+  body { font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:radial-gradient(900px 520px at 50% -8%,#fffdf8,rgba(255,253,248,0)),var(--paper);
+    background-attachment:fixed; color:var(--ink); padding:16px; min-height:100dvh;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+  #setup { text-align:center; margin-top:40px; }
+  #setup h1 { font-family:ui-serif,Georgia,"Songti SC","SimSun",serif; font-size:42px; font-weight:600;
+    letter-spacing:.14em; color:var(--accent); margin-bottom:10px; }
+  #setup p { color:var(--ink-2); letter-spacing:.22em; font-size:12px; margin-bottom:24px; }
+  .mode-label { color:var(--ink-2); font-size:13px; margin:14px 0 8px; letter-spacing:.08em; }
+  #setup button { font-family:inherit; font-size:17px; font-weight:600; letter-spacing:.08em;
+    padding:13px 34px; margin:6px; cursor:pointer; background:var(--surface);
+    border:1px solid var(--line-2); border-radius:var(--r-md); color:var(--ink);
+    box-shadow:var(--sh-1); transition:transform .2s cubic-bezier(.16,1,.3,1),border-color .2s,color .2s,background .2s,box-shadow .2s; }
+  #setup button:hover { background:var(--accent); border-color:var(--accent); color:#fffdf9;
+    transform:translateY(-2px); box-shadow:0 8px 22px rgba(176,65,47,.24); }
+  #setup button:active { transform:translateY(0) scale(.98); }
+  .rules { max-width:720px; margin:24px auto 0; text-align:left; color:var(--ink-2);
+    font-size:13px; line-height:1.85; background:var(--surface); border:1px solid var(--line);
+    padding:18px 22px; border-radius:var(--r-md); box-shadow:var(--sh-1); }
+  .rules b { color:var(--accent); font-weight:600; }
+  #game { display:none; max-width:1100px; margin:0 auto; }
+  .header { display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+    padding:14px 20px; background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--r-md); margin-bottom:14px; font-size:15px; color:var(--ink-2); box-shadow:var(--sh-1); }
+  .header strong { color:var(--ink); font-weight:600; font-variant-numeric:tabular-nums; }
+  #direction { color:var(--accent); font-weight:700; }
+  .discard-clickable { cursor:pointer; border-bottom:1px dashed var(--line-2); transition:color .18s,border-color .18s; }
+  .discard-clickable:hover { color:var(--accent); border-color:var(--accent); }
+  .discard-clickable:hover strong { color:var(--accent); }
+  .phase-final { color:var(--accent); font-weight:700; letter-spacing:.06em; }
+  .chain-info { color:var(--accent); font-weight:700; letter-spacing:.02em; font-variant-numeric:tabular-nums; }
+  .players { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .player { padding:11px 18px; background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--r-md); font-size:14px; color:var(--ink-2); box-shadow:var(--sh-1);
+    transition:border-color .2s,background .2s,box-shadow .2s,transform .2s; }
+  .player.protected { border-color:rgba(53,112,95,.5); }
+  .player.current { border-color:var(--accent); background:var(--accent-tint); color:var(--ink);
+    box-shadow:0 0 0 3px rgba(176,65,47,.10),var(--sh-1); transform:translateY(-1px); }
+  .player.out { opacity:.45; text-decoration:line-through; }
+  .player .count { color:var(--ink); font-weight:700; font-variant-numeric:tabular-nums; }
+  .player.current .count { color:var(--accent); }
+  .player .tags { font-size:11px; margin-left:6px; opacity:.85; }
+  .hand-section { background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--r-md); padding:16px; margin-bottom:14px; box-shadow:var(--sh-1); }
+  .hand-section h3 { margin-bottom:12px; color:var(--ink); font-size:14px; font-weight:600; letter-spacing:.04em; }
+  .hand { display:flex; flex-wrap:wrap; gap:8px; }
+  .card { font-family:inherit; padding:11px 15px; min-width:68px; background:var(--surface);
+    border:1px solid var(--line-2); border-radius:var(--r-sm); color:var(--ink);
+    font-size:13px; font-weight:600; cursor:pointer; box-shadow:var(--sh-1);
+    transition:transform .18s cubic-bezier(.16,1,.3,1),border-color .18s,color .18s,background .18s,box-shadow .18s; }
+  .card:hover { border-color:var(--accent); background:var(--accent-tint); color:var(--accent);
+    transform:translateY(-3px); box-shadow:0 8px 18px rgba(176,65,47,.16); }
+  .card:active { transform:translateY(-1px) scale(.98); }
+  .card.disabled-card { opacity:.45; cursor:not-allowed; }
+  .card.disabled-card:hover { border-color:var(--line-2); background:var(--surface); color:var(--ink);
+    transform:none; box-shadow:var(--sh-1); }
+  .winner-banner { color:var(--accent); padding:28px; font-size:22px; font-weight:600; letter-spacing:.06em; }
+  .log { height:240px; overflow-y:auto; background:var(--surface-2); border:1px solid var(--line);
+    padding:14px 16px; border-radius:var(--r-md); font-size:13px; line-height:1.8;
+    color:var(--ink-2); font-variant-numeric:tabular-nums; }
+  .log div:last-child { color:var(--ink); font-weight:500; }
+  .log::-webkit-scrollbar { width:8px; }
+  .log::-webkit-scrollbar-track { background:transparent; }
+  .log::-webkit-scrollbar-thumb { background:var(--line-2); border-radius:99px; border:2px solid var(--surface-2); }
+  .restart { font-family:inherit; margin-top:14px; padding:9px 20px; background:transparent;
+    border:1px solid var(--line-2); border-radius:var(--r-sm); color:var(--ink-2);
+    font-size:13px; cursor:pointer; transition:color .18s,border-color .18s,background .18s; }
+  .restart:hover { color:var(--accent); border-color:var(--accent); background:var(--accent-tint); }
+  .overlay { position:fixed; inset:0; background:rgba(43,38,32,.42); backdrop-filter:blur(3px);
+    -webkit-backdrop-filter:blur(3px); display:flex; justify-content:center; align-items:center;
+    padding:16px; z-index:100; }
+  .modal { background:var(--surface); border:1px solid var(--line); padding:26px 28px;
+    border-radius:var(--r-lg); min-width:min(320px,90vw); max-width:90vw; max-height:85vh;
+    overflow-y:auto; box-shadow:var(--sh-3); }
+  .modal h3 { margin-bottom:16px; color:var(--ink); font-size:16px; font-weight:600; letter-spacing:.02em; line-height:1.6; }
+  .modal .hint { color:var(--ink-2); font-size:12.5px; margin-bottom:12px; letter-spacing:.02em; }
+  .modal button { display:block; width:100%; padding:12px; margin:6px 0; font-family:inherit;
+    font-size:14px; font-weight:500; background:var(--surface); border:1px solid var(--line-2);
+    border-radius:var(--r-sm); color:var(--ink); cursor:pointer;
+    transition:border-color .16s,color .16s,background .16s,transform .16s; }
+  .modal button:hover { border-color:var(--accent); background:var(--accent-tint); color:var(--accent); }
+  .modal button:active { transform:scale(.99); }
+  .modal button.cancel { color:var(--ink-2); border-color:var(--line); }
+  .modal button.cancel:hover { color:var(--ink); border-color:var(--line-2); background:var(--surface-2); }
+  .modal button.disabled { opacity:.6; cursor:not-allowed; color:var(--ink-3); background:var(--surface-2); border-color:var(--line); }
+  .modal button.disabled:hover { border-color:var(--line); background:var(--surface-2); color:var(--ink-3); }
+  .modal .cards-grid { display:flex; flex-wrap:wrap; gap:6px; margin:12px 0; }
+  .modal .cards-grid button { width:auto; display:inline-block; padding:8px 13px; margin:0; font-size:13px; }
+  .modal button.selected,.modal button.primary { background:var(--accent); border-color:var(--accent); color:#fffdf9; font-weight:600; }
+  .modal button.selected:hover,.modal button.primary:hover { background:var(--accent-hi); border-color:var(--accent-hi); color:#fffdf9; }
+  .modal input[type="text"] { width:100%; padding:11px 13px; margin-bottom:12px; font-family:inherit;
+    font-size:14px; background:var(--surface); border:1px solid var(--line-2);
+    border-radius:var(--r-sm); color:var(--ink); transition:border-color .18s,box-shadow .18s; }
+  .modal input[type="text"]::placeholder { color:var(--ink-3); }
+  .modal input[type="text"]:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(176,65,47,.14); }
+  .log2-table { width:100%; border-collapse:collapse; margin:12px 0; font-size:13px; }
+  .log2-table th,.log2-table td { padding:6px 10px; border:1px solid var(--line-2); text-align:center; }
+  .log2-table th { background:var(--accent-tint); color:var(--accent); font-weight:600; }
+  .log2-table tr.highlight { background:var(--accent); color:#fffdf9; font-weight:700; }
+  .log2-table tr.highlight td { border-color:var(--accent); }
+  .shop-display { position:fixed; top:12px; right:12px; padding:9px 16px; background:var(--amber);
+    color:#fffdf9; border-radius:var(--r-sm); font-size:13px; font-weight:600; letter-spacing:.02em;
+    z-index:50; box-shadow:0 6px 18px rgba(143,90,23,.28); }
+  .sorting-warning { position:fixed; top:12px; left:12px; padding:9px 16px; background:var(--accent);
+    color:#fffdf9; border-radius:var(--r-sm); font-size:13px; font-weight:600; letter-spacing:.02em;
+    z-index:50; box-shadow:0 6px 18px rgba(176,65,47,.28); }
+  .pile-card { display:inline-block; padding:6px 11px; margin:3px; background:var(--surface-2);
+    border:1px solid var(--line); border-radius:6px; font-size:12px; font-weight:500; color:var(--ink-2); }
+  .pile-card-top { background:var(--accent); border-color:var(--accent); color:#fffdf9; font-weight:600;
+    box-shadow:0 4px 12px rgba(176,65,47,.25); }
+  #unoBtn { display:none; position:fixed; top:90px; right:20px; padding:16px 32px; font-family:inherit;
+    font-size:20px; font-weight:800; letter-spacing:.1em; background:var(--accent); color:#fffdf9;
+    border:none; border-radius:var(--r-md); cursor:pointer; z-index:60;
+    box-shadow:0 8px 28px rgba(176,65,47,.36); animation:pulse 1.6s ease-in-out infinite; }
+  #unoBtn:active { transform:scale(.96); }
+  @keyframes pulse {
+    0%,100% { transform:scale(1); box-shadow:0 8px 28px rgba(176,65,47,.36); }
+    50% { transform:scale(1.05); box-shadow:0 10px 36px rgba(176,65,47,.52); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,*::before,*::after { animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; }
+  }
+</style>
+</head>
+<body>
+
+<button id="unoBtn" onclick="clickUno()">UNO!</button>
+
+<div id="setup">
+  <h1>ENDLESS DILATION</h1>
+  <p>无限扩增 · v2.5 严格递减实装版</p>
+  <div class="mode-label">经典模式</div>
+  <button onclick="startGame(2,'classic')">2 人</button>
+  <button onclick="startGame(3,'classic')">3 人</button>
+  <button onclick="startGame(4,'classic')">4 人</button>
+  <div class="mode-label">跑得快模式（3-4 人）</div>
+  <button onclick="startGame(3,'runfast')">3 人</button>
+  <button onclick="startGame(4,'runfast')">4 人</button>
+  <div class="rules">
+    <b>核心规则：</b>初始5张手牌，任意牌可出，每回合1张。<br>
+    出完所有手牌获胜（经典）或出局并记录排名（跑得快）。<br>
+    牌堆空后从牌堆抽牌无效；从弃牌堆抽牌仍有效。<br>
+    <b>连锁（严格递减）：</b>打出 +N 后，目标玩家会被提示，从手牌中选择一张<b>严格小于当前链值</b>的 + 牌接链，或选择吃下累积抽牌。狙击抽终结连锁，截断可切断连锁。<br>
+    <b>反制牌：</b>无懈可击/道德底线/亡命之计/环保主义/学习/维权/伪造会在对应时机弹出询问。<br>
+    <b>追加卡：</b>DLC/长鞭/截断会在对应时机弹出询问。<br>
+    <b>致敬经典：</b>独为最少的玩家回合开始时需点击 UNO 按钮。<br>
+    <b>道具卡：</b>金钟罩、定向禁止、猎犬、降解、众矢之的、决策权放置的手牌。<br>
+    <b>空集库：</b>伪造、设定、虚无可让玩家新建空集。<br>
+    <b>v2.5：</b>严格递减实装——接链改为玩家交互式选择，不再自动接链。
+  </div>
+</div>
+
+<div id="game">
+  <div class="header">
+    <span>牌堆: <strong id="deckCount">0</strong></span>
+    <span class="discard-clickable" onclick="showDiscardPile()" title="点击查看完整弃牌堆">弃牌堆: <strong id="discardCount">0</strong> (顶: <span id="discardTop">无</span>) [查看]</span>
+    <span>当前: <strong id="currentName">-</strong></span>
+    <span>方向: <strong id="direction">→</strong></span>
+    <span id="chainInfo"></span>
+    <span id="phaseInfo"></span>
+  </div>
+  <div class="players" id="players"></div>
+  <div class="hand-section">
+    <h3 id="handLabel">手牌</h3>
+    <div class="hand" id="hand"></div>
+  </div>
+  <div class="log" id="log"></div>
+  <button class="restart" onclick="location.reload()">重新开始</button>
+</div>
+
+<script>
+// ==================== 卡牌定义 ====================
+const ALL_CARDS = [];
+function C(name, type, value) { return { name, type, value: value || 0 }; }
+
+ALL_CARDS.push(C('空集','empty'));
+ALL_CARDS.push(C('反转','reverse'));
+ALL_CARDS.push(C('禁止','skip'));
+ALL_CARDS.push(C('双禁止','skip2'));
+ALL_CARDS.push(C('再来一次','again'));
+ALL_CARDS.push(C('冰霜','frost'));
+for (let i=1;i<=9;i++) ALL_CARDS.push(C('+'+i,'plus',i));
+for (let i=1;i<=3;i++) ALL_CARDS.push(C('大众抽 '+i,'mass',i));
+for (let i=1;i<=9;i++) ALL_CARDS.push(C('狙击抽 '+i,'snipe',i));
+for (let i=1;i<=9;i++) ALL_CARDS.push(C('制衡 '+i,'balance',i));
+ALL_CARDS.push(C('原木','log'));
+ALL_CARDS.push(C('剃刀','razor'));
+[
+  ['贸易','trade'],['转移','transfer'],['计划经济','planned'],['罗宾汉','robin'],
+  ['抵抗','resist'],['超级抵抗','superResist'],['控制','control'],
+  ['真理之眼','eye'],['碎片整理','sort'],['分解者','decompose'],['复制','copy'],
+  ['拾荒','scavenge'],['偷梁换柱','swap'],
+  ['无懈可击','negate'],['道德底线','moral'],['亡命之计','doom'],
+  ['环保主义','eco'],['学习','learn'],['维权','rights'],['推土机','bulldozer'],
+  ['致敬经典','uno'],['金钟罩','shield'],['商店','shop'],
+  ['定向禁止','targetBan'],['决策权','decision'],['降解','degrade'],
+  ['竞速','race'],['投票','vote'],['博弈','gamble'],['猜拳','rps'],
+  ['最后一舞','lastDance'],['缩小劣势','reduceGap'],['互惠共赢','mutual'],
+  ['土地改革','landReform'],['新启程','newStart'],['明示','reveal'],
+  ['DLC','dlc'],['质疑','doubt'],['重复执行','repeat']
+].forEach(([n,t]) => ALL_CARDS.push(C(n,t)));
+[
+  ['伪造','forge'],['设定','setup'],['长鞭','whip'],['截断','cut'],
+  ['猎犬','hound'],['虚无','void'],['归中','center'],
+  ['囚徒困境','prisoner'],['RNG','rng'],['众矢之的','target'],
+  ['诸葛连弩','crossbow'],['后备军','reserve']
+].forEach(([n,t]) => ALL_CARDS.push(C(n,t)));
+
+const NEEDS_TARGET = new Set([
+  'snipe','trade','resist','control','eye','sort','swap','targetBan','decision',
+  'degrade','gamble','rps','reveal','doubt','repeat','setup','target'
+]);
+const COUNTER_TYPES = new Set(['negate','moral','doom','eco','learn','rights','bulldozer','forge']);
+const NO_ADDITIVE_TYPES = new Set([
+  'negate','moral','doom','eco','learn','rights','bulldozer','forge',
+  'dlc','whip','cut','uno','shield','shop','crossbow'
+]);
+
+// ==================== 游戏状态 ====================
+const state = {
+  players: [], deck: [], discard: [],
+  currentPlayer: 0, direction: 1,
+  log: [], winner: null, extraTurn: false,
+  chain: null,
+  shopCard: null, unoActive: false,
+  turnCount: 0, startPlayer: 0,
+  finalRound: false, finalRoundEnd: -1,
+  unoPending: false, unoClicked: false,
+  sortingInProgress: false,
+  mode: 'classic',
+  emptyPool: 20,
+  ranking: [],
+  lastPlayedBy: -1,
+  lastPlayedCard: null,
+  pendingSkip: 0,
+};
+
+// ==================== 基础工具 ====================
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function log(m){state.log.push(m); if(state.log.length>200)state.log.shift();}
+function isOnlyOneLeft(){ return state.players.filter(p=>!p.out).length <= 1; }
+function activePlayers(){ return state.players.filter(p=>!p.out); }
+function activeIndices(){ return state.players.map((p,i)=>p.out?-1:i).filter(i=>i>=0); }
+
+function nextPlayer(){
+  let safety = 0;
+  do {
+    state.currentPlayer = (state.currentPlayer + state.direction + state.players.length) % state.players.length;
+    safety++;
+    if (safety > state.players.length * 2) break;
+  } while (state.players[state.currentPlayer].out && !isOnlyOneLeft());
+}
+
+function nextActiveIndex(fromIdx){
+  let nx = (fromIdx + state.direction + state.players.length) % state.players.length;
+  let safety = 0;
+  while (state.players[nx].out && safety < state.players.length * 2) {
+    nx = (nx + state.direction + state.players.length) % state.players.length;
+    safety++;
+  }
+  return nx;
+}
+
+function normalizeName(name){
+  return (name||'').trim().toLowerCase().replace(/\s+/g,'').replace(/[（）()【】\[\]]/g,'');
+}
+
+// ==================== 手牌重分配工具 ====================
+function redistributeByCounts() {
+  const activeIdx = activeIndices();
+  const counts = {};
+  activeIdx.forEach(i => { counts[i] = state.players[i].hand.length; });
+  const all = [];
+  activeIdx.forEach(i => { for (const c of state.players[i].hand) all.push(c); });
+  shuffle(all);
+  state.players.forEach(p => { p.hand = []; });
+  let idx = 0;
+  activeIdx.forEach(i => {
+    state.players[i].hand = all.slice(idx, idx + counts[i]);
+    idx += counts[i];
+  });
+}
+
+// ==================== 抽牌（含反制窗口） ====================
+async function drawCards(pi, count, fromDiscard){
+  const p = state.players[pi];
+  if (!p || p.out) return 0;
+  if (count <= 0) return 0;
+
+  if (count > 1) {
+    const used = await askMoral(pi);
+    if (used) { count = 1; log(p.name + ' 的抽牌数量被「道德底线」变为 1。'); }
+  }
+
+  let drawn = 0;
+  if (fromDiscard) {
+    for (let i = 0; i < count; i++) {
+      if (state.discard.length === 0) break;
+      p.hand.push(state.discard.pop());
+      drawn++;
+    }
+  } else {
+    if (state.finalRound) { log(p.name + ' 从牌堆抽牌无效（终局）。'); return 0; }
+    for (let i = 0; i < count; i++) {
+      if (state.deck.length === 0) {
+        if (!state.finalRound) {
+          state.finalRound = true;
+          state.finalRoundEnd = (state.startPlayer - 1 + state.players.length) % state.players.length;
+          log('[注意] 牌堆已空，进入终局阶段。');
+        }
+        break;
+      }
+      p.hand.push(state.deck.pop()); drawn++;
+    }
+  }
+  if (drawn > 0) log(p.name + ' 抽了 ' + drawn + ' 张。');
+
+  if (drawn > 0) await askAfterDraw(pi, drawn);
+  return drawn;
+}
+
+// ==================== 反制牌询问 ====================
+async function askMoral(pi) {
+  const p = state.players[pi];
+  const idx = p.hand.findIndex(c => c.type === 'moral');
+  if (idx < 0) return false;
+  const choice = await chooseOption(p.name + '：即将抽牌，是否打出「道德底线」？（抽牌变 1）', [
+    { label: '打出道德底线' }, { label: '不打出' }
+  ]);
+  if (choice === 0) {
+    const card = p.hand.splice(idx, 1)[0];
+    state.discard.push(card);
+    log('[反制] ' + p.name + ' 打出「道德底线」。');
+    render();
+    return true;
+  }
+  return false;
+}
+
+async function askAfterDraw(pi, drawnCount) {
+  const p = state.players[pi];
+  const learnIdx = p.hand.findIndex(c => c.type === 'learn');
+  const rightsIdx = p.hand.findIndex(c => c.type === 'rights');
+  const opts = [];
+  if (learnIdx >= 0) opts.push('学习');
+  if (rightsIdx >= 0) opts.push('维权');
+  if (opts.length === 0) return;
+
+  const choice = await chooseOption(p.name + '：抽牌后是否打出反制牌？', [
+    ...opts.map(o => ({ label: o })), { label: '跳过' }
+  ]);
+  if (choice === opts.length) return;
+  const chosen = opts[choice];
+  if (chosen === '学习') {
+    const card = p.hand.splice(learnIdx, 1)[0];
+    state.discard.push(card);
+    log('[反制] ' + p.name + ' 打出「学习」。');
+    if (state.lastPlayedCard && state.lastPlayedBy !== pi) {
+      const src = state.lastPlayedCard;
+      const di = state.discard.lastIndexOf(src);
+      if (di >= 0) {
+        state.discard.splice(di, 1);
+        p.hand.push(src);
+        log(p.name + ' 学习获得了 ' + src.name + '。');
+      }
+    }
+  } else if (chosen === '维权') {
+    const card = p.hand.splice(rightsIdx, 1)[0];
+    state.discard.push(card);
+    log('[反制] ' + p.name + ' 打出「维权」。');
+    if (state.lastPlayedBy >= 0 && state.lastPlayedBy !== pi) {
+      const src = state.players[state.lastPlayedBy];
+      log(src.name + ' 被维权，抽 3 张。');
+      await drawCards(state.lastPlayedBy, 3);
+    }
+  }
+  render();
+}
+
+async function askEco(pi) {
+  const p = state.players[pi];
+  const idx = p.hand.findIndex(c => c.type === 'eco');
+  if (idx < 0) return false;
+  const choice = await chooseOption(p.name + '：即将弃牌，是否打出「环保主义」？（阻止弃牌）', [
+    { label: '打出环保主义' }, { label: '不打出' }
+  ]);
+  if (choice === 0) {
+    const card = p.hand.splice(idx, 1)[0];
+    state.discard.push(card);
+    log('[反制] ' + p.name + ' 打出「环保主义」，阻止弃牌。');
+    render();
+    return true;
+  }
+  return false;
+}
+
+async function askTargetCounter(targetIdx, sourceOwner) {
+  const p = state.players[targetIdx];
+  if (!p || p.out) return null;
+  const negIdx = p.hand.findIndex(c => c.type === 'negate');
+  const doomIdx = p.hand.findIndex(c => c.type === 'doom');
+  const opts = [];
+  if (negIdx >= 0) opts.push('无懈可击');
+  if (doomIdx >= 0) opts.push('亡命之计');
+  if (opts.length === 0) return null;
+
+  const choice = await chooseOption(p.name + '：你被指定为目标，是否打出反制牌？', [
+    ...opts.map(o => ({ label: o })), { label: '不打出' }
+  ]);
+  if (choice === opts.length) return null;
+  const chosen = opts[choice];
+  const idx = chosen === '无懈可击' ? negIdx : doomIdx;
+  const card = p.hand.splice(idx, 1)[0];
+  state.discard.push(card);
+  log('[反制] ' + p.name + ' 打出「' + card.name + '」。');
+  render();
+  return card.type;
+}
+
+async function askForge(gainerIdx, count) {
+  const active = state.players.map((pp,i)=>({pp,i})).filter(o=>!o.pp.out && o.i!==gainerIdx);
+  for (const {pp} of active) {
+    const idx = pp.hand.findIndex(c => c.type === 'forge');
+    if (idx < 0) continue;
+    const choice = await chooseOption(pp.name + '：' + state.players[gainerIdx].name + ' 从非牌堆获得了 ' + count + ' 张牌，是否打出「伪造」？', [
+      { label: '打出伪造' }, { label: '跳过' }
+    ]);
+    if (choice === 0) {
+      const card = pp.hand.splice(idx, 1)[0];
+      state.discard.push(card);
+      log('[反制] ' + pp.name + ' 打出「伪造」。');
+      const gainer = state.players[gainerIdx];
+      const toDiscard = Math.min(count, gainer.hand.length);
+      for (let k = 0; k < toDiscard; k++) state.discard.push(gainer.hand.pop());
+      log(gainer.name + ' 的 ' + toDiscard + ' 张牌被伪造弃掉。');
+      newEmptyMulti(gainer, toDiscard);
+      render();
+      return true;
+    }
+  }
+  return false;
+}
+
+async function askForgeMulti(gainerAmounts) {
+  if (!gainerAmounts || gainerAmounts.length === 0) return false;
+  const gainerSet = new Set(gainerAmounts.map(g => g.idx));
+  for (let i = 0; i < state.players.length; i++) {
+    if (gainerSet.has(i)) continue;
+    const pp = state.players[i];
+    if (pp.out) continue;
+    const idx = pp.hand.findIndex(c => c.type === 'forge');
+    if (idx < 0) continue;
+    const names = gainerAmounts
+      .map(g => state.players[g.idx].name + '（+' + g.amount + '）')
+      .join('、');
+    const choice = await chooseOption(pp.name + '：' + names + ' 获得了牌，是否打出「伪造」？', [
+      { label: '打出伪造' }, { label: '跳过' }
+    ]);
+    if (choice === 0) {
+      const card = pp.hand.splice(idx, 1)[0];
+      state.discard.push(card);
+      log('[反制] ' + pp.name + ' 打出「伪造」。');
+      for (const g of gainerAmounts) {
+        const gainer = state.players[g.idx];
+        const toDiscard = Math.min(g.amount, gainer.hand.length);
+        for (let k = 0; k < toDiscard; k++) state.discard.push(gainer.hand.pop());
+        log(gainer.name + ' 的 ' + toDiscard + ' 张牌被伪造弃掉。');
+        newEmptyMulti(gainer, toDiscard);
+      }
+      render();
+      return true;
+    }
+  }
+  return false;
+}
+
+// ==================== 追加卡询问 ====================
+async function askAdditive(ownerIdx, originalCard, originalTarget) {
+  if (originalTarget === null || originalTarget === undefined || originalTarget < 0) return;
+  const p = state.players[ownerIdx];
+  const dlcIdx = p.hand.findIndex(c => c.type === 'dlc');
+  const whipIdx = p.hand.findIndex(c => c.type === 'whip');
+  const opts = [];
+  if (dlcIdx >= 0) opts.push('DLC');
+  if (whipIdx >= 0) opts.push('长鞭');
+  if (opts.length === 0) return;
+
+  const choice = await chooseOption(p.name + '：' + originalCard.name + ' 结算完毕，是否打出追加卡？', [
+    ...opts.map(o => ({ label: o })), { label: '跳过' }
+  ]);
+  if (choice === opts.length) return;
+  const chosen = opts[choice];
+  if (chosen === 'DLC') {
+    const card = p.hand.splice(dlcIdx, 1)[0];
+    state.discard.push(card);
+    log('[追加] ' + p.name + ' 打出「DLC」，目标额外抽 3 张。');
+    await drawCards(originalTarget, 3);
+  } else {
+    const card = p.hand.splice(whipIdx, 1)[0];
+    state.discard.push(card);
+    log('[追加] ' + p.name + ' 打出「长鞭」，对目标再结算一次 ' + originalCard.name + '。');
+    const val = originalCard.value || 0;
+    if (val > 0) await drawCards(originalTarget, val);
+  }
+  render();
+}
+
+async function askCut(ownerIdx) {
+  const p = state.players[ownerIdx];
+  const idx = p.hand.findIndex(c => c.type === 'cut');
+  if (idx < 0) return false;
+  const choice = await chooseOption(p.name + '：你打出了加牌，是否追加「截断」？（切断连锁）', [
+    { label: '打出截断' }, { label: '跳过' }
+  ]);
+  if (choice === 0) {
+    const card = p.hand.splice(idx, 1)[0];
+    state.discard.push(card);
+    log('[追加] ' + p.name + ' 打出「截断」，连锁被切断。');
+    render();
+    return true;
+  }
+  return false;
+}
+
+// ==================== 降解触发 ====================
+async function tryTriggerDegrade(playerIdx) {
+  const p = state.players[playerIdx];
+  if (!p || !p.degradeActive) return false;
+  p.degradeActive = false;
+  state.discard.push(C('降解','degrade'));
+  log('[降解] 触发，' + p.name + ' 需额外弃 1 张牌。');
+  if (p.hand.length === 0) {
+    log(p.name + ' 没有手牌可弃。');
+    return true;
+  }
+  const di = await chooseCardFromHand(p, p.name + '：降解触发，选择 1 张额外弃掉');
+  if (di >= 0) {
+    state.discard.push(p.hand.splice(di, 1)[0]);
+    log(p.name + ' 因降解额外弃了 1 张。');
+    if (p.hand.length === 0) checkWin(playerIdx);
+  }
+  return true;
+}
+
+// ==================== 空集库 ====================
+function newEmpty(p){
+  if (state.emptyPool <= 0) return 0;
+  state.emptyPool--;
+  p.hand.push(C('空集','empty'));
+  log(p.name + ' 新建了 1 个空集。空集库剩余：' + state.emptyPool);
+  return 1;
+}
+function newEmptyMulti(p, count){
+  const cnt = Math.min(count, state.emptyPool);
+  if (cnt === 0) return 0;
+  state.emptyPool -= cnt;
+  for (let i = 0; i < cnt; i++) p.hand.push(C('空集','empty'));
+  log(p.name + ' 新建了 ' + cnt + ' 个空集。空集库剩余：' + state.emptyPool);
+  return cnt;
+}
+
+// ==================== 通用选择器 ====================
+function chooseCardFromHand(player, promptText){
+  return new Promise(resolve=>{
+    if(player.hand.length===0){resolve(-1);return;}
+    const ov=document.createElement('div');ov.className='overlay';
+    const md=document.createElement('div');md.className='modal';
+    md.innerHTML='<h3>'+promptText+'</h3>';
+    const grid=document.createElement('div');grid.className='cards-grid';
+    player.hand.forEach((c,i)=>{
+      const b=document.createElement('button');b.textContent=c.name;
+      b.onclick=()=>{ov.remove();resolve(i);};grid.appendChild(b);
+    });
+    md.appendChild(grid);
+    const cancel=document.createElement('button');cancel.className='cancel';cancel.textContent='取消';
+    cancel.onclick=()=>{ov.remove();resolve(-1);};md.appendChild(cancel);
+    ov.appendChild(md);document.body.appendChild(ov);
+  });
+}
+function chooseHandCards(player, maxCount, promptText){
+  return new Promise(resolve=>{
+    const selected = [];
+    const ov=document.createElement('div');ov.className='overlay';
+    const md=document.createElement('div');md.className='modal';
+    const actualMax = Math.min(maxCount, player.hand.length);
+    if (actualMax === 0) { resolve([]); return; }
+    const updateUI = () => {
+      let html = '<h3>'+promptText+'</h3>';
+      html += '<p class="hint">已选 '+selected.length+' / '+actualMax+' 张</p>';
+      md.innerHTML = html;
+      const grid=document.createElement('div');grid.className='cards-grid';
+      player.hand.forEach((c,i)=>{
+        const b=document.createElement('button');
+        b.textContent=c.name;
+        if(selected.includes(i)) b.classList.add('selected');
+        b.onclick=()=>{
+          if(selected.includes(i)) selected.splice(selected.indexOf(i),1);
+          else if(selected.length < actualMax) selected.push(i);
+          updateUI();
+        };
+        grid.appendChild(b);
+      });
+      md.appendChild(grid);
+      if(selected.length === actualMax){
+        const confirm=document.createElement('button');confirm.className='primary';
+        confirm.textContent='确认选择这 '+actualMax+' 张';
+        confirm.onclick=()=>{ov.remove();resolve([...selected]);};md.appendChild(confirm);
+      } else {
+        const hint=document.createElement('button');hint.className='disabled';
+        hint.textContent='还需选 '+(actualMax-selected.length)+' 张';hint.disabled=true;md.appendChild(hint);
+      }
+    };
+    updateUI();
+    ov.appendChild(md);document.body.appendChild(ov);
+  });
+}
+function discardSelected(player, indices){
+  const toDiscard = [], newHand = [];
+  player.hand.forEach((c,i)=>{ if(indices.includes(i)) toDiscard.push(c); else newHand.push(c); });
+  player.hand = newHand;
+  for(const c of toDiscard) state.discard.push(c);
+  return toDiscard;
+}
+function returnSelected(player, indices){
+  const toReturn = [], newHand = [];
+  player.hand.forEach((c,i)=>{ if(indices.includes(i)) toReturn.push(c); else newHand.push(c); });
+  player.hand = newHand;
+  for(const c of toReturn) state.deck.push(c);
+  return toReturn;
+}
+function chooseOption(promptText, options){
+  return new Promise(resolve=>{
+    const ov=document.createElement('div');ov.className='overlay';
+    const md=document.createElement('div');md.className='modal';
+    md.innerHTML='<h3>'+promptText+'</h3>';
+    options.forEach((opt,i)=>{
+      const b=document.createElement('button');b.textContent=opt.label;
+      b.onclick=()=>{ov.remove();resolve(i);};md.appendChild(b);
+    });
+    ov.appendChild(md);document.body.appendChild(ov);
+  });
+}
+function showMessage(text){
+  return new Promise(resolve=>{
+    const ov=document.createElement('div');ov.className='overlay';
+    const md=document.createElement('div');md.className='modal';
+    md.innerHTML='<h3>提示</h3><p style="margin-bottom:16px;white-space:pre-line;color:var(--ink-2);line-height:1.75;">'+text+'</p>';
+    const b=document.createElement('button');b.className='primary';b.textContent='确定';
+    b.onclick=()=>{ov.remove();resolve();};md.appendChild(b);
+    ov.appendChild(md);document.body.appendChild(ov);
+  });
+}
+function showInput(promptText, placeholder){
+  return new Promise(resolve=>{
+    const ov=document.createElement('div');ov.className='overlay';
+    const md=document.createElement('div');md.className='modal';
+    md.innerHTML='<h3>'+promptText+'</h3>';
+    const input=document.createElement('input');input.type='text';input.placeholder=placeholder||'';
+    md.appendChild(input);
+    const b=document.createElement('button');b.className='primary';b.textContent='确定';
+    b.onclick=()=>{ov.remove();resolve(input.value);};md.appendChild(b);
+    ov.appendChild(md);document.body.appendChild(ov);
+    setTimeout(()=>input.focus(),100);
+    input.addEventListener('keydown',e=>{if(e.key==='Enter'){ov.remove();resolve(input.value);}});
+  });
+}
+function showLogTable(currentH, drawAmount){
+  return new Promise(resolve=>{
+    const ov=document.createElement('div');ov.className='overlay';
+    const md=document.createElement('div');md.className='modal';
+    md.style.minWidth='380px';
+    const tableData=[
+      {range:'0',amount:1},{range:'1',amount:2},{range:'2 – 3',amount:3},
+      {range:'4 – 7',amount:4},{range:'8 – 15',amount:5},{range:'16 – 31',amount:6},
+      {range:'32 – 63',amount:7},{range:'64 – 127',amount:8},{range:'128 – 255',amount:9}
+    ];
+    let html='<h3>原木 · 对数数值表</h3>';
+    html+='<p class="hint">公式：下家抽 <b>ceil(log2(手牌数+1)) + 1</b> 张</p>';
+    html+='<p style="color:var(--accent);font-size:14px;margin-bottom:14px;">当前你的手牌数：<b>'+currentH+'</b> → 下家抽 <b>'+drawAmount+'</b> 张</p>';
+    html+='<table class="log2-table"><tr><th>你的手牌数 H</th><th>下家抽牌数</th></tr>';
+    for(const row of tableData){
+      const isHighlight=(row.range===String(currentH))||(row.range.includes('–')&&(()=>{
+        const parts=row.range.split('–').map(s=>parseInt(s.trim()));
+        return currentH>=parts[0]&&currentH<=parts[1];
+      })());
+      html+='<tr'+(isHighlight?' class="highlight"':'')+'><td>'+row.range+'</td><td>'+row.amount+'</td></tr>';
+    }
+    html+='</table><p class="hint">规律：手牌数每翻一倍，下家多抽 1 张。</p>';
+    md.innerHTML=html;
+    const b=document.createElement('button');b.className='primary';b.textContent='确定并结算';
+    b.onclick=()=>{ov.remove();resolve(true);};md.appendChild(b);
+    const cancel=document.createElement('button');cancel.className='cancel';cancel.textContent='取消（不出此牌）';
+    cancel.onclick=()=>{ov.remove();resolve(false);};md.appendChild(cancel);
+    ov.appendChild(md);document.body.appendChild(ov);
+  });
+}
+
+// ==================== 弃牌堆查看 ====================
+function showDiscardPile(){
+  if(state.sortingInProgress){ showMessage('「碎片整理」结算中，任何人不得查看弃牌堆。'); return; }
+  if(state.discard.length===0){ showMessage('弃牌堆为空。'); return; }
+  const ov=document.createElement('div');ov.className='overlay';
+  const md=document.createElement('div');md.className='modal';
+  let html='<h3>弃牌堆 ('+state.discard.length+' 张)</h3>';
+  html+='<p class="hint">从上到下（最新 → 最早）</p><div style="margin-bottom:16px;">';
+  for(let i=state.discard.length-1;i>=0;i--){
+    const c=state.discard[i];
+    const cls=i===state.discard.length-1?'pile-card pile-card-top':'pile-card';
+    html+='<span class="'+cls+'">'+c.name+'</span>';
+  }
+  html+='</div>';
+  md.innerHTML=html;
+  const closeBtn=document.createElement('button');closeBtn.textContent='关闭';
+  closeBtn.onclick=()=>ov.remove();md.appendChild(closeBtn);
+  ov.appendChild(md);document.body.appendChild(ov);
+}
+
+// ==================== 游戏启动 ====================
+async function startGame(pc, mode){
+  state.mode = mode || 'classic';
+  document.getElementById('setup').style.display='none';
+  document.getElementById('game').style.display='block';
+  state.players=[];
+  for(let i=0;i<pc;i++) state.players.push({
+    name:'玩家 '+String.fromCharCode(65+i), hand:[],
+    shield:false, targetBanned:false, forcedCard:null, degradeActive:false,
+    houndActive:false, targetActive:false, out:false
+  });
+  state.deck=shuffle([...ALL_CARDS]);
+  state.discard=[]; state.currentPlayer=0; state.startPlayer=0; state.direction=1;
+  state.log=[]; state.winner=null; state.extraTurn=false;
+  state.chain=null; state.shopCard=null; state.unoActive=false;
+  state.turnCount=0; state.finalRound=false; state.finalRoundEnd=-1;
+  state.unoPending=false; state.unoClicked=false; state.sortingInProgress=false;
+  state.emptyPool = 20; state.ranking = [];
+  state.lastPlayedBy = -1; state.lastPlayedCard = null;
+  state.pendingSkip = 0;
+  for(let i=0;i<5;i++) for(let p=0;p<pc;p++) state.players[p].hand.push(state.deck.pop());
+  log('游戏开始（'+(mode==='runfast'?'跑得快':'经典')+'模式），每人抽 5 张。');
+  render();
+  await startTurn();
+}
+
+// ==================== 回合开始 ====================
+async function startTurn(){
+  if(state.winner!==null) return;
+  if(state.players[state.currentPlayer].out){ nextPlayer(); return startTurn(); }
+  state.turnCount++;
+  const cur=state.currentPlayer;
+  const p=state.players[cur];
+
+  if(state.finalRound){
+    if(cur===state.finalRoundEnd){
+      log('终局回合结束，开始结算。');
+      findWinnerByRemaining(); render(); return;
+    }
+  }
+
+  if(p.shield){ p.shield=false; state.discard.push(C('金钟罩','shield')); log(p.name+' 的金钟罩到期，放入弃牌堆。'); }
+
+  if(p.targetBanned){
+    p.targetBanned=false; state.discard.push(C('定向禁止','targetBan'));
+    log(p.name+' 被定向禁止跳过回合。');
+    nextPlayer(); render(); return startTurn();
+  }
+
+  if(p.houndActive){
+    log('[猎犬] ' + p.name + ' 的猎犬生效，本回合无法指定其他玩家为目标。');
+  }
+
+  state.unoPending=false; state.unoClicked=false;
+  if(state.unoActive && state.winner===null){
+    const active = activePlayers();
+    const counts = active.map(pp=>pp.hand.length);
+    const minC = Math.min(...counts);
+    const minCount = counts.filter(c=>c===minC).length;
+    if(minCount===1 && p.hand.length===minC && p.hand.length>0){
+      state.unoPending=true;
+      log(p.name+' 手牌独为最少，需在出牌前点击 UNO。');
+      render();
+    }
+  }
+
+  if(state.shopCard && state.winner===null){
+    const use=await chooseOption(p.name+'：是否使用商店？（商品：'+state.shopCard.name+'，需弃1张）',[{label:'使用'},{label:'跳过'}]);
+    if(use===0 && p.hand.length>0){
+      const di=await chooseCardFromHand(p,'弃一张牌换取商店商品');
+      if(di>=0){
+        const ecoUsed = await askEco(cur);
+        if (!ecoUsed) {
+          state.discard.push(p.hand.splice(di,1)[0]);
+          p.hand.push(state.shopCard);
+          state.shopCard=state.deck.length>0?state.deck.pop():null;
+          log(p.name+' 使用商店，获得商品。新商品：'+(state.shopCard?state.shopCard.name:'无')+'。');
+          await askForge(cur, 1);
+          await tryTriggerDegrade(cur);
+          if(checkWin(cur)){ render(); return; }
+          render();
+        } else {
+          log(p.name+' 使用商店的弃牌被环保主义阻止。');
+        }
+      }
+    }
+  }
+
+  if(p.forcedCard){
+    const forced=p.forcedCard; p.forcedCard=null;
+    const idx=p.hand.indexOf(forced);
+    if(idx>=0){
+      p.hand.splice(idx,1); state.discard.push(forced);
+      log(p.name+' 被决策权强制打出 '+forced.name+'。');
+      if(checkWin(cur)){ render(); return; }
+      render();
+      await applyEffect(forced,null);
+      endTurn(consumePendingSkip());
+      return;
+    }
+  }
+
+  render();
+}
+
+function consumePendingSkip(){
+  const s = state.pendingSkip || 0;
+  state.pendingSkip = 0;
+  return s;
+}
+
+// ==================== 渲染 ====================
+function render(){
+  document.getElementById('deckCount').textContent=state.deck.length;
+  document.getElementById('discardCount').textContent=state.discard.length;
+  document.getElementById('discardTop').textContent=state.discard.length>0?state.discard[state.discard.length-1].name:'无';
+  document.getElementById('currentName').textContent=state.players[state.currentPlayer]?.name||'-';
+  document.getElementById('direction').textContent=state.direction===1?'→':'←';
+  document.getElementById('phaseInfo').innerHTML=state.finalRound?'<span class="phase-final">终局</span>':'';
+
+  // v2.5：连锁状态可视化
+  const chainEl = document.getElementById('chainInfo');
+  if (chainEl) {
+    if (state.chain && state.chain.history && state.chain.history.length > 0) {
+      const hist = state.chain.history.join(' → ');
+      chainEl.innerHTML = '<span class="chain-info">连锁 ' + hist + '（累积' + state.chain.accumulated + '，须 &lt; ' + state.chain.lastValue + '）</span>';
+    } else {
+      chainEl.textContent = '';
+    }
+  }
+
+  const pDiv=document.getElementById('players'); pDiv.innerHTML='';
+  state.players.forEach((p,i)=>{
+    const d=document.createElement('div');
+    d.className='player'+(i===state.currentPlayer?' current':'')+(p.shield?' protected':'')+(p.out?' out':'');
+    let tags='';
+    if(p.shield) tags+='[护]';
+    if(p.targetBanned) tags+='[禁]';
+    if(p.forcedCard) tags+='[钉]';
+    if(p.degradeActive) tags+='[降]';
+    if(p.houndActive) tags+='[犬]';
+    if(p.targetActive) tags+='[矢]';
+    if(p.out) tags+='[出局]';
+    d.innerHTML=p.name+': <span class="count">'+p.hand.length+'</span> 张 <span class="tags">'+tags+'</span>';
+    pDiv.appendChild(d);
+  });
+
+  const hDiv=document.getElementById('hand'); const hLbl=document.getElementById('handLabel'); hDiv.innerHTML='';
+  if(state.winner!==null){
+    hLbl.textContent='游戏结束';
+    if (state.mode === 'runfast') {
+      const rankText = state.ranking.map((idx,i)=>'第'+(i+1)+'名：'+state.players[idx].name).join('<br>');
+      hDiv.innerHTML='<h2 class="winner-banner">最终排名</h2><p style="padding:0 28px 20px;line-height:2;color:var(--ink-2);">'+rankText+'</p>';
+    } else {
+      hDiv.innerHTML='<h2 class="winner-banner">'+state.players[state.winner].name+' 获胜！</h2>';
+    }
+    document.getElementById('unoBtn').style.display='none';
+    return;
+  }
+  const cp = state.players[state.currentPlayer];
+  if (!cp) return;
+  hLbl.textContent=cp.name+' 的手牌（点击出牌）';
+  cp.hand.forEach((c,i)=>{
+    const b=document.createElement('button');
+    b.className='card';
+    const blockedByHound = cp.houndActive && NEEDS_TARGET.has(c.type);
+    if (blockedByHound) b.classList.add('disabled-card');
+    b.textContent=c.name;
+    if(c.type==='log') b.title='下家抽 ceil(log2(你的手牌数+1))+1 张';
+    if(COUNTER_TYPES.has(c.type)) b.title='反制牌：主动打出无效果';
+    if(blockedByHound) b.title='猎犬生效：本回合无法指定其他玩家为目标';
+    b.onclick=()=>selectCard(i);
+    hDiv.appendChild(b);
+  });
+
+  const lDiv=document.getElementById('log');
+  lDiv.innerHTML=state.log.slice(-40).map(l=>'<div>'+l+'</div>').join('');
+  lDiv.scrollTop=lDiv.scrollHeight;
+
+  let shopEl=document.getElementById('shopDisplay');
+  if(state.shopCard){
+    if(!shopEl){ shopEl=document.createElement('div'); shopEl.id='shopDisplay'; shopEl.className='shop-display'; document.body.appendChild(shopEl); }
+    shopEl.textContent='商店：'+state.shopCard.name;
+  } else if(shopEl) shopEl.remove();
+
+  let sortEl=document.getElementById('sortingWarning');
+  if(state.sortingInProgress){
+    if(!sortEl){ sortEl=document.createElement('div'); sortEl.id='sortingWarning'; sortEl.className='sorting-warning'; document.body.appendChild(sortEl); }
+    sortEl.textContent='碎片整理结算中，禁止查看弃牌堆';
+  } else if(sortEl) sortEl.remove();
+
+  const unoBtn=document.getElementById('unoBtn');
+  unoBtn.style.display = (state.unoActive && state.winner===null) ? 'block' : 'none';
+}
+
+function clickUno(){
+  if(!state.unoPending || state.unoClicked || state.winner!==null) return;
+  state.unoClicked=true;
+  log(state.players[state.currentPlayer].name+' 喊了 UNO。');
+  render();
+}
+
+// ==================== 出牌 ====================
+async function selectCard(ci){
+  if(state.winner!==null) return;
+  const p = state.players[state.currentPlayer];
+  const card = p.hand[ci];
+
+  if (p.houndActive && NEEDS_TARGET.has(card.type)) {
+    await showMessage('猎犬生效：本回合无法指定其他玩家为目标，无法打出「' + card.name + '」。');
+    return;
+  }
+
+  if(card.type === 'crossbow'){
+    await playCard(ci, 'multi');
+    return;
+  }
+  if(NEEDS_TARGET.has(card.type)){
+    const opts=state.players.map((pp,i)=>({label:pp.name+'（'+pp.hand.length+' 张）'+(pp.shield?' [护]':''),idx:i}))
+      .filter(o=>o.idx!==state.currentPlayer && !state.players[o.idx].out);
+    if (opts.length === 0) {
+      await showMessage('没有可指定的合法目标。');
+      return;
+    }
+    const choice=await chooseOption('选择目标',opts.concat([{label:'取消'}]));
+    if(choice===opts.length) return;
+    const ti=opts[choice].idx;
+    await playCard(ci,ti);
+  } else {
+    await playCard(ci,null);
+  }
+}
+
+async function playCard(ci,ti){
+  const p=state.players[state.currentPlayer];
+  const owner = state.currentPlayer;
+  const cardPreview = p.hand[ci];
+
+  // 原木：先弹对数表，取消则完全不消耗卡牌
+  if (cardPreview.type === 'log') {
+    const hAfter = p.hand.length - 1;
+    const amt = Math.ceil(Math.log2(hAfter + 1)) + 1;
+    const confirmed = await showLogTable(hAfter, amt);
+    if (!confirmed) {
+      log(p.name+' 取消了「原木」。');
+      render();
+      return;
+    }
+  }
+
+  if(state.unoPending && !state.unoClicked){
+    if(state.finalRound){
+      log(p.name+' 出牌前未点击 UNO，终局阶段跳过本回合。');
+      state.unoPending=false; state.unoClicked=false;
+      endTurn(); return;
+    } else {
+      log(p.name+' 出牌前未点击 UNO，罚抽 1 张。');
+      await drawCards(state.currentPlayer, 1);
+      render();
+    }
+  }
+  state.unoPending=false; state.unoClicked=false;
+
+  const card=p.hand.splice(ci,1)[0];
+  state.discard.push(card);
+  state.lastPlayedBy = owner;
+  state.lastPlayedCard = card;
+  log(p.name+' 打出 '+card.name+'。');
+
+  if(checkWin(state.currentPlayer)){
+    render();
+    if (state.winner !== null) return;
+    endTurn();
+    return;
+  }
+
+  let extraTarget = null;
+  if (ti !== null && ti !== undefined && ti !== 'multi' && ti >= 0) {
+    const counter = await askTargetCounter(ti, owner);
+    if (counter === 'negate') {
+      const eligible = state.players.map((pp,i)=>({pp,i}))
+        .filter(o=>o.i!==ti && o.i!==owner && !o.pp.out && !o.pp.shield);
+      if (eligible.length === 0) {
+        log('无懈可击后无合法目标，原效果无效。');
+        endTurn(); return;
+      }
+      const choice = await chooseOption('无懈可击！请重新选择目标', eligible.map(o=>({label:o.pp.name})));
+      ti = eligible[choice].i;
+      log('目标重新指定为 ' + state.players[ti].name + '。');
+    } else if (counter === 'doom') {
+      const eligible = state.players.map((pp,i)=>({pp,i}))
+        .filter(o=>o.i!==ti && o.i!==owner && !o.pp.out && !o.pp.shield);
+      if (eligible.length > 0) {
+        const choice = await chooseOption('亡命之计！选择一个追加目标', eligible.map(o=>({label:o.pp.name})));
+        extraTarget = eligible[choice].i;
+        log('亡命之计：' + state.players[extraTarget].name + ' 也将承受同结果。');
+      }
+    }
+  }
+
+  if (card.type === 'crossbow') {
+    await applyCrossbow();
+  } else {
+    await applyEffect(card, ti);
+    if (ti !== null && ti !== undefined && ti !== 'multi' && ti >= 0 &&
+        !NO_ADDITIVE_TYPES.has(card.type)) {
+      await askAdditive(owner, card, ti);
+    }
+  }
+
+  if (extraTarget !== null) {
+    await applyEffect(card, extraTarget);
+    if (!NO_ADDITIVE_TYPES.has(card.type)) {
+      await askAdditive(owner, card, extraTarget);
+    }
+  }
+
+  render();
+  endTurn(consumePendingSkip());
+}
+
+// ==================== 诸葛连弩 ====================
+async function applyCrossbow(){
+  const p = state.players[state.currentPlayer];
+  const eligible = state.players.map((pp,i)=>({pp,i})).filter(o=>!o.pp.out && !o.pp.shield && o.i !== state.currentPlayer);
+  const maxTargets = Math.min(3, eligible.length);
+  if (maxTargets === 0) { log('诸葛连弩：无合法目标。'); return; }
+
+  const selected = [];
+  const ov=document.createElement('div');ov.className='overlay';
+  const md=document.createElement('div');md.className='modal';
+  const updateUI = () => {
+    md.innerHTML='<h3>诸葛连弩：选择 1–'+maxTargets+' 个目标</h3><p class="hint">已选 '+selected.length+' 个。当前抽牌数：'+(4-Math.max(1,selected.length))+' 张/人</p>';
+    const grid=document.createElement('div');grid.className='cards-grid';
+    eligible.forEach(({pp,i})=>{
+      const b=document.createElement('button');
+      b.textContent=pp.name+'（'+pp.hand.length+' 张）';
+      if(selected.includes(i)) b.classList.add('selected');
+      b.onclick=()=>{
+        if(selected.includes(i)) selected.splice(selected.indexOf(i),1);
+        else if(selected.length < maxTargets) selected.push(i);
+        updateUI();
+      };
+      grid.appendChild(b);
+    });
+    md.appendChild(grid);
+    if(selected.length >= 1){
+      const confirm=document.createElement('button');confirm.className='primary';
+      confirm.textContent='确认（每人抽 '+(4-selected.length)+' 张）';
+      confirm.onclick=()=>{ov.remove();resolveTargets([...selected]);};md.appendChild(confirm);
+    } else {
+      const hint=document.createElement('button');hint.className='disabled';
+      hint.textContent='至少选 1 个目标';hint.disabled=true;md.appendChild(hint);
+    }
+  };
+  const resolveTargets = async (targets) => {
+    const amt = 4 - targets.length;
+    log('诸葛连弩：选择 '+targets.length+' 个目标，每人抽 '+amt+' 张。');
+    for(const ti of targets){
+      if(state.players[ti].targetActive){
+        state.players[ti].targetActive=false;
+        state.discard.push(C('众矢之的','target'));
+        log(state.players[ti].name+' 的众矢之的触发，额外抽 3 张。');
+        await drawCards(ti,3);
+      }
+      await drawCards(ti,amt);
+    }
+  };
+  updateUI();
+  ov.appendChild(md);document.body.appendChild(ov);
+}
+
+// ==================== 效果实现 ====================
+async function applyEffect(card,ti){
+  const cur=state.currentPlayer; const p=state.players[cur]; const n=state.players.length;
+  const t= (ti!==null && ti!==undefined && ti>=0) ? state.players[ti] : null;
+
+  const triggerTarget = async (playerIdx) => {
+    const pp = state.players[playerIdx];
+    if(pp && pp.targetActive){
+      pp.targetActive=false;
+      state.discard.push(C('众矢之的','target'));
+      log(pp.name+' 的众矢之的触发，额外抽 3 张。');
+      await drawCards(playerIdx, 3);
+    }
+  };
+
+  switch(card.type){
+    case 'empty': log('空集：无效果。'); break;
+    case 'reverse':
+      if(n===2){ log('反转：双人无效果。'); } else { state.direction*=-1; log('反转：方向改变。'); }
+      break;
+    case 'skip': log('禁止：跳过下家。'); state.pendingSkip = Math.max(state.pendingSkip, 1); break;
+    case 'skip2':
+      if(n===2){ log('双禁止：双人无效果。'); }
+      else { log('双禁止：跳过下家和下下家。'); state.pendingSkip = Math.max(state.pendingSkip, 2); }
+      break;
+    case 'again': state.extraTurn=true; log('再来一次：获得额外出牌机会。'); break;
+    case 'frost': {
+      if(p.hand.length===0){ log('冰霜：没有手牌可弃。'); break; }
+      const cnt = Math.min(2, p.hand.length);
+      const selected = await chooseHandCards(p, cnt, p.name+'：选择 '+cnt+' 张手牌弃掉（冰霜）');
+      const ecoUsed = await askEco(cur);
+      if (!ecoUsed) {
+        const discarded = discardSelected(p, selected);
+        log(p.name+' 弃了 '+discarded.length+' 张牌。');
+        await tryTriggerDegrade(cur);
+      } else {
+        log(p.name+' 的弃牌被环保主义阻止。');
+      }
+      if(checkWin(cur)){ return; }
+      break;
+    }
+    case 'plus': await handlePlus(card,ti); break;
+    case 'mass': {
+      for(let i=0;i<n;i++) if(i!==cur && !state.players[i].out){ await triggerTarget(i); await drawCards(i,card.value); }
+      log('大众抽 '+card.value+'：所有其他玩家抽 '+card.value+' 张。');
+      break;
+    }
+    case 'snipe': {
+      const acc = state.chain ? state.chain.accumulated : 0;
+      const total = acc + card.value;
+      log('狙击抽 '+card.value+'：'+(t?t.name:'目标')+' 抽 '+total+' 张。');
+      if(t){ await triggerTarget(ti); await drawCards(ti,total); }
+      if (state.chain) { log('狙击抽终结连锁。'); }
+      state.chain=null; break;
+    }
+    case 'balance': {
+      const drawn = await drawCards(cur, card.value);
+      if(drawn > 0 && p.hand.length > 0){
+        const actualCount = Math.min(drawn, p.hand.length);
+        const selected = await chooseHandCards(p, actualCount, p.name+'：选择 '+actualCount+' 张手牌洗回牌堆（制衡 '+card.value+'）');
+        const returned = returnSelected(p, selected);
+        shuffle(state.deck);
+        log('制衡 '+card.value+'：抽 '+drawn+' 张，洗回 '+returned.length+' 张。');
+      } else log('制衡 '+card.value+'：抽 '+drawn+' 张，无手牌可洗回。');
+      break;
+    }
+    case 'log': {
+      const h=p.hand.length;
+      const amt=Math.ceil(Math.log2(h+1))+1;
+      const nx = nextActiveIndex(cur);
+      log('原木：手牌 '+h+'，'+state.players[nx].name+' 抽 '+amt+' 张。');
+      await triggerTarget(nx); await drawCards(nx,amt);
+      break;
+    }
+    case 'razor': {
+      if(p.hand.length>=10){
+        const toD=p.hand.length-9;
+        const selected = await chooseHandCards(p, toD, p.name+'：剃刀需弃 '+toD+' 张（保留 9 张）');
+        const ecoUsed = await askEco(cur);
+        if (!ecoUsed) {
+          const discarded = discardSelected(p, selected);
+          log('剃刀：弃 '+discarded.length+' 张至 9 张。');
+          await tryTriggerDegrade(cur);
+        } else {
+          log('剃刀的弃牌被环保主义阻止。');
+        }
+      } else log('剃刀：手牌不足 10，无效果。');
+      break;
+    }
+    case 'trade': {
+      const tmp = [...p.hand];
+      p.hand = [...t.hand];
+      t.hand = tmp;
+      log(p.name+' 与 '+t.name+' 交换所有手牌。');
+      if(checkWin(cur)||checkWin(ti)){ return; }
+      break;
+    }
+    case 'transfer': {
+      const activeIdx = activeIndices();
+      const handsBackup = {};
+      activeIdx.forEach(i => { handsBackup[i] = [...state.players[i].hand]; });
+      const nextIdxMap = {};
+      activeIdx.forEach(i => { nextIdxMap[i] = nextActiveIndex(i); });
+      activeIdx.forEach(i => { state.players[i].hand = []; });
+      activeIdx.forEach(i => { state.players[nextIdxMap[i]].hand = handsBackup[i]; });
+      log('所有玩家手牌转移给下家。');
+      for(let i=0;i<n;i++) if(checkWin(i)){ return; }
+      break;
+    }
+    case 'planned': {
+      redistributeByCounts();
+      log('计划经济：所有手牌洗混后按原数量重新分配。');
+      break;
+    }
+    case 'robin': {
+      const activeIdx = activeIndices();
+      const all = [];
+      activeIdx.forEach(i => { for (const c of state.players[i].hand) all.push(c); });
+      shuffle(all);
+      const T = all.length;
+      const per = Math.floor(T / activeIdx.length);
+      const rem = T % activeIdx.length;
+      activeIdx.forEach(i => { state.players[i].hand = []; });
+      let idx = 0;
+      activeIdx.forEach(i => {
+        state.players[i].hand = all.slice(idx, idx + per);
+        idx += per;
+      });
+      if (rem > 0) {
+        const startOffset = Math.max(0, activeIdx.indexOf(state.startPlayer));
+        for (let r = 0; r < rem; r++) {
+          const target = activeIdx[(startOffset + r) % activeIdx.length];
+          state.players[target].hand.push(all[idx + r]);
+        }
+        log('罗宾汉：平均分配，余数 '+rem+' 张按起始玩家顺序分配。');
+      } else {
+        log('罗宾汉：所有手牌平均分配。');
+      }
+      break;
+    }
+    case 'resist': {
+      if(p.hand.length===0){ log('没有手牌可给。'); break; }
+      const di = await chooseCardFromHand(p,'选择一张手牌给 '+t.name);
+      if(di<0){ log('取消。'); break; }
+      t.hand.push(p.hand.splice(di,1)[0]);
+      log(p.name+' 给 '+t.name+' 一张牌。');
+      if(checkWin(cur)){ return; }
+      break;
+    }
+    case 'superResist': {
+      let given=0;
+      const others = state.players.map((pp,i)=>({pp,i})).filter(o=>o.i!==cur && !o.pp.out);
+      for(const {pp} of others){
+        if(p.hand.length===0) break;
+        const di = await chooseCardFromHand(p,'选择一张给 '+pp.name);
+        if(di<0) continue;
+        pp.hand.push(p.hand.splice(di,1)[0]); given++;
+      }
+      log('超级抵抗：给出 '+given+' 张。');
+      await triggerTarget(cur); await drawCards(cur,given);
+      if(checkWin(cur)){ return; }
+      break;
+    }
+    case 'control': {
+      if(t.hand.length===0){ log('目标无手牌。'); break; }
+      const ri = Math.floor(Math.random()*t.hand.length);
+      const taken = t.hand.splice(ri,1)[0];
+      log(p.name+' 从 '+t.name+' 随机抽到 '+taken.name+' 并打出。');
+      state.discard.push(taken);
+      if(checkWin(ti)){ return; }
+      const realType = getType(taken.name);
+      // v2.5：+牌自动选下家为目标，避免崩溃
+      let autoTarget = null;
+      if (realType === 'plus') {
+        autoTarget = nextActiveIndex(state.currentPlayer);
+        if (autoTarget === state.currentPlayer) autoTarget = null;
+      }
+      await applyEffect({name:taken.name,type:realType,value:getValue(taken.name)},autoTarget);
+      break;
+    }
+    case 'eye': {
+      await showMessage(t.name+' 的手牌：\n'+(t.hand.map(c=>c.name).join('、')||'(空)'));
+      log(p.name+' 查看了 '+t.name+' 的手牌。');
+      break;
+    }
+    case 'sort': {
+      state.sortingInProgress=true;
+      log('碎片整理：打出后至结算结束，任何人不得查看弃牌堆。');
+      render();
+      const actualTop=[];
+      for(let i=state.discard.length-1;i>=0 && actualTop.length<3;i--) actualTop.push(state.discard[i].name);
+      if(actualTop.length===0){ log('弃牌堆为空，碎片整理无效果。'); }
+      else {
+        log(t.name+' 需说出弃牌堆从上到下的前 '+actualTop.length+' 张牌名称。');
+        let wrongCount=0;
+        for(let i=0;i<actualTop.length;i++){
+          const guess = await showInput(t.name+'：弃牌堆从上往下第 '+(i+1)+' 张是？','输入卡牌名称（或输入"跳过"放弃剩余）');
+          if(guess.trim()==='跳过'){ wrongCount+=actualTop.length-i; log(t.name+' 选择跳过剩余回答。'); break; }
+          if(normalizeName(guess)!==normalizeName(actualTop[i])) wrongCount++;
+        }
+        log('碎片整理：实际前 '+actualTop.length+' 张（从上到下）：'+actualTop.join('、'));
+        if(wrongCount>0){ log(t.name+' 说错/说漏 '+wrongCount+' 张，抽 '+wrongCount+' 张。'); await drawCards(ti,wrongCount); }
+        else log(t.name+' 全部说对，不用抽牌。');
+      }
+      state.sortingInProgress=false; render(); break;
+    }
+    case 'decompose': {
+      shuffle(state.discard);
+      const nx = nextActiveIndex(cur);
+      if(state.discard.length>0){
+        state.players[nx].hand.push(state.discard.pop());
+        log('分解者：'+state.players[nx].name+' 从弃牌堆抽 1 张。');
+      }
+      if(p.hand.length>0){
+        const c = await chooseOption('是否自己也从弃牌堆抽 1 张？',[{label:'抽'},{label:'跳过'}]);
+        if(c===0 && state.discard.length>0){ p.hand.push(state.discard.pop()); log(p.name+' 从弃牌堆抽 1 张。'); }
+      }
+      break;
+    }
+    case 'copy': {
+      if(state.discard.length<2){ log('弃牌堆无上一张。'); break; }
+      const prev = state.discard[state.discard.length-2];
+      log('复制：执行 '+prev.name+' 的效果。');
+      const rt = getType(prev.name);
+      if(rt!=='copy' && rt!=='empty') {
+        // v2.5：+牌自动选下家为目标
+        let autoTarget = null;
+        if (rt === 'plus') {
+          autoTarget = nextActiveIndex(state.currentPlayer);
+          if (autoTarget === state.currentPlayer) autoTarget = null;
+        }
+        await applyEffect({name:prev.name,type:rt,value:getValue(prev.name)},autoTarget);
+      }
+      break;
+    }
+    case 'scavenge': {
+      if(state.discard.length===0){ log('弃牌堆为空。'); break; }
+      const opts = state.discard.map((c,i)=>({label:c.name,idx:i}));
+      const pick = await chooseOption('从弃牌堆选一张',opts.concat([{label:'取消'}]));
+      if(pick<opts.length){
+        const taken = state.discard.splice(opts[pick].idx,1)[0];
+        p.hand.push(taken); log(p.name+' 拾荒获得 '+taken.name+'。');
+        await askForge(cur, 1);
+        if(p.hand.length>0){
+          const di = await chooseCardFromHand(p,'弃一张牌');
+          if(di>=0){
+            state.discard.push(p.hand.splice(di,1)[0]);
+            await tryTriggerDegrade(cur);
+          }
+        }
+      }
+      break;
+    }
+    case 'swap': {
+      if(t.hand.length===0){ log('目标无手牌。'); break; }
+      const ri = Math.floor(Math.random()*t.hand.length);
+      const peeked = t.hand[ri];
+      await showMessage('你随机看到了：'+peeked.name);
+      const get = await chooseOption('是否获取这张牌？',[{label:'获取'},{label:'不获取'}]);
+      if(get===0){
+        const taken = t.hand.splice(ri,1)[0]; p.hand.push(taken);
+        if(p.hand.length>0){
+          const gi = await chooseCardFromHand(p,'给 '+t.name+' 一张牌');
+          if(gi>=0) t.hand.push(p.hand.splice(gi,1)[0]);
+        }
+        log(p.name+' 与 '+t.name+' 交换了一张牌。');
+      } else log('选择不获取。');
+      break;
+    }
+    case 'negate': case 'moral': case 'doom': case 'eco': case 'learn': case 'rights':
+      log(card.name+'：主动打出无效果。'); break;
+    case 'bulldozer': {
+      log('推土机：所有其他玩家弃掉所有反制牌。');
+      for(let i=0;i<n;i++){
+        if(i===cur || state.players[i].out) continue;
+        const pp=state.players[i]; let cnt=0;
+        pp.hand=pp.hand.filter(c=>{ if(COUNTER_TYPES.has(c.type)){ state.discard.push(c); cnt++; return false; } return true; });
+        if(cnt>0){
+          await tryTriggerDegrade(i);
+          await triggerTarget(i);
+          await drawCards(i,cnt*2);
+          log(pp.name+' 弃 '+cnt+' 张反制牌，抽 '+cnt*2+' 张。');
+        }
+      }
+      break;
+    }
+    case 'uno': {
+      state.unoActive=true;
+      log('致敬经典打出。此后手牌独为最少的玩家回合开始须点击 UNO。');
+      break;
+    }
+    case 'shield': {
+      p.shield=true; log(p.name+' 打出金钟罩，保护至下回合开始。');
+      break;
+    }
+    case 'shop': {
+      if(state.deck.length>0) state.shopCard=state.deck.pop();
+      log('商店开设，商品：'+(state.shopCard?state.shopCard.name:'无')+'。');
+      if(state.shopCard && p.hand.length>0){
+        const use = await chooseOption('是否立即使用商店？',[{label:'使用（弃1张）'},{label:'跳过'}]);
+        if(use===0){
+          const di = await chooseCardFromHand(p,'弃一张牌换取商品');
+          if(di>=0){
+            const ecoUsed = await askEco(cur);
+            if (!ecoUsed) {
+              state.discard.push(p.hand.splice(di,1)[0]);
+              p.hand.push(state.shopCard);
+              state.shopCard = state.deck.length>0 ? state.deck.pop() : null;
+              log(p.name+' 使用商店，获得商品。新商品：'+(state.shopCard?state.shopCard.name:'无')+'。');
+              await askForge(cur, 1);
+              await tryTriggerDegrade(cur);
+            } else {
+              log('商店使用的弃牌被环保主义阻止。');
+            }
+          }
+        }
+      }
+      break;
+    }
+    case 'targetBan': {
+      t.targetBanned=true;
+      log('定向禁止放置在 '+t.name+' 面前。');
+      break;
+    }
+    case 'decision': {
+      if(t.hand.length===0){ log('目标无手牌。'); break; }
+      const ri = Math.floor(Math.random()*t.hand.length);
+      const peeked = t.hand[ri];
+      await showMessage('你随机看到了：'+peeked.name);
+      const place = await chooseOption('是否放置在目标面前（下回合只能出这张）？',[{label:'放置'},{label:'不放置'}]);
+      if(place===0){ t.forcedCard=t.hand.splice(ri,1)[0]; log(p.name+' 将 '+t.forcedCard.name+' 放在 '+t.name+' 面前。'); }
+      else log('选择不放置。');
+      break;
+    }
+    case 'degrade': {
+      t.degradeActive=true;
+      log('降解放置在 '+t.name+' 面前，下次有人弃牌时触发。');
+      break;
+    }
+    case 'race': {
+      const active = state.players.map((pp,i)=>({pp,i})).filter(o=>!o.pp.out);
+      const order = active.map(o=>o.i); shuffle(order);
+      for(let r=0;r<order.length;r++){ const pi=order[order.length-1-r]; const amt=order.length-1-r; if(amt>0){ await triggerTarget(pi); await drawCards(pi,amt); } }
+      log('竞速（简化）：随机排名，最慢抽最多。');
+      break;
+    }
+    case 'vote': {
+      const active = state.players.map((pp,i)=>({pp,i})).filter(o=>!o.pp.out);
+      const votes = new Array(n).fill(0);
+      for(const {pp} of active){
+        const opts = active.map(o=>({label:o.pp.name}));
+        const v = await chooseOption(pp.name+' 投票给谁？',opts);
+        votes[active[v].i]++;
+      }
+      for(let i=0;i<n;i++){
+        if(votes[i]>=2){ await triggerTarget(i); await drawCards(i,votes[i]-1); log(state.players[i].name+' 被投 '+votes[i]+' 票，抽 '+(votes[i]-1)+' 张。'); }
+      }
+      break;
+    }
+    case 'gamble': {
+      const coin = Math.random()<0.5?'正面':'反面';
+      log('博弈：'+t.name+' 投出 '+coin+'。');
+      if(coin==='正面'){
+        if(t.hand.length === 0){ log(t.name+' 没有手牌可弃。'); }
+        else {
+          const cnt = Math.min(3, t.hand.length);
+          const selected = await chooseHandCards(t, cnt, t.name+'：选择 '+cnt+' 张手牌弃掉（博弈正面）');
+          const ecoUsed = await askEco(ti);
+          if (!ecoUsed) {
+            const discarded = discardSelected(t, selected);
+            log(t.name+' 弃 '+discarded.length+' 张。');
+            await tryTriggerDegrade(ti);
+          } else {
+            log(t.name+' 的弃牌被环保主义阻止。');
+          }
+        }
+        if(checkWin(ti)){ return; }
+      } else { await triggerTarget(ti); await drawCards(ti,3); }
+      break;
+    }
+    case 'rps': {
+      const ch = ['石头','剪刀','布'];
+      const pc = await chooseOption('你出什么？',[{label:'石头'},{label:'剪刀'},{label:'布'}]);
+      const tc = Math.floor(Math.random()*3);
+      log('猜拳：你出'+ch[pc]+'，对手出'+ch[tc]+'。');
+      if(pc===tc){ log('平局。'); await triggerTarget(ti); await drawCards(ti,1); }
+      else if((pc-tc+3)%3===2){ log('你赢了。目标抽 3 张。'); await triggerTarget(ti); await drawCards(ti,3); }
+      else log('你输了，无效果。');
+      break;
+    }
+    case 'lastDance':
+      log('最后一舞：终局平手时若持有则获胜。'); break;
+    case 'reduceGap': {
+      const active = state.players.map((pp,i)=>({pp,i})).filter(o=>!o.pp.out);
+      const sorted = active.map(o=>o.i).sort((a,b)=>state.players[a].hand.length - state.players[b].hand.length);
+      const ranks = {};
+      for(let i=0;i<sorted.length;i++){
+        if(i>0 && state.players[sorted[i]].hand.length!==state.players[sorted[i-1]].hand.length) ranks[sorted[i]] = i;
+        else if(i===0) ranks[sorted[0]] = 0;
+        else ranks[sorted[i]] = ranks[sorted[i-1]];
+      }
+      for(const idx of sorted){
+        const dc = sorted.length - 1 - ranks[idx];
+        if(dc>0){ await triggerTarget(idx); await drawCards(idx,dc); }
+      }
+      log('缩小劣势结算完毕。'); break;
+    }
+    case 'mutual': {
+      let total = 0;
+      const others = state.players.map((pp,i)=>({pp,i})).filter(o=>o.i!==cur && !o.pp.out);
+      for(const {pp,i} of others){
+        if(pp.hand.length===0) continue;
+        const c = await chooseOption(pp.name+'：是否弃一张？',[{label:'弃'},{label:'不弃'}]);
+        if(c===0){
+          const di = await chooseCardFromHand(pp,'选择要弃的牌');
+          if(di>=0){
+            const ecoUsed = await askEco(i);
+            if (!ecoUsed) {
+              state.discard.push(pp.hand.splice(di,1)[0]); total++;
+              await tryTriggerDegrade(i);
+              if(checkWin(i)){ return; }
+            }
+          }
+        }
+      }
+      log('互惠共赢：其他玩家共弃 '+total+' 张。');
+      for(let i=0;i<total;i++){
+        if(p.hand.length===0) break;
+        const c = await chooseOption('是否弃一张？（还可弃 '+(total-i)+' 张）',[{label:'弃'},{label:'停止'}]);
+        if(c!==0) break;
+        const di = await chooseCardFromHand(p,'选择要弃的牌');
+        if(di>=0){
+          const ecoUsed = await askEco(cur);
+          if (!ecoUsed) {
+            state.discard.push(p.hand.splice(di,1)[0]);
+            await tryTriggerDegrade(cur);
+            if(checkWin(cur)){ return; }
+          } else { break; }
+        }
+      }
+      break;
+    }
+    case 'landReform': {
+      const active = state.players.map((pp,i)=>({pp,i})).filter(o=>!o.pp.out);
+      const counts = active.map(o=>o.pp.hand.length);
+      const minC = Math.min(...counts);
+      const minP = active.filter(o=>o.pp.hand.length===minC).map(o=>o.i);
+      if(minP.length===1){
+        const target = minP[0];
+        for(const {pp,i} of active){
+          if(i===target) continue;
+          if(pp.hand.length===0) continue;
+          const di = await chooseCardFromHand(pp,'选一张给 '+state.players[target].name);
+          if(di>=0) state.players[target].hand.push(pp.hand.splice(di,1)[0]);
+        }
+        log('土地改革：所有人给 '+state.players[target].name+' 一张。');
+      } else {
+        for(const mp of minP){ await triggerTarget(mp); await drawCards(mp,1); }
+        log('土地改革：并列最少，各抽 1 张。');
+      }
+      break;
+    }
+    case 'newStart': {
+      const all = [];
+      state.players.forEach(pp => { for (const c of pp.hand) all.push(c); });
+      state.players.forEach(pp => { pp.hand = []; });
+      state.deck.push(...all); shuffle(state.deck);
+      log('新启程：所有手牌洗回牌堆。');
+      if(state.finalRound){ state.finalRound=false; log('终局被打断。'); }
+      const active = state.players.map((pp,i)=>({pp,i})).filter(o=>!o.pp.out);
+      const need = active.length*5;
+      if(state.deck.length>=need){ for(const {i} of active) await drawCards(i,5); }
+      else {
+        const T=state.deck.length; const per=Math.floor(T/active.length); const rem=T%active.length;
+        for(const {i} of active) await drawCards(i,per);
+        for(let i=0;i<rem;i++){ if(state.deck.length>0){ const {i:idx} = active[i%active.length]; state.players[idx].hand.push(state.deck.pop()); } }
+      }
+      break;
+    }
+    case 'reveal': {
+      if(p.hand.length===0){ log('你没有手牌。'); break; }
+      await showMessage(t.name+' 观看你的手牌：\n'+p.hand.map(c=>c.name).join('、'));
+      const cnt = Math.min(2,p.hand.length);
+      for(let i=0;i<cnt;i++){
+        const di = await chooseCardFromHand(p,'选择第 '+(i+1)+' 张给 '+t.name);
+        if(di>=0) t.hand.push(p.hand.splice(di,1)[0]);
+      }
+      log(t.name+' 从 '+p.name+' 处获得 '+cnt+' 张。');
+      await askForge(ti, cnt);
+      if(checkWin(cur)){ return; }
+      break;
+    }
+    case 'dlc':
+      log('DLC：主动打出视为空集。'); break;
+    case 'doubt': {
+      const choice = await chooseOption(t.name+'：是否质疑？',[{label:'不质疑（抽3）'},{label:'质疑'}]);
+      if(choice===0){ log('不质疑，目标抽 3 张。'); await triggerTarget(ti); await drawCards(ti,3); }
+      else {
+        const hasStrong = p.hand.some(c=>(c.type==='plus'&&c.value>=4)||(c.type==='snipe'&&c.value>=4));
+        if(hasStrong){ log('质疑成功，你抽 3 张。'); await triggerTarget(cur); await drawCards(cur,3); }
+        else { log('质疑失败，目标抽 6 张。'); await triggerTarget(ti); await drawCards(ti,6); }
+      }
+      break;
+    }
+    case 'repeat': {
+      let total=0;
+      for(let i=0;i<20;i++){
+        if(state.deck.length===0) break;
+        const drawn = state.deck.pop(); t.hand.push(drawn); total++;
+        log(t.name+' 抽到 '+drawn.name+'。');
+        const net = getNetHandChange(getType(drawn.name),getValue(drawn.name));
+        if(net>0){ log('抽到能增加总手牌的牌，停止。'); break; }
+      }
+      log('重复执行：共抽 '+total+' 张。');
+      break;
+    }
+    case 'forge':
+      log('伪造：主动打出无效果。'); break;
+    case 'setup': {
+      if(t.hand.length===0){ log('目标无手牌。'); break; }
+      const ri = Math.floor(Math.random()*t.hand.length);
+      const peeked = t.hand[ri];
+      await showMessage('你随机看到了：'+peeked.name);
+      const place = await chooseOption('是否弃掉这张牌？',[{label:'弃掉（目标新建 1 个空集）'},{label:'不弃'}]);
+      if(place===0){
+        const discarded = t.hand.splice(ri,1)[0];
+        state.discard.push(discarded);
+        log(p.name+' 弃掉了 '+t.name+' 的一张牌（'+discarded.name+'）。');
+        newEmptyMulti(t, 1);
+        await askForge(ti, 1);
+        await tryTriggerDegrade(ti);
+      } else log('选择不弃。');
+      break;
+    }
+    case 'whip':
+      log('长鞭：主动打出视为空集。'); break;
+    case 'cut':
+      log('截断：主动打出视为空集。'); break;
+    case 'hound': {
+      t.houndActive = true;
+      log('猎犬放置在 '+t.name+' 面前。该玩家下回合无法指定其他玩家为目标。');
+      break;
+    }
+    case 'void': {
+      if(p.hand.length===0){ log('虚无：没有手牌可弃。'); break; }
+      const di = await chooseCardFromHand(p,'选择一张手牌弃掉（虚无）');
+      if(di<0){ log('取消。'); break; }
+      const ecoUsed = await askEco(cur);
+      if (ecoUsed) { log('虚无的弃牌被环保主义阻止。'); break; }
+      const discarded = p.hand.splice(di,1)[0];
+      state.discard.push(discarded);
+      log(p.name+' 弃掉了 '+discarded.name+'。');
+      await tryTriggerDegrade(cur);
+      if(discarded.name === '空集'){
+        const others = state.players.map((pp,i)=>({pp,i})).filter(o=>o.i!==cur && !o.pp.out);
+        for(const {pp} of others) newEmptyMulti(pp, 1);
+        log('虚无：所有其他玩家各新建 1 个空集。');
+        await askForgeMulti(others.map(o => ({ idx: o.i, amount: 1 })));
+      }
+      break;
+    }
+    case 'center': {
+      const active = state.players.map((pp,i)=>({pp,i})).filter(o=>!o.pp.out);
+      const counts = active.map(o=>o.pp.hand.length);
+      const minC = Math.min(...counts);
+      const minP = active.filter(o=>o.pp.hand.length===minC).map(o=>o.i);
+      if(minP.length===1){
+        const target = minP[0];
+        log('归中：'+state.players[target].name+' 手牌独为最少，抽 3 张。');
+        await triggerTarget(target); await drawCards(target,3);
+      } else log('归中：无独为最少者，无效果。');
+      break;
+    }
+    case 'prisoner': {
+      const active = state.players.map((pp,i)=>({pp,i})).filter(o=>!o.pp.out);
+      const choices = [];
+      for(const {pp} of active){
+        const c = await chooseOption(pp.name+'：选择 1 或 2',[{label:'选 1'},{label:'选 2'}]);
+        choices.push({i: state.players.indexOf(pp), val: c+1});
+      }
+      const count1 = choices.filter(c=>c.val===1).length;
+      const count2 = choices.filter(c=>c.val===2).length;
+      log('囚徒困境：选 1 的有 '+count1+' 人，选 2 的有 '+count2+' 人。');
+      if(count1 > count2){
+        for(const {i,val} of choices) if(val===1){ await triggerTarget(i); await drawCards(i,1); }
+        log('选 1 者多数，选 1 的玩家各抽 1 张。');
+      } else if(count2 > count1){
+        for(const {i,val} of choices) if(val===2){ await triggerTarget(i); await drawCards(i,2); }
+        log('选 2 者多数，选 2 的玩家各抽 2 张。');
+      } else {
+        for(const {i,val} of choices){ await triggerTarget(i); await drawCards(i,val); }
+        log('平局，所有玩家抽自己选的数字。');
+      }
+      break;
+    }
+    case 'rng': {
+      const roll = Math.floor(Math.random()*6)+1;
+      const nx = nextActiveIndex(cur);
+      log('RNG：掷出 '+roll+' 点，'+state.players[nx].name+' 抽 '+roll+' 张。');
+      await triggerTarget(nx); await drawCards(nx,roll);
+      break;
+    }
+    case 'target': {
+      t.targetActive = true;
+      log('众矢之的放置在 '+t.name+' 面前。下次该玩家被增加卡牌时触发。');
+      break;
+    }
+    case 'crossbow':
+      break;
+    case 'reserve': {
+      const check = state.discard.length >= p.hand.length + 1;
+      if(!check){
+        log('后备军：弃牌堆不足 '+ (p.hand.length+1) +' 张，无效果。');
+        break;
+      }
+      const pileCard = state.discard.pop();
+      const all = [...p.hand, pileCard];
+      p.hand = [];
+      state.deck.push(...all); shuffle(state.deck);
+      log('后备军：洗入 '+all.length+' 张，从弃牌堆抽 '+all.length+' 张。');
+      for(let i=0;i<all.length;i++){
+        if(state.discard.length>0) p.hand.push(state.discard.pop());
+      }
+      break;
+    }
+    default:
+      log(card.name+'：效果未实现，视为空集。');
+  }
+}
+
+// ==================== 连锁（v2.5：严格递减 · 交互式接链） ====================
+
+// 构造连锁的人类可读描述（用于弹窗）
+function buildChainInfoHTML(chain){
+  const hist = chain.history && chain.history.length > 0 ? chain.history.join(' → ') : '(无)';
+  return '连锁：<b>' + hist + '</b><br>累积：<b>' + chain.accumulated + '</b> 张' +
+         '<br>下一张必须 <b>&lt; ' + chain.lastValue + '</b>';
+}
+
+async function handlePlus(card, ti){
+  // v2.5：目标无效时自动指定下家（兼容「复制 / 控制」打出的 + 牌）
+  if (ti === null || ti === undefined || ti < 0 || !state.players[ti] || state.players[ti].out) {
+    ti = nextActiveIndex(state.currentPlayer);
+    if (ti === state.currentPlayer) {
+      log('+' + card.value + '：无合法目标，无效果。');
+      return;
+    }
+    log('+' + card.value + ' 自动指定目标 ' + state.players[ti].name + '。');
+  }
+
+  // 新建连锁
+  if (!state.chain) {
+    state.chain = {
+      accumulated: 0,
+      lastValue: Infinity,
+      target: ti,
+      history: []
+    };
+  }
+  if (!state.chain.history) state.chain.history = [];
+
+  // v2.5：严格递减强制校验（理论上在正常出牌流程不会触发，作为防御层）
+  if (card.value >= state.chain.lastValue) {
+    log('[错误] +' + card.value + ' 不满足严格递减（需 < ' + state.chain.lastValue + '），出牌被拒绝。');
+    return;
+  }
+
+  state.chain.accumulated += card.value;
+  state.chain.lastValue = card.value;
+  state.chain.target = ti;
+  state.chain.history.push('+' + card.value);
+  log('[连锁] +' + card.value + ' 打出，累积 ' + state.chain.accumulated + '，目标 ' + state.players[ti].name + '。');
+
+  // 截断询问（拥有者可以立刻切断连锁）
+  const cutUsed = await askCut(state.currentPlayer);
+  if (cutUsed) {
+    const target = state.players[state.chain.target];
+    await drawCards(state.chain.target, state.chain.accumulated);
+    log(target.name + ' 因截断无法接链，抽 ' + state.chain.accumulated + ' 张。');
+    state.chain = null;
+    return;
+  }
+
+  await resolveChain();
+}
+
+async function resolveChain(){
+  const chain = state.chain;
+  if (!chain) return;
+
+  // 跳过出局的玩家
+  let safety = 0;
+  while (state.players[chain.target] && state.players[chain.target].out && safety < state.players.length * 2) {
+    chain.target = nextActiveIndex(chain.target);
+    safety++;
+  }
+
+  const targetIdx = chain.target;
+  const target = state.players[targetIdx];
+  if (!target || target.out) {
+    log('连锁无法继续：目标无效。');
+    state.chain = null;
+    return;
+  }
+
+  // v2.5：严格筛选——只有严格小于 lastValue 的 + 牌才能接链
+  const valid = target.hand
+    .map((c, i) => ({ card: c, index: i }))
+    .filter(o => o.card.type === 'plus' && o.card.value < chain.lastValue);
+
+  // 没有可用 + 牌 → 自动吃下累积抽牌
+  if (valid.length === 0) {
+    log(target.name + ' 无严格递减的 + 牌可接链。');
+    if (target.targetActive) {
+      target.targetActive = false;
+      state.discard.push(C('众矢之的','target'));
+      log(target.name + ' 的众矢之的触发，额外抽 3 张。');
+      await drawCards(targetIdx, 3);
+    }
+    await drawCards(targetIdx, chain.accumulated);
+    log(target.name + ' 无法接链，抽 ' + chain.accumulated + ' 张。');
+    state.chain = null;
+    return;
+  }
+
+  // v2.5：交互式选择——列出所有严格更小的 + 牌 + 「不接链」选项
+  const opts = valid.map(({ card, value }) => ({
+    label: '打出 ' + card.name + '（累积 → ' + (chain.accumulated + card.value) + '）'
+  }));
+  opts.push({ label: '不接链（吃下 ' + chain.accumulated + ' 张）' });
+
+  const prompt = buildChainInfoHTML(chain) + '<br><br>' + target.name + '，请选择响应：';
+  const choice = await chooseOption(prompt, opts);
+
+  if (choice === opts.length - 1) {
+    // 玩家选择不接链
+    if (target.targetActive) {
+      target.targetActive = false;
+      state.discard.push(C('众矢之的','target'));
+      log(target.name + ' 的众矢之的触发，额外抽 3 张。');
+      await drawCards(targetIdx, 3);
+    }
+    await drawCards(targetIdx, chain.accumulated);
+    log(target.name + ' 不接链，抽 ' + chain.accumulated + ' 张。');
+    state.chain = null;
+    return;
+  }
+
+  // 玩家选择了某张 + 牌接链
+  const picked = valid[choice];
+  log(target.name + ' 接链，打出 ' + picked.card.name + '。');
+  target.hand.splice(picked.index, 1);
+  state.discard.push(picked.card);
+  chain.accumulated += picked.card.value;
+  chain.lastValue = picked.card.value;
+  chain.history.push('+' + picked.card.value);
+
+  if (checkWin(targetIdx)) { state.chain = null; render(); return; }
+
+  // 前进到下一个目标
+  let next = nextActiveIndex(targetIdx);
+  if (next === state.currentPlayer) next = nextActiveIndex(next);
+  chain.target = next;
+  render();
+
+  // 截断询问
+  const cutUsed = await askCut(state.currentPlayer);
+  if (cutUsed) {
+    const t2 = state.players[chain.target];
+    await drawCards(chain.target, chain.accumulated);
+    log(t2.name + ' 因截断无法接链，抽 ' + chain.accumulated + ' 张。');
+    state.chain = null;
+    return;
+  }
+
+  await resolveChain();
+}
+
+// ==================== 辅助 ====================
+function getType(name){
+  if(/^\+[1-9]$/.test(name)) return 'plus';
+  if(/^大众抽 [1-3]$/.test(name)) return 'mass';
+  if(/^狙击抽 [1-9]$/.test(name)) return 'snipe';
+  if(/^制衡 [1-9]$/.test(name)) return 'balance';
+  const map = {
+    '空集':'empty','反转':'reverse','禁止':'skip','双禁止':'skip2','再来一次':'again','冰霜':'frost',
+    '原木':'log','剃刀':'razor','贸易':'trade','转移':'transfer','计划经济':'planned','罗宾汉':'robin',
+    '抵抗':'resist','超级抵抗':'superResist','控制':'control','真理之眼':'eye','碎片整理':'sort',
+    '分解者':'decompose','复制':'copy','拾荒':'scavenge','偷梁换柱':'swap','无懈可击':'negate',
+    '道德底线':'moral','亡命之计':'doom','环保主义':'eco','学习':'learn','维权':'rights',
+    '推土机':'bulldozer','致敬经典':'uno','金钟罩':'shield','商店':'shop','定向禁止':'targetBan',
+    '决策权':'decision','降解':'degrade','竞速':'race','投票':'vote','博弈':'gamble','猜拳':'rps',
+    '最后一舞':'lastDance','缩小劣势':'reduceGap','互惠共赢':'mutual','土地改革':'landReform',
+    '新启程':'newStart','明示':'reveal','DLC':'dlc','质疑':'doubt','重复执行':'repeat',
+    '伪造':'forge','设定':'setup','长鞭':'whip','截断':'cut','猎犬':'hound','虚无':'void',
+    '归中':'center','囚徒困境':'prisoner','RNG':'rng','众矢之的':'target','诸葛连弩':'crossbow',
+    '后备军':'reserve'
+  };
+  return map[name]||'empty';
+}
+function getValue(name){
+  const m = name.match(/[0-9]/); return m ? parseInt(m[0]) : 0;
+}
+function getNetHandChange(type,value){
+  switch(type){
+    case 'plus': return value-1;
+    case 'mass': return (state.players.filter(p=>!p.out).length-1)*value-1;
+    case 'snipe': return value-1;
+    case 'balance': return -1;
+    case 'empty': case 'reverse': case 'skip': case 'skip2': case 'again': return -1;
+    case 'frost': return -3;
+    case 'log': return 0;
+    case 'razor': return -1;
+    case 'trade': return -1;
+    case 'transfer': return -1;
+    case 'planned': return -1;
+    case 'robin': return -1;
+    case 'resist': return -2;
+    case 'superResist': return -1;
+    case 'mutual': return -1;
+    default: return -1;
+  }
+}
+
+// ==================== 胜利检查 ====================
+function checkWin(pi){
+  if (state.winner !== null) return true;
+  const p = state.players[pi];
+  if (!p) return false;
+  if (p.hand.length === 0) {
+    if (state.mode === 'runfast') {
+      if (p.out) return false;
+      p.out = true;
+      state.ranking.push(pi);
+      log(p.name + ' 出完手牌，获得第 ' + state.ranking.length + ' 名。');
+      if (activePlayers().length <= 1) {
+        const last = activePlayers()[0];
+        if (last) state.ranking.push(state.players.indexOf(last));
+        state.winner = state.ranking[0];
+        log('游戏结束。最终排名：' + state.ranking.map((idx,i)=>'第'+(i+1)+'名 '+state.players[idx].name).join('，'));
+      }
+      return true;
+    } else {
+      state.winner = pi;
+      log(p.name + ' 手牌为 0，获胜。');
+      return true;
+    }
+  }
+  return false;
+}
+
+function findWinnerByRemaining(){
+  if (state.mode === 'runfast') {
+    const remaining = state.players.map((p,i)=>({p,i})).filter(o=>!o.p.out);
+    remaining.sort((a,b)=>a.p.hand.length - b.p.hand.length);
+    for (const o of remaining) state.ranking.push(o.i);
+    state.winner = state.ranking[0];
+    log('终局结算：' + state.ranking.map((idx,i)=>'第'+(i+1)+'名 '+state.players[idx].name).join('，'));
+    return;
+  }
+  let min = Infinity, winners = [];
+  state.players.forEach((p,i)=>{ if(p.hand.length<min){min=p.hand.length;winners=[i];} else if(p.hand.length===min) winners.push(i); });
+  let idx = winners.reduce((best,w)=>{
+    const diff=(w-state.startPlayer+state.players.length)%state.players.length;
+    const bestDiff=(best-state.startPlayer+state.players.length)%state.players.length;
+    return diff>bestDiff?w:best;
+  }, winners[0]);
+  state.winner = idx;
+  log('终局结算：' + state.players[idx].name + ' 剩牌最少，获胜。');
+}
+
+// ==================== 回合结束 ====================
+async function endTurn(skipCount){
+  skipCount = skipCount || 0;
+  if(state.winner!==null){ render(); return; }
+
+  const prevPlayer = state.players[state.currentPlayer];
+  if (prevPlayer && prevPlayer.houndActive) {
+    prevPlayer.houndActive = false;
+    state.discard.push(C('猎犬','hound'));
+  }
+
+  if(state.extraTurn){
+    state.extraTurn=false;
+    log(prevPlayer.name+' 继续出牌。');
+    render();
+    return;
+  }
+
+  nextPlayer();
+  for(let i=0;i<skipCount;i++){
+    if (state.winner !== null) break;
+    const cp = state.players[state.currentPlayer];
+    if (!cp) break;
+    log(cp.name+' 的回合被跳过。');
+    nextPlayer();
+  }
+  state.chain=null;
+  render();
+  await startTurn();
+}
+</script>
+</body>
+</html>
