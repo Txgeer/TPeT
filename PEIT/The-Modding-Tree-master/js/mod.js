@@ -30,11 +30,13 @@ let modInfo = {
 let getModID = () => modInfo.id ?? modInfo.name.replace(/\s+/g, '-');
 // Set your version in num and name
 let VERSION = {
-	num: "0.7.4",
+	num: "0.7.5",
 	name: "New Game"
 }
 
 let changelog = `<h1>更新日志:</h1><br>
+    <h3>NG v0.7.5 2026.10.4</h3><br>
+        - 增加了新的内容（氟化-铍前）。<br>
     <h3>NG v0.7.4 2026.9.23</h3><br>
         - 增加了新的内容（氟化挑战前）。<br>
     <h3>NG v0.7.3 2026.9.19</h3><br>
@@ -202,29 +204,33 @@ var displayThings = [
     },
     function() {
         if (typeof player === 'undefined' || !player) return '';
+
         const inBorane  = player.b && player.b.inBorane;
         const inExtract = player.c && player.c.inExtract;
-        if (!inBorane && !inExtract) return '';
+        const inFChal   = player.f && player.f.activeChallenge == 11;
 
-        let label, color;
-        if (inBorane && inExtract) {
-            label = '制取 &amp; 提炼';
-            color = '#770000';
-        } else if (inBorane) {
-            label = '制取';
-            color = '#992222';
-        } else {
-            label = '提炼';
-            color = '#555555';
+        let labels = [];
+        if (inBorane)  labels.push({ text: '制取',     color: '#992222' });
+        if (inExtract) labels.push({ text: '提炼',     color: '#555555' });
+        if (inFChal)   labels.push({ text: '氟化-氢', color: '#7FFF3F' });
+
+        if (labels.length === 0) return '';
+
+        if (labels.length === 1) {
+            const { text, color } = labels[0];
+            return `<div style="color:${color}; font-size:20px; margin-top:5px; text-shadow:0 0 10px ${color}; font-weight:bold;">当前挑战：${text}</div>`;
         }
-        return `<div style="color:${color}; font-size:20px; margin-top:5px; text-shadow:0 0 10px ${color}; font-weight:bold;">当前挑战：${label}</div>`;
+
+        const text  = labels.map(l => l.text).join(' &amp; ');
+        const color = labels[0].color;
+        return `<div style="color:${color}; font-size:20px; margin-top:5px; text-shadow:0 0 10px ${color}; font-weight:bold;">当前挑战：${text}</div>`;
     },
 	"群号: 951232913"
 ]
 
 // Determines when the game "ends"
 function isEndgame() {
-	return hasMilestone("n",31)
+	return hasUpgrade("n",33)
 }
 
 

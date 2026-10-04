@@ -38,12 +38,12 @@
 
 #discord {
 	position: absolute;
-	top: 120px;
+	top: 160px;
 	left: 4px;
 	width: 40px;
 	height: 40px;
 	filter: drop-shadow(0px 4px 12px rgba(0, 0, 255, 0.5));
-    transition: all 0.5s ease;
+	transition: all 0.5s ease;
 }
 
 #discord img {
@@ -62,6 +62,96 @@
 
 #discord:hover #discord-links {
 	left: -4px;
+}
+
+#saveSlotBtn {
+	position: absolute;
+	top: 120px;
+	left: 4px;
+	width: 40px;
+	height: 40px;
+	line-height: 40px;
+	text-align: center;
+	font-size: 32px;
+	font-weight: bold;
+	color: #888888;
+	cursor: pointer;
+	user-select: none;
+	-webkit-text-stroke-width: 1px;
+	-webkit-text-stroke-color: #555555;
+	filter: drop-shadow(0px 4px 12px rgba(136, 136, 136, 0.5));
+	transition: all 0.5s ease;
+}
+
+#saveSlotBtn:hover {
+	transform: scale(1.2, 1.2);
+	color: #bbbbbb;
+	text-shadow: 5px 0 10px #888888,
+	             -3px 0 12px #888888;
+}
+
+.save-slot {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	margin: 10px auto;
+	max-width: 820px;
+	flex-wrap: wrap;
+	padding: 8px 12px;
+	border: 2px solid rgba(255, 255, 255, 0.12);
+	border-radius: 12px;
+	background: rgba(0, 0, 0, 0.15);
+}
+
+.slot-info {
+	min-width: 180px;
+	text-align: left;
+	padding: 4px 8px;
+}
+
+.slot-info b {
+	display: block;
+	font-size: 18px;
+	color: var(--color);
+}
+
+.slot-meta {
+	font-size: 12px;
+	opacity: 0.7;
+	line-height: 1.4;
+}
+
+.slot-buttons {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+.slot-btn {
+	min-width: 70px;
+	height: 44px;
+	padding: 0 12px;
+	border-radius: 12px;
+	border: 2px solid rgba(0, 0, 0, 0.15);
+	background-color: rgba(255, 255, 255, 0.15);
+	color: var(--color);
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: bold;
+	font-family: "bahnschrift", sans-serif;
+	transition: background-color 0.2s, transform 0.2s;
+}
+
+.slot-btn:hover {
+	background-color: rgba(0, 119, 119, 0.9);
+	color: #fff;
+	transform: scale(1.05);
+}
+
+.slot-btn-danger:hover {
+	background-color: rgba(150, 30, 30, 0.9);
 }
 
 #version {

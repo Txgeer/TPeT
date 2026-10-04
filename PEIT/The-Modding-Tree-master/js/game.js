@@ -445,9 +445,10 @@ function gameLoop(diff) {
 }
 
 function hardReset(resetOptions) {
-    if (!confirm("你真的想要做这个吗？ 你将会丢失你所有的进度！")) return;
+    if (!confirm("你真的想要做这个吗？ 你将会丢失你所有的进度！\n\n注意：所有 3 个存档槽位中的存档也会被清空！")) return;
     localStorage.removeItem(getModID());
     localStorage.removeItem(getModID() + "_options");
+    if (typeof clearAllSlots === 'function') clearAllSlots();
     window.player = null;
     window.tmp = null;
     window.location.reload();
@@ -549,8 +550,8 @@ var ticking = false;
     document.addEventListener('mousemove', handleDragMove);
     document.addEventListener('mouseup', handleDragEnd);
     
-    document.addEventListener('touchstart', handleDragStart, { passive: false });
-    document.addEventListener('touchmove', handleDragMove, { passive: false });
+    document.addEventListener('touchstart', handleDragStart, { passive: true });
+    document.addEventListener('touchmove', handleDragMove, { passive: true });
     document.addEventListener('touchend', handleDragEnd);
 })();
 

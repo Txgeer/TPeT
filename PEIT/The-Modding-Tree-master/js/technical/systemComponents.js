@@ -139,7 +139,7 @@ var systemComponents = {
     'info-tab': {
     data() {
         return {
-            engineVersion: '3.1.3'
+            engineVersion: '3.2'
         };
     },
     template: `
@@ -175,41 +175,98 @@ var systemComponents = {
     },
 
     'options-tab': {
-    template: `
-        <div>
-            <table class="options-table">
-                <tbody>
-                    <tr>
-                        <td><button class="opt" @click="() => save()">保存</button></td>
-                        <td><button class="opt" @click="() => toggleOpt('autosave')">自动保存: {{ options.autosave ? "开" : "关" }}</button></td>
-                        <td><button class="opt" @click="() => switchFont()">字体: {{ options.fontFamily === 'bahnschrift' ? 'Bahnschrift' : '系统字体' }}</button></td>
-                        <td><button class="opt" @click="() => exportSave()">导出到剪切板</button></td>
-                    </tr>
-                    <tr>
-                        <td><button class="opt" @click="() => importSave()">导入</button></td>
-                        <td><button class="opt" @click="() => toggleOpt('offlineProd')">离线进度: {{ options.offlineProd ? "开" : "关" }}</button></td>
-                        <td><button class="opt" @click="() => switchTheme()">主题: {{ getThemeName() }}</button></td>
-                        <td><button class="opt" @click="() => adjustMSDisp()">显示里程碑: {{ MS_DISPLAYS[MS_SETTINGS.indexOf(options.msDisplay)] }}</button></td>
-                    </tr>
-                    <tr>
-                        <td><button class="opt" @click="() => toggleOpt('hqTree')">高质量树贴图: {{ options.hqTree ? "开" : "关" }}</button></td>
-                        <td><button class="opt" @click="() => toggleOpt('hideChallenges')">已完成的挑战: {{ options.hideChallenges ? "隐藏" : "显示" }}</button></td>
-                        <td><button class="opt" @click="() => { toggleOpt('forceOneTab'); needCanvasUpdate = true; }">单标签页模式: {{ options.forceOneTab ? "总是" : "自动" }}</button></td>
-                        <td><button class="opt" @click="() => toggleMusic()">音乐: {{ options.musicEnabled ? "开" : "关" }}</button></td>
-                    </tr>
-                    <tr>
-                        <td><button class="opt" @click="() => toggleOpt('milestonePopup')">里程碑弹窗: {{ options.milestonePopup ? "开" : "关" }}</button></td>
-                        <td><button class="opt" @click="() => toggleZoom()">放大: {{ options.enableZoom ? "开" : "关" }}</button></td>
-                        <td><button class="opt" @click="() => toggleTextSelect()">文本选择: {{ options.textSelect ? "开" : "关" }}</button></td>
-                        <td><button class="opt" @click="() => toggleOpt('achievementFlash')">成就闪光: {{ options.achievementFlash ? "开" : "关" }}</button></td>
-                    </tr>
-                    <tr>
-                        <td><button class="hard-reset-btn" @click="() => hardReset()">硬复位</button></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    `
+        template: `
+            <div>
+                <table class="options-table">
+                    <tbody>
+                        <tr>
+                            <td><button class="opt" @click="() => switchFont()">字体: {{ options.fontFamily === 'bahnschrift' ? 'Bahnschrift' : '系统字体' }}</button></td>
+                            <td><button class="opt" @click="() => switchTheme()">主题: {{ getThemeName() }}</button></td>
+                            <td><button class="opt" @click="() => adjustMSDisp()">显示里程碑: {{ MS_DISPLAYS[MS_SETTINGS.indexOf(options.msDisplay)] }}</button></td>
+                            <td><button class="opt" @click="() => toggleMusic()">音乐: {{ options.musicEnabled ? "开" : "关" }}</button></td>
+                        </tr>
+                        <tr>
+                            <td><button class="opt" @click="() => toggleOpt('hqTree')">高质量树贴图: {{ options.hqTree ? "开" : "关" }}</button></td>
+                            <td><button class="opt" @click="() => toggleOpt('hideChallenges')">已完成的挑战: {{ options.hideChallenges ? "隐藏" : "显示" }}</button></td>
+                            <td><button class="opt" @click="() => { toggleOpt('forceOneTab'); needCanvasUpdate = true; }">单标签页模式: {{ options.forceOneTab ? "总是" : "自动" }}</button></td>
+                            <td><button class="opt" @click="() => toggleOpt('milestonePopup')">里程碑弹窗: {{ options.milestonePopup ? "开" : "关" }}</button></td>
+                        </tr>
+                        <tr>
+                            <td><button class="opt" @click="() => toggleZoom()">放大: {{ options.enableZoom ? "开" : "关" }}</button></td>
+                            <td><button class="opt" @click="() => toggleTextSelect()">文本选择: {{ options.textSelect ? "开" : "关" }}</button></td>
+                            <td><button class="opt" @click="() => toggleOpt('achievementFlash')">成就闪光: {{ options.achievementFlash ? "开" : "关" }}</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `
+    },
+
+    'save-tab': {
+        data() {
+            return { refresh: 0 };
+        },
+        computed: {
+            slotInfos() {
+                this.refresh;
+                const infos = [];
+                for (let i = 1; i <= SAVE_SLOT_COUNT; i++) {
+                    infos.push(getSlotInfo(i));
+                }
+                return infos;
+            }
+        },
+        methods: {
+            doSave(slot) { saveToSlot(slot); this.refresh++; },
+            doLoad(slot) { loadFromSlot(slot); },
+            doExport(slot) { exportSlot(slot); },
+            doImport(slot) { importToSlot(slot); this.refresh++; },
+            doDelete(slot) { deleteSlot(slot); this.refresh++; },
+            formatDate(ts) {
+                if (!ts) return '';
+                const d = new Date(ts);
+                const p = n => String(n).padStart(2, '0');
+                return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+            }
+        },
+        template: `
+            <div>
+                <h2>存档管理</h2>
+                <br>
+                <div v-for="i in 3" :key="i" class="save-slot">
+                    <div class="slot-info">
+                        <b>槽位 {{i}}</b>
+                        <div v-if="slotInfos[i-1]" class="slot-meta">
+                            {{ formatDate(slotInfos[i-1].time) }}<br>
+                            {{ slotInfos[i-1].version || '' }}
+                        </div>
+                        <div v-else class="slot-meta">（空）</div>
+                    </div>
+                    <div class="slot-buttons">
+                        <button class="slot-btn" @click="doSave(i)">保存</button>
+                        <button class="slot-btn" @click="doLoad(i)">加载</button>
+                        <button class="slot-btn" @click="doExport(i)">导出</button>
+                        <button class="slot-btn" @click="doImport(i)">导入</button>
+                        <button class="slot-btn slot-btn-danger" @click="doDelete(i)">删除</button>
+                    </div>
+                </div>
+                <br>
+                <table class="options-table">
+                    <tbody>
+                        <tr>
+                            <td><button class="opt" @click="() => exportSave()">导出当前游戏</button></td>
+                            <td><button class="opt" @click="() => toggleOpt('autosave')">自动保存: {{ options.autosave ? "开" : "关" }}</button></td>
+                            <td><button class="opt" @click="() => toggleOpt('offlineProd')">离线进度: {{ options.offlineProd ? "开" : "关" }}</button></td>
+                        </tr>
+                        <tr>
+                            <td colspan="3">
+                                <button class="hard-reset-btn" @click="() => hardReset()">硬复位</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `
     },
 
     'back-button': {
@@ -226,14 +283,49 @@ var systemComponents = {
 	},
 
 	'node-mark': {
-		props: {'layer': {}, data: {}, offset: {default: 0}, scale: {default: 1}},
-		template: `
+   		props: {
+ 	        layer: {},
+            data: {},
+            offset: {default: 0},
+            scale: {default: 1}
+        },
+        computed: {
+            isSymbol() {
+                return this.data && typeof this.data === 'object' && !Array.isArray(this.data) && this.data.symbol !== undefined;
+            },
+            symbolStyle() {
+                const s = this.isSymbol ? this.data : {};
+                return {
+                    position: 'absolute',
+                    left: (this.offset - 12) + 'px',
+                    top: (this.offset - 12) + 'px',
+                    transform: `scale(${this.scale || 1}, ${this.scale || 1})`,
+                    color: s.color || '#FFFF3F',
+              	    textShadow: s.glow !== false ? `0 0 8px ${s.color || '#FFFF3F'}` : 'none',
+           	        fontSize: (s.size || 18) + 'px',
+           	        fontWeight: 'bold',
+           	        fontFamily: 'bahnschrift, sans-serif',
+           	        lineHeight: '24px',
+                    textAlign: 'center',
+                    width: '24px',
+                    height: '24px',
+                    pointerEvents: 'none',
+                    zIndex: 10
+                };
+            }
+        },
+        template: `
             <div v-if='data'>
-            <div v-if='data === true' class='star' v-bind:style='{position: "absolute", left: (offset-10) + "px", top: (offset-10) + "px", transform: "scale( " + scale||1 + ", " + scale||1 + ")"}'></div>
-            <img v-else class='mark' v-bind:style='{position: "absolute", left: (offset-22) + "px", top: (offset-15) + "px", transform: "scale( " + scale||1 + ", " + scale||1 + ")"}' v-bind:src="data">
+                <div v-if='data === true' class='star' v-bind:style='{position: "absolute", left: (offset-10) + "px", top: (offset-10) + "px", transform: "scale( " + scale||1 + ", " + scale||1 + ")"}'></div>
+
+                <div v-else-if='isSymbol'
+                     v-bind:style='symbolStyle'
+                     v-html='data.symbol'></div>
+
+                <img v-else class='mark' v-bind:style='{position: "absolute", left: (offset-22) + "px", top: (offset-15) + "px", transform: "scale( " + scale||1 + ", " + scale||1 + ")"}' v-bind:src="data">
             </div>
-            `
-	},
+        `
+    },
 
 	'particle': {
 		props: ['data', 'index'],

@@ -1,5 +1,119 @@
-
 // ************ Save stuff ************
+const SAVE_SLOT_COUNT = 3;
+
+function getSaveSlotKey(slot) {
+    return getModID() + "_slot" + slot;
+}
+
+function getSlotInfo(slot) {
+    try {
+        const raw = localStorage.getItem(getSaveSlotKey(slot));
+        if (!raw) return null;
+        const info = JSON.parse(raw);
+        if (!info || !info.save) return null;
+        return info;
+    } catch (e) {
+        return null;
+    }
+}
+
+function saveToSlot(slot) {
+    if (!player) return;
+    NaNcheck(player);
+    if (NaNalert) {
+        if (!confirm("检测到 NaN 数据，是否仍要保存？")) return;
+    }
+    const data = {
+        save: utf8_to_b64(JSON.stringify(player)),
+        time: Date.now(),
+        version: (typeof VERSION !== 'undefined' && VERSION.withoutName) ? VERSION.withoutName : ''
+    };
+    try {
+        localStorage.setItem(getSaveSlotKey(slot), JSON.stringify(data));
+        doPopup("info", "已保存到槽位 " + slot, "💾", 2, "#00ff00");
+    } catch (e) {
+        alert("保存失败：" + e.message);
+    }
+}
+
+function loadFromSlot(slot) {
+    const info = getSlotInfo(slot);
+    if (!info) {
+        alert("槽位 " + slot + " 为空！");
+        return;
+    }
+    if (!confirm("确定要从槽位 " + slot + " 加载吗？当前游戏进度将会丢失！\n（建议先保存当前进度）")) return;
+    try {
+        const decoded = b64_to_utf8(info.save);
+        const tempPlr = Object.assign(getStartplayer(), JSON.parse(decoded));
+        window.player = tempPlr;
+        player = window.player;
+        player.versionType = modInfo.id;
+        fixSave();
+        versionCheck();
+        NaNcheck(player);
+        save();
+        window.location.reload();
+    } catch (e) {
+        console.error("加载失败", e);
+        alert("加载失败：" + e.message);
+    }
+}
+
+function exportSlot(slot) {
+    const info = getSlotInfo(slot);
+    if (!info) {
+        alert("槽位 " + slot + " 为空！");
+        return;
+    }
+    const el = document.createElement("textarea");
+    el.value = info.save;
+    document.body.appendChild(el);
+    el.select();
+    el.setSelectionRange(0, 99999);
+    document.execCommand("copy");
+    document.body.removeChild(el);
+    doPopup("info", "槽位 " + slot + " 已导出到剪贴板", "📋", 2, "#00aaff");
+}
+
+function importToSlot(slot) {
+    const imported = prompt("请粘贴要导入到槽位 " + slot + " 的存档：");
+    if (imported === null || imported === undefined) return;
+    const cleaned = String(imported).replace(/\s/g, '');
+    if (cleaned.trim() === "") {
+        alert("你没有输入任何内容！");
+        return;
+    }
+    try {
+        const decoded = b64_to_utf8(cleaned);
+        const tempPlr = JSON.parse(decoded);
+        if (tempPlr.versionType && tempPlr.versionType !== modInfo.id) {
+            if (!confirm("这个存档似乎来自其他模组！确定要导入吗？")) return;
+        }
+        const info = {
+            save: cleaned,
+            time: Date.now(),
+            version: tempPlr.version || '?'
+        };
+        localStorage.setItem(getSaveSlotKey(slot), JSON.stringify(info));
+        doPopup("info", "已导入到槽位 " + slot, "📥", 2, "#00ff00");
+    } catch (e) {
+        console.error("导入失败", e);
+        alert("无效的存档代码！请确保你复制了完整的存档文本。");
+    }
+}
+
+function deleteSlot(slot) {
+    if (!confirm("确定要删除槽位 " + slot + " 的存档吗？此操作不可恢复！")) return;
+    localStorage.removeItem(getSaveSlotKey(slot));
+    doPopup("info", "已删除槽位 " + slot, "🗑", 2, "#ff6666");
+}
+
+function clearAllSlots() {
+    for (let i = 1; i <= SAVE_SLOT_COUNT; i++) {
+        localStorage.removeItem(getSaveSlotKey(i));
+    }
+}
 function utf8_to_b64(str) {
     return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
         return String.fromCharCode('0x' + p1);
@@ -453,6 +567,7 @@ function exportSave() {
     el.setSelectionRange(0, 99999);
     document.execCommand("copy");
     document.body.removeChild(el);
+    doPopup("info", "当前游戏已导出到剪贴板", "📋", 2, "#00aaff");
 }
 function importSave(imported = undefined, forced = false) {
     if (imported === undefined) {
