@@ -8154,13 +8154,13 @@ addLayer("a", {
         },
         53: {
             name: "味大无需多言",
-            done() {return player.f.points.gte(10000000)},
+            done() {return player.f.points.gte(100000000)},
             tooltip: function() {
                 if (hasAchievement(this.layer, this.id)) {
                     let eff = achievementEffect(this.layer, this.id);
-                    return `要求：获得 10000000 氟。<br>奖励：已完成的成就个数加成氧。<br>当前：x${format(eff)}`;
+                    return `要求：获得 100000000 氟。<br>奖励：已完成的成就个数加成氧。<br>当前：x${format(eff)}`;
                 } else {
-                    return `要求：获得 10000000 氟。<br>奖励：已完成的成就个数加成氧。<br>当前：x1.00`;
+                    return `要求：获得 100000000 氟。<br>奖励：已完成的成就个数加成氧。<br>当前：x1.00`;
                 }
             },
             effect() {
