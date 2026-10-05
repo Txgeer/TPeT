@@ -1,7 +1,9 @@
 
 function prestigeButtonText(layer) {
+	// ===== 优先使用 layers 层自定义的重置按钮文本 =====
 	if (layers[layer].prestigeButtonText !== undefined)
-		return run(layers[layer].prestigeButtonText(), layers[layer])
+		return run(layers[layer].prestigeButtonText, layers[layer])
+
 	if (tmp[layer].type == "normal")
 		return `${player[layer].points.lt(1e3) ? (tmp[layer].resetDescription !== undefined ? tmp[layer].resetDescription : "重置可得： ") : ""}+<b>${formatWhole(tmp[layer].resetGain)}</b> ${tmp[layer].resource} ${tmp[layer].resetGain.lt(100) && player[layer].points.lt(1e3) ? `<br><br>下一个需要 ${(tmp[layer].roundUpCost ? formatWhole(tmp[layer].nextAt) : format(tmp[layer].nextAt))} ${tmp[layer].baseResource}` : ""}`
 	if (tmp[layer].type == "static")

@@ -19,17 +19,25 @@ function getSlotInfo(slot) {
 
 function saveToSlot(slot) {
     if (!player) return;
+
     NaNcheck(player);
     if (NaNalert) {
         if (!confirm("检测到 NaN 数据，是否仍要保存？")) return;
     }
+
+    const slotKey = getSaveSlotKey(slot);
+    if (localStorage.getItem(slotKey)) {
+        if (!confirm("槽位 " + slot + " 已有存档，确定要覆盖吗？此操作不可恢复！")) return;
+    }
+
     const data = {
         save: utf8_to_b64(JSON.stringify(player)),
         time: Date.now(),
         version: (typeof VERSION !== 'undefined' && VERSION.withoutName) ? VERSION.withoutName : ''
     };
+
     try {
-        localStorage.setItem(getSaveSlotKey(slot), JSON.stringify(data));
+        localStorage.setItem(slotKey, JSON.stringify(data));
         doPopup("info", "已保存到槽位 " + slot, "💾", 2, "#00ff00");
     } catch (e) {
         alert("保存失败：" + e.message);

@@ -30,11 +30,13 @@ let modInfo = {
 let getModID = () => modInfo.id ?? modInfo.name.replace(/\s+/g, '-');
 // Set your version in num and name
 let VERSION = {
-	num: "0.7.5",
+	num: "0.7.6",
 	name: "New Game"
 }
 
 let changelog = `<h1>更新日志:</h1><br>
+    <h3>NG v0.7.6 2026.10.5</h3><br>
+        - 增加了新的内容（氖前）。<br>
     <h3>NG v0.7.5 2026.10.4</h3><br>
         - 增加了新的内容（氟化-铍前）。<br>
     <h3>NG v0.7.4 2026.9.23</h3><br>
@@ -173,6 +175,8 @@ function getPointGen() {
 	if(hasUpgrade("b",75)) gain = gain.mul(upgradeEffect("b",75))
 	if(hasUpgrade("li",13)) gain = gain.mul(layers.li.LiboostPoints())
 	if(hasMilestone("c",7)) gain = gain.mul(player.c.oil.pow(player.c.entropy).add(1).log2().add(1).floor())
+	if(player.n.ammoniaTier >= 12) gain = gain.mul(n(player.n.ammoniaTier + 1).pow(5).add(1))
+	if(fluorineFluorineCompleted()) gain = gain.mul(player.f.points.max(1))
     if(player.b.inBorane) gain = gain.pow(0.66686)
 	if(player.c.inExtract) gain = gain.pow(0.666)
 	return gain
@@ -230,7 +234,7 @@ var displayThings = [
 
 // Determines when the game "ends"
 function isEndgame() {
-	return hasUpgrade("n",33)
+	return hasAchievement("a",53)
 }
 
 

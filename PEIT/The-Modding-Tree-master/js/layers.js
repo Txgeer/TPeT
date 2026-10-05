@@ -3,13 +3,58 @@ function getAchievementCount() {
     if (!player || !player.a || !player.a.achievements) return 0;
     let count = player.a.achievements.filter(id => id !== '17').length;
     if (hasUpgrade('h', 55)) count = count * count;
-    if (player.o && player.o.balloon instanceof Decimal) {
-        count = count * player.o.balloon.add(1).toNumber();
+    if (player.o && player.o.balloon instanceof Decimal
+        && typeof layers !== 'undefined' && layers.o && typeof layers.o.oxygenBalloonEffect === 'function') {
+        count = count * layers.o.oxygenBalloonEffect().toNumber();
     }
     return count;
 }
+function tooltipLabel(layer) {
+
+    let done = false;
+    if (layer === 'h')       done = fluorineHydrogenCompleted();
+    else if (layer === 'li') done = fluorineLithiumCompleted();
+    else if (layer === 'be') done = fluorineBerylliumCompleted();
+    else if (layer === 'b') done = fluorineBoronCompleted();
+    else if (layer === 'c')  done = fluorineCarbonCompleted();
+    else if (layer === 'n')  done = fluorineNitrogenCompleted();
+    else if (layer === 'o')  done = fluorineOxygenCompleted();
+    else if (layer === 'f')  done = fluorineFluorineCompleted();
+
+    return done ? ' 氟化' : '';
+}
+function makeFluorinePrestigeButtonText(isFluorinated) {
+    return function () {
+        const layer = this.layer;
+        const flTag = isFluorinated()
+            ? ' 氟化 '
+            : '';
+
+        if (tmp[layer].type == "normal") {
+            const prefix = player[layer].points.lt(1e3)
+                ? (tmp[layer].resetDescription !== undefined ? tmp[layer].resetDescription : "重置可得： ")
+                : "";
+            const suffix = (tmp[layer].resetGain.lt(100) && player[layer].points.lt(1e3))
+                ? `<br><br>下一个需要 ${(tmp[layer].roundUpCost ? formatWhole(tmp[layer].nextAt) : format(tmp[layer].nextAt))} ${tmp[layer].baseResource}`
+                : "";
+            return `${prefix}+<b>${formatWhole(tmp[layer].resetGain)}</b>${flTag} ${tmp[layer].resource} ${suffix}`;
+        }
+
+        if (tmp[layer].type == "static") {
+            const prefix = tmp[layer].resetDescription !== undefined ? tmp[layer].resetDescription : "重置可得 ";
+            const lead = player[layer].points.lt(30)
+                ? (tmp[layer].baseAmount.gte(tmp[layer].nextAt)
+                    && (tmp[layer].canBuyMax !== undefined)
+                    && tmp[layer].canBuyMax ? "下一个:" : "需要:")
+                : "";
+            return `${prefix}+<b>${formatWhole(tmp[layer].resetGain)}</b>${flTag} ${tmp[layer].resource}<br><br>${lead} ${formatWhole(tmp[layer].baseAmount)} / ${(tmp[layer].roundUpCost ? formatWhole(tmp[layer].nextAtDisp) : format(tmp[layer].nextAtDisp))} ${tmp[layer].baseResource}`;
+        }
+
+        return "";
+    };
+}
 function inFluorineChallenge() {
-    return !!(player && player.f && player.f.activeChallenge);
+    return player && player.f && player.f.activeChallenge;
 }
 function fluorineHydrogenCompleted() {
     return typeof hasChallenge === 'function' && hasChallenge('f', 11);
@@ -18,10 +63,37 @@ function fluorineLithiumCompleted() {
     return typeof hasChallenge === 'function' && hasChallenge('f', 12);
 }
 function lithiumDisabled() {    
-    return !!(player && player.f && player.f.activeChallenge == 12);
+    return player && player.f && (player.f.activeChallenge == 12 || player.f.activeChallenge == 13 || player.f.activeChallenge == 21 || player.f.activeChallenge == 22 || player.f.activeChallenge == 23 || player.f.activeChallenge == 31 || player.f.activeChallenge == 32);
 }
 function balloonGainMult() {
     return fluorineHydrogenCompleted() ? 2 : 1;
+}
+function fluorineBerylliumCompleted() {
+    return typeof hasChallenge === 'function' && hasChallenge('f', 13);
+}
+function berylliumDisabled() {
+    return player && player.f && (player.f.activeChallenge == 13 || player.f.activeChallenge == 21 || player.f.activeChallenge == 22 || player.f.activeChallenge == 23 || player.f.activeChallenge == 31 || player.f.activeChallenge == 32);
+}
+function fluorineBoronCompleted() {
+    return typeof hasChallenge === 'function' && hasChallenge('f', 21);
+}
+function boronDisabled() {
+    return player && player.f && (player.f.activeChallenge == 21 || player.f.activeChallenge == 22 || player.f.activeChallenge == 23 || player.f.activeChallenge == 31 || player.f.activeChallenge == 32);
+}
+function fluorineCarbonCompleted() {
+    return typeof hasChallenge === 'function' && hasChallenge('f', 22);
+}
+function carbonDisabled() {
+    return player && player.f && (player.f.activeChallenge == 22 || player.f.activeChallenge == 23 || player.f.activeChallenge == 31 || player.f.activeChallenge == 32);
+}
+function fluorineNitrogenCompleted() {
+    return typeof hasChallenge === 'function' && hasChallenge('f', 23);
+}
+function fluorineOxygenCompleted() {
+    return typeof hasChallenge === 'function' && hasChallenge('f', 31);
+}
+function fluorineFluorineCompleted() {
+    return typeof hasChallenge === 'function' && hasChallenge('f', 32);
 }
 addLayer("p", {
     name: "p",
@@ -1259,6 +1331,7 @@ addLayer("p", {
                 if (hasAchievement('a',43)) gain = gain.mul(achievementEffect("a",43)).floor();
                 if (hasUpgrade('b',71)) gain = gain.mul(upgradeEffect("b",71)).floor();
                 if (hasMilestone('he',16)) gain = gain.mul(layers.he.temPointEffect11()).floor();
+                if (player.n.ammoniaTier >= 9) gain = gain.mul(n(player.n.ammoniaTier + 1).log10().add(1).floor());
                 if(player.c.inExtract) gain = gain.pow(0.666);
                 return "消耗你所有的中微子和电子，获得 <span style='color:#777733;text-shadow:0 0 10px'>"+format(gain)+"</span> 光子。<br>（至少转化 1e9 电子）";
             },
@@ -1276,6 +1349,7 @@ addLayer("p", {
                 if (hasAchievement('a',43)) gain = gain.mul(achievementEffect("a",43)).floor();
                 if (hasUpgrade('b',71)) gain = gain.mul(upgradeEffect("b",71)).floor();
                 if (hasMilestone('he',16)) gain = gain.mul(layers.he.temPointEffect11()).floor();
+                if (player.n.ammoniaTier >= 9) gain = gain.mul(n(player.n.ammoniaTier + 1).log10().add(1).floor());
                 if(player.c.inExtract) gain = gain.pow(0.666);
                 player.points = zero;
                 player.p.electrons = zero;
@@ -1353,6 +1427,7 @@ addLayer("p", {
             if (hasMilestone("c", 10)) gain = gain.mul(player.c.oil.pow(player.c.oil).add(1).ln().add(1));
             if (hasAchievement('a',43)) gain = gain.mul(achievementEffect("a",43)).floor();
             if (hasMilestone('he',16)) gain = gain.mul(layers.he.temPointEffect11()).floor();
+            if (player.n.ammoniaTier >= 9) gain = gain.mul(n(player.n.ammoniaTier + 1).log10().add(1).floor());
             if (player.c.inExtract) gain = gain.pow(0.666);
             player.p.photons = player.p.photons.add(gain.mul(diff));
         }
@@ -1484,6 +1559,7 @@ addLayer("h", {
 	    if(hasAchievement('a', 16)) mult = mult.mul(achievementEffect('a', 16))
         if(hasMilestone("c",11)) mult = mult.mul(player.c.oil.pow(player.c.points).add(1).log2().add(1))
         if(hasUpgrade("f",11)) mult = mult.mul(upgradeEffect("f",11))
+        if(player.n.ammoniaTier >= 10) mult = mult.mul(n(player.n.ammoniaTier + 1).pow(4).add(1));
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -1896,10 +1972,12 @@ addLayer("h", {
                 return "将你（一半，向下取整）的气球爆炸！<br>爆炸效果：氢能获取x <span style='color:#773366;text-shadow:0 0 10px'>"+format(layers.h.boomedBalloonBoostHpower())+"</span> ，氢获取 x <span style='color:#773366;text-shadow:0 0 10px'>"+format(layers.h.boomedBalloonBoostH())+"</span> ，<br>时间:" + formatTime(player.h.upTime) + "<br>爆炸后加成时间：<br>" + formatTime(layers.h.addUpTime()) + "<br>时间上限：" + formatTime(layers.h.boomedBalloonBoostLimitTime());
             },
             canClick() {
+                if (inFluorineChallenge()) return false;
                 if (hasMilestone("c",8)) return false;
                 return player.h.balloon.gte(2);
             },
             onClick() {
+                if (inFluorineChallenge()) return;
                 if (hasMilestone("c",8)) return;
                 player.h.upTime = player.h.upTime.add(layers.h.addUpTime())
                 player.h.balloon = player.h.balloon.sub(player.h.balloon.div(2).floor())
@@ -1913,10 +1991,12 @@ addLayer("h", {
                 return "将你（一半，向下取整）的气球爆炸！<br>爆炸效果：氢能获取x <span style='color:#FF66DD;text-shadow:0 0 10px'>"+format(layers.he.boomedBalloonBoostHpower())+"</span> ，中微子获取 x<span style='color:#FFFFFF;text-shadow:0 0 10px'>"+format(layers.he.boomedBalloonBoostPoints())+"</span>，<br>时间:" + formatTime(player.he.upTime) + "<br>爆炸后加成时间：<br>" + formatTime(layers.he.addUpTime()) + "<br>时间上限：" + formatTime(layers.he.boomedBalloonBoostLimitTime());
             },
             canClick() {
+                if (inFluorineChallenge()) return false;
                 if (hasMilestone("c",9)) return false;
                 return player.he.balloon.gte(2);
             },
             onClick() {
+                if (inFluorineChallenge()) return;
                 if (hasMilestone("c",9)) return;
                 player.he.upTime = player.he.upTime.add(layers.he.addUpTime())
                 player.he.balloon = player.he.balloon.sub(player.he.balloon.div(2).floor())
@@ -2063,7 +2143,7 @@ addLayer("h", {
                 buyUpgrade("he",41);buyUpgrade("he",42);buyUpgrade("he",43);buyUpgrade("he",44);buyUpgrade("he",45);buyUpgrade("he",51);buyUpgrade("he",52);buyUpgrade("he",53);buyUpgrade("he",54);buyUpgrade("he",55);buyUpgrade("he",61);buyUpgrade("he",62);buyUpgrade("he",63);buyUpgrade("he",64)
             }
         } 
-        if(hasMilestone("li",6)&&player.h.autoGetHpowerBalloon) {
+        if(hasMilestone("li",6)&&player.h.autoGetHpowerBalloon&&!inFluorineChallenge()) {
             player.h.power = player.h.power.max(0);
             let gain = layers.h.HpowerGet().div(hasMilestone("b",7)?0.1:10).mul(diff);
             player.h.power = player.h.power.add(gain).max(0);
@@ -2072,7 +2152,7 @@ addLayer("h", {
             if (newBalloon.gt(player.h.balloon)) player.h.balloon = newBalloon;
             if (player.h.balloonMax.lt(player.h.balloon)) player.h.balloonMax = player.h.balloon;
         }
-        if(hasMilestone("li",7)&&player.he.autoGetBalloon) {
+        if(hasMilestone("li",7)&&player.he.autoGetBalloon&&!inFluorineChallenge()) {
             player.he.balloon = player.he.points.max(0)
         }
         if(hasMilestone("li",7)&&player.he.buyableAutobuy) {
@@ -2110,6 +2190,11 @@ addLayer("h", {
                     player.f.balloon = newBalloon;
                     if (player.f.balloonMax.lt(newBalloon)) player.f.balloonMax = newBalloon;
                 }
+            }
+        }
+        if (hasUpgrade("li", 151) && hasUpgrade("p", 67) && !hasAchievement("a", 44)) {
+            if (getBuyableAmount("p", 14).lt(10)) {
+                setBuyableAmount("p", 14, new Decimal(10));
             }
         }
     },
@@ -2226,7 +2311,7 @@ addLayer("h", {
                 }],
                 ["display-text",function(){
                     let a = ""
-                    if(hasUpgrade("o",22)) a = "你有 <span style='color:#BBDDFF;text-shadow:0 0 10px'>"+format(player.o.balloon)+"</span> 氧气球，氧气球加成已完成的成就个数 <span style='color:#FFFF3F;text-shadow:0 0 10px'>"+format(player.o.balloon.add(1))+"</span> 倍"
+                    if(hasUpgrade("o",22)) a = "你有 <span style='color:#BBDDFF;text-shadow:0 0 10px'>"+format(player.o.balloon)+"</span> 氧气球，氧气球加成已完成的成就个数 <span style='color:#FFFF3F;text-shadow:0 0 10px'>"+format(layers.o.oxygenBalloonEffect())+"</span> 倍"
                     return a
                 }],
                 ["display-text",function(){
@@ -2775,9 +2860,9 @@ addLayer("he", {
             unlocked(){return hasMilestone("he",14)},
         },
         16:{
-            requirementDescription: "回调后氦温度低于 3.4e16",
+            requirementDescription: "回调后氦温度低于 3.5e16",
             effectDescription: "解锁 温度点效果|烛九阴。",
-            done(){return hasMilestone("n",3)&&player.he.temperature.lte(3.4e16)},
+            done(){return hasMilestone("n",3)&&player.he.temperature.lte(3.5e16)},
             unlocked(){return hasMilestone("he",14)},
         },
     },
@@ -3599,7 +3684,7 @@ addLayer("li", {
         141: {
             title: "研究-91",
             description: "优化 CCB 的公式。",
-            cost: new Decimal(1.5e10),
+            cost: new Decimal(1.2e10),
             unlocked() { return hasUpgrade("li", 131); },
             currencyDisplayName: "研究点",
             currencyInternalName: "researchPoint",
@@ -3624,6 +3709,30 @@ addLayer("li", {
                 return hasUpgrade("li", 131);
             },
         },
+        151: {
+            title: "研究-101",
+            description: "自动购买粒子加速器|核心（不消耗资源），并优化锂的第五个效果的公式。",
+            cost: new Decimal(5e10),
+            unlocked() { return hasUpgrade("li", 141); },
+            currencyDisplayName: "研究点",
+            currencyInternalName: "researchPoint",
+            currencyLayer: "li",
+            canAfford() {
+                return hasUpgrade("li", 141);
+            },
+        },
+        153: {
+            title: "研究-103",
+            description: "锂的第非三，四，七个效果也加成碳。",
+            cost: new Decimal(3e10),
+            unlocked() { return hasUpgrade("li", 142); },
+            currencyDisplayName: "研究点",
+            currencyInternalName: "researchPoint",
+            currencyLayer: "li",
+            canAfford() {
+                return hasUpgrade("li", 142);
+            },
+        },
     },
     buyables:{
         11:{
@@ -3632,8 +3741,14 @@ addLayer("li", {
                 let a = x.mul(2).add(20)
                 return a
             },
-            display() { return "价格：<span style='color:#553333;text-shadow:0 0 10px'>"+format(this.cost(),0)+"</span> 锂<br>当前数量：<span style='color:#553333;text-shadow:0 0 10px'>"+format(getBuyableAmount("li",11),0)+"</span>"},
-            canAfford() { return player.li.points.gte(this.cost())},
+            display() {
+                if (lithiumDisabled()) return "研究点已被禁用。";
+                return "价格：<span style='color:#553333;text-shadow:0 0 10px'>"+format(this.cost(),0)+"</span> 锂<br>当前数量：<span style='color:#553333;text-shadow:0 0 10px'>"+format(getBuyableAmount("li",11),0)+"</span>";
+            },
+            canAfford() {
+                if (lithiumDisabled()) return false;
+                return player.li.points.gte(this.cost());
+            },
             buy() {
                 let oldTotal = layers.li.totalResearchPoints();
                 player.li.points = player.li.points.sub(this.cost());
@@ -3650,8 +3765,14 @@ addLayer("li", {
                 let a = three.pow(x.add(2))
                 return a
             },
-            display() { return "价格：<span style='color:#666611;text-shadow:0 0 10px'>"+format(this.cost(),0)+"</span> 电能<br>当前数量：<span style='color:#666611;text-shadow:0 0 10px'>"+format(getBuyableAmount("li",12),0)+"</span>"},
-            canAfford() { return player.li.currentElectricity.gte(this.cost())},
+            display() {
+                if (lithiumDisabled()) return "研究点已被禁用。";
+                return "价格：<span style='color:#666611;text-shadow:0 0 10px'>"+format(this.cost(),0)+"</span> 电能<br>当前数量：<span style='color:#666611;text-shadow:0 0 10px'>"+format(getBuyableAmount("li",12),0)+"</span>";
+            },
+            canAfford() {
+                if (lithiumDisabled()) return false;
+                return player.li.currentElectricity.gte(this.cost());
+            },
             buy() {
                 let oldTotal = layers.li.totalResearchPoints();
                 player.li.currentElectricity = player.li.currentElectricity.sub(this.cost());
@@ -3668,8 +3789,14 @@ addLayer("li", {
                 let a = two.pow(x.add(1))
                 return a
             },
-            display() { return "价格: <span style='color:#117777;text-shadow:0 0 10px'>"+format(this.cost(),0)+"</span> 转生宝石<br>当前数量：<span style='color:#117777;text-shadow:0 0 10px'>"+format(getBuyableAmount("li",13),0)+"</span>"},
-            canAfford() { return player.be.prestiGems.gte(this.cost())},
+            display() {
+                if (lithiumDisabled()) return "研究点已被禁用。";
+                return "价格: <span style='color:#117777;text-shadow:0 0 10px'>"+format(this.cost(),0)+"</span> 转生宝石<br>当前数量：<span style='color:#117777;text-shadow:0 0 10px'>"+format(getBuyableAmount("li",13),0)+"</span>";
+            },
+            canAfford() {
+                if (lithiumDisabled()) return false;
+                return player.be.prestiGems.gte(this.cost());
+            },
             buy() {
                 let oldTotal = layers.li.totalResearchPoints();
                 player.be.prestiGems = player.be.prestiGems.sub(this.cost());
@@ -3686,8 +3813,14 @@ addLayer("li", {
                 let a = four.pow(x.add(0.5))
                 return a
             },
-            display() { return "价格: <span style='color:#337733;text-shadow:0 0 10px'>"+format(this.cost(),0)+"</span> 光波<br>当前数量：<span style='color:#337733;text-shadow:0 0 10px'>"+format(getBuyableAmount("li",14),0)+"</span>"},
-            canAfford() { return player.p.waves.gte(this.cost())},
+            display() {
+                if (lithiumDisabled()) return "研究点已被禁用。";
+                return "价格: <span style='color:#337733;text-shadow:0 0 10px'>"+format(this.cost(),0)+"</span> 光波<br>当前数量：<span style='color:#337733;text-shadow:0 0 10px'>"+format(getBuyableAmount("li",14),0)+"</span>";
+            },
+            canAfford() {
+                if (lithiumDisabled()) return false;
+                return player.p.waves.gte(this.cost());
+            },
             buy() {
                 let oldTotal = layers.li.totalResearchPoints();
                 player.p.waves = player.p.waves.sub(this.cost());
@@ -3742,7 +3875,7 @@ addLayer("li", {
                     player.li.currentElectricity = zero;
                     player.li.confirmRespec = false;
                     
-                    let U = [31,32,41,42,51,52,61,62,71,72,81,82,91,92,101,102,103,104,111,112,113,114,121,131,141,142];
+                    let U = [31,32,41,42,51,52,61,62,71,72,81,82,91,92,101,102,103,104,111,112,113,114,121,131,141,142,151,153];
                     for (let id in U) {
                         if (hasUpgrade("li", U[id])) {
                             player.li.upgrades.splice(player.li.upgrades.indexOf(U[id]), 1);
@@ -3892,7 +4025,7 @@ addLayer("li", {
     }, 
     LidivHecost(){//锂减氦价格
         if (lithiumDisabled()) return one;
-        if (hasUpgrade('li', 114)) return two.pow(player.li.points.pow(2));
+        if (hasUpgrade('li', 114)) return two.pow(player.li.points.add(1).pow(2).add(1)).add(1);
         let divt = player.li.points
         if (!hasUpgrade("li",23)) divt = divt.add(1).pow(1.5).add(1)
         if (hasUpgrade("li",23)) divt = divt.add(1).pow(10).add(1)
@@ -3901,7 +4034,7 @@ addLayer("li", {
     },
     LiboostTemPoint(){//加温度点
         if (lithiumDisabled()) return one;
-        if (hasUpgrade('c', 12)) return player.li.points.pow(player.li.points);
+        if (hasUpgrade('c', 12)) return player.li.points.add(1).pow(player.li.points).add(1);
         let mult = five.pow(player.li.points.sub(6).max(0));
         if (hasMilestone('li', 9)) mult = ten.pow(player.li.points.sub(6).max(0));
         if (fluorineLithiumCompleted()) mult = mult.mul(10)
@@ -3909,6 +4042,7 @@ addLayer("li", {
     },
     LiboostPoints(){//锂加中微子
         if (lithiumDisabled()) return one;
+        if (hasUpgrade('li', 151)) return player.li.points.add(1).pow(player.li.points.add(1).log2().add(1)).add(1);
         let mult = player.li.points
         if (!hasUpgrade("li",23)) mult = mult.add(1).pow(2.5).add(1)
         if (hasUpgrade("li",23)) mult = mult.add(1).pow(8).add(1)
@@ -3925,7 +4059,7 @@ addLayer("li", {
     },
     LiboostBe(){//锂加铍
         if (lithiumDisabled()) return one;
-        if (hasUpgrade('li', 104)) return player.li.points.factorial();
+        if (hasUpgrade('li', 104)) return player.li.points.add(1).factorial().add(1);
         let mult = player.li.points
         if (!hasUpgrade("li",23)) mult = mult.add(1).pow(0.1).add(1)
         if (hasUpgrade("li",23)) mult = mult.add(1).pow(3).add(1)
@@ -4109,7 +4243,7 @@ addLayer("li", {
                 "main-display",
                 "prestige-button",
                 ["buyables",[1]],["display-text", function(){return "你有 <span style='color:#DD0033;text-shadow:0 0 10px'>"+format(player.li.researchPoint)+"</span> 研究点"}],
-                ["upgrades",[3,4,5,6,7,8,9,10,11,12,13,14]],
+                ["upgrades",[3,4,5,6,7,8,9,10,11,12,13,14,15]],
                 "clickables"
             ],
             unlocked(){return hasUpgrade("li",21)}
@@ -4148,8 +4282,12 @@ addLayer("be", {
     exponent() {
         let exp = 25;
         if (player.n && player.n.ammoniaTier > 0) exp += player.n.ammoniaTier;
+        if (fluorineBerylliumCompleted()) exp += one;
         return exp;
     },
+    marked(){ return fluorineBerylliumCompleted()
+        ? { symbol: "F", color: "#7FFF3F" }
+        : false; },
     gainMult() {
         let mult = one
         if(hasUpgrade("b",43)) mult = mult.mul(layers.li.LiboostBe())
@@ -4161,6 +4299,8 @@ addLayer("be", {
         if(hasUpgrade('o', 24)) mult = mult.mul(upgradeEffect('o', 24))
         if(hasUpgrade('be', 73)) mult = mult.mul(upgradeEffect('be', 73))
         if(hasUpgrade('li', 131)) mult = mult.mul(upgradeEffect('li', 131))
+        if(hasUpgrade('f', 13)) mult = mult.mul(upgradeEffect('f', 13))
+        if(player.n.ammoniaTier >= 11) mult = mult.mul(n(player.n.ammoniaTier + 1).pow(3).add(1))
         return mult
     },
     gainExp() {
@@ -4403,17 +4543,24 @@ addLayer("be", {
         21: {
             title: "转生",
             display() {
+                if (berylliumDisabled()) return "转生已被禁用。";
                 let gain = player.be.points.add(1).ln().add(1).floor();
                 if(hasUpgrade("p",83)) gain = gain.mul(player.be.points.add(1).log10().add(1).floor());
+                if(fluorineBerylliumCompleted()) gain = gain.mul(player.be.points.add(1).log2().add(1).floor());
                 if(player.b.inBorane) gain = gain.pow(0.66686);
                 if(player.c.inExtract) gain = gain.pow(0.666);
                 return "重置中微子、电子、氢、氢能、所有类型的气球、氦、温度点、锂、电能、铍。<br>获得 <span style='color:#117777;text-shadow:0 0 10px'>" + format(gain) + "</span> 转生宝石。（至少需要 1e10 铍）";
             },
             unlocked() { return hasUpgrade("p",65); },
-            canClick() { return player.be.points.gt(1e10); },
+            canClick() { 
+                if (berylliumDisabled()) return false;
+                return player.be.points.gt(1e10); 
+            },
             onClick: function() {
+                if (berylliumDisabled()) return;
                 let gain = player.be.points.add(1).ln().add(1).floor();
                 if (hasUpgrade("p",83)) gain = gain.mul(player.be.points.add(1).log10().add(1).floor());
+                if(fluorineBerylliumCompleted()) gain = gain.mul(player.be.points.add(1).log2().add(1).floor());
                 if (player.b.inBorane) gain = gain.pow(0.66686);
                 if (player.c.inExtract) gain = gain.pow(0.666);
             
@@ -4451,9 +4598,12 @@ addLayer("be", {
         }
     },
     prestiGemsGet() {
+        if (berylliumDisabled()) return zero;
         let gain = player.be.points.add(1).ln().add(1).floor();
         if(hasUpgrade("p",83)) gain = gain.mul(player.be.points.add(1).log10().add(1).floor());
+        if(fluorineBerylliumCompleted()) gain = gain.mul(player.be.points.add(1).log2().add(1).floor());
         if(player.b.inBorane) gain = gain.pow(0.66686);
+        if(player.c.inExtract) gain = gain.pow(0.666);
         return gain;
     },
     tabFormat:{
@@ -4532,12 +4682,15 @@ addLayer("b", {
     baseAmount() {return player.he.temPoint},
     type: "static", 
     exponent() {
-        let exp = 3;
+        let exp = three;
         if (hasAchievement('a', 32)) {
             exp -= achievementEffect('a',32);
         }
         return exp
     },
+    marked(){ return fluorineBoronCompleted()
+        ? { symbol: "F", color: "#7FFF3F" }
+        : false; },
     gainMult() {
         let mult = one
         if(hasUpgrade("b",11)) mult = mult.div(upgradeEffect("b",11))
@@ -4549,6 +4702,7 @@ addLayer("b", {
         if(hasUpgrade("p",96)) mult = mult.div(upgradeEffect("p",96))
         if(hasUpgrade("o",31)) mult = mult.div(upgradeEffect("o",31))
         if(hasUpgrade("o",33)) mult = mult.div(upgradeEffect("o",33))
+        if(hasUpgrade("f",14)) mult = mult.div(upgradeEffect("f",14))
         return mult
     },
     gainExp() {
@@ -5455,11 +5609,16 @@ addLayer("b", {
         11:{
             title() {return "制取"},
             display() {
+                if (boronDisabled()) return "硼烷产能已被禁用。";
                 let text = "当前状态：" + (player.b.inBorane?"进行中":"闲置") + "<br>重置转生的所有内容与转生宝石。<br>制取削弱：中微子、电子、氢、氢能、温度点、电能上限、铍、转生宝石^0.66686。<br>结束制取时，气球和温度点加成硼烷产能。<br>当前硼烷产能：<span style='color:#441111;text-shadow:0 0 10px'>"+format(player.b.boraneGainFloorN)+"</span> <br>当前效果：获得 <span style='color:#441111;text-shadow:0 0 10px'>"+format(layers.b.boraneGainFloor())+"</span> 硼烷产能<br>增加 <span style='color:#441111;text-shadow:0 0 10px'>"+format(layers.b.boraneGainFloor().sub(player.b.boraneGainFloorN).max(0))+"</span> 硼烷产能"
                 return text
             },
-            canClick() {return true},
+            canClick() {
+                if (boronDisabled()) return false;
+                return true
+            },
             onClick() {
+                if (boronDisabled()) return;
                 if(player.b.inBorane){
                     player.b.boraneGainFloorN = layers.b.boraneGainFloor().max(player.b.boraneGainFloorN)
                     player.b.inBorane = false
@@ -5475,8 +5634,12 @@ addLayer("b", {
         },
         12:{
             title() {return "重新选择生产硼烷"},
-            display() {return "上限量：" + layers.b.chooseBoraneGainMax() + "<br>已选择：" + player.b.gainBorane.length},
+            display() {
+                if (boronDisabled()) return "硼烷产能已被禁用。";
+                return "上限量：" + layers.b.chooseBoraneGainMax() + "<br>已选择：" + player.b.gainBorane.length
+            },
             canClick() {
+            if (boronDisabled()) return false;
             const consta = [1,2,3,4,5,6]
             for (index in consta){
                 if (player.b.gainBorane.includes(consta[index])) return true
@@ -5484,6 +5647,7 @@ addLayer("b", {
             return false
             },
             onClick() {
+                if (boronDisabled()) return;
                 player.b.gainBorane = []
             },
             style() { return { 'background-color': this.canClick()?"#992222":"#BF8F8F"} },
@@ -5492,16 +5656,21 @@ addLayer("b", {
         13: {
             title() { return "超越"; },
             display() {
+                if (boronDisabled()) return "硼烷产能已被禁用。";
                 let gain = player.b.boraneGainFloorN;
                 if(hasMilestone('n',2)) gain = gain.mul(player.be.prestiGems);
                 gain = gain.add(1).log2().add(1).floor();
                 if(player.c.inExtract) gain = gain.pow(0.666);
                 if (gain.lt(1)) gain = zero;
-                return "重置制取的所有内容和硼、硼烷、碳、熵。<br>获得 <span style='color:#331177;text-shadow:0 0 10px'>"+format(gain)+"</span> 超越水晶。（至少需要 27000 硼烷产能）";
+                return "重置制取的所有内容和硼、硼烷、硼烷产能、碳、熵。<br>获得 <span style='color:#331177;text-shadow:0 0 10px'>"+format(gain)+"</span> 超越水晶。（至少需要 27000 硼烷产能）";
             },
             unlocked() { return hasUpgrade('c', 34); },
-            canClick() { return player.b.boraneGainFloorN.gte(27000); },
+            canClick() { 
+                if (boronDisabled()) return false;
+                return player.b.boraneGainFloorN.gte(27000); 
+            },
             onClick() {
+                if (boronDisabled()) return;
                 let gain = player.b.boraneGainFloorN;
                 if(hasMilestone('n',2)) gain = gain.mul(player.be.prestiGems);
                 gain = gain.add(1).log2().add(1).floor();
@@ -5536,7 +5705,10 @@ addLayer("b", {
         },
         31:{
             title() {return "选择生产癸硼烷"},
-            display(){if(player.b.gainBorane.includes(1))return "生产中"},
+            display(){
+                if (boronDisabled()) return "无法生产";
+                if(player.b.gainBorane.includes(1))return "生产中"
+            },
             canClick() {
             if (!player.b.gainBorane.includes(1)&&player.b.gainBorane.length<layers.b.chooseBoraneGainMax()) return true
             return false
@@ -5549,7 +5721,10 @@ addLayer("b", {
         },
         32:{
             title() {return "选择生产己硼烷"},
-            display(){if(player.b.gainBorane.includes(2))return "生产中"},
+            display(){
+                if (boronDisabled()) return "无法生产";
+                if(player.b.gainBorane.includes(2))return "生产中"
+            },
             canClick() {
             if (!player.b.gainBorane.includes(2)&&player.b.gainBorane.length<layers.b.chooseBoraneGainMax()) return true
             return false
@@ -5562,7 +5737,10 @@ addLayer("b", {
         },
         33:{
             title() {return "选择生产戊硼烷"},
-            display(){if(player.b.gainBorane.includes(3))return "生产中"},
+            display(){
+                if (boronDisabled()) return "无法生产";
+                if(player.b.gainBorane.includes(3))return "生产中"
+            },
             canClick() {
             if (!player.b.gainBorane.includes(3)&&player.b.gainBorane.length<layers.b.chooseBoraneGainMax()) return true
             return false
@@ -5575,7 +5753,10 @@ addLayer("b", {
         },
         41:{
             title() {return "选择生产丁硼烷"},
-            display(){if(player.b.gainBorane.includes(4))return "生产中"},
+            display(){
+                if (boronDisabled()) return "无法生产";
+                if(player.b.gainBorane.includes(4))return "生产中"
+            },
             canClick() {
             if (!player.b.gainBorane.includes(4)&&player.b.gainBorane.length<layers.b.chooseBoraneGainMax()) return true
             return false
@@ -5588,7 +5769,10 @@ addLayer("b", {
         },
         42:{
             title() {return "选择生产乙硼烷"},
-            display(){if(player.b.gainBorane.includes(5))return "生产中"},
+            display(){
+                if (boronDisabled()) return "无法生产";
+                if(player.b.gainBorane.includes(5))return "生产中"
+            },
             canClick() {
             if (!player.b.gainBorane.includes(5)&&player.b.gainBorane.length<layers.b.chooseBoraneGainMax()) return true
             return false
@@ -5601,19 +5785,23 @@ addLayer("b", {
         },
         43:{
             title() {return "选择生产氨硼烷"},
-            display(){if(player.b.gainBorane.includes(6))return "生产中"},
-        canClick() {
+            display(){
+                if (boronDisabled()) return "无法生产";
+                if(player.b.gainBorane.includes(6))return "生产中"
+            },
+            canClick() {
             if (!player.b.gainBorane.includes(6) && player.b.gainBorane.length < layers.b.chooseBoraneGainMax()) return true
-            return false
+                return false
+            },
+            onClick() {
+                player.b.gainBorane.push(6)
+            },
+            style() { return { 'background-color': this.canClick()?"#FF3FBF":"#BF8F8F" } },
+            unlocked(){ return player.n.ammoniaTier >= 3 },
         },
-        onClick() {
-            player.b.gainBorane.push(6)
-        },
-        style() { return { 'background-color': this.canClick()?"#FF3FBF":"#BF8F8F" } },
-        unlocked(){ return player.n.ammoniaTier >= 3 },
-    },
     },
     boraneGainFloor(){
+        if (boronDisabled()) return zero;
         let gain = zero
         if(player.b.inBorane) gain = player.h.balloon.mul(player.he.temPoint.add(1).log10().add(1))
         if(player.b.inBorane&&hasUpgrade("b",25)) gain = gain.mul(upgradeEffect("b",25))
@@ -5629,30 +5817,37 @@ addLayer("b", {
         return gain
     },
     boraneGain(num){
+        if (boronDisabled()) return zero;
         let gain = one
         if(!player.b.gainBorane.includes(num)) return zero  
         if(num==1){gain = gain.mul(player.b.boraneGainFloorN)}
         if(num==1&&hasUpgrade("n",23))gain = gain.mul(player.b.boraneGainFloorN.add(1).mul(2).add(1))
+        if(num==1&&fluorineBoronCompleted())gain = gain.mul(player.b.boraneGainFloorN.add(1).pow(2).add(1))
         if(num==2)gain = gain.mul(player.b.boraneGainFloorN.add(1).log2().add(1))
         if(num==2&&hasUpgrade("b",52))gain = gain.mul(player.b.boraneGainFloorN.add(1).mul(2).add(1).log2().add(1))
         if(num==2&&hasUpgrade("p",77))gain = gain.mul(player.b.boraneGainFloorN.add(1).pow(2).add(1).log2().add(1))
         if(num==2&&hasUpgrade("n",23))gain = gain.mul(player.b.boraneGainFloorN.add(1).factorial().add(1).log2().add(1))
+        if(num==2&&fluorineBoronCompleted())gain = gain.mul(player.b.boraneGainFloorN.add(1).pow(player.b.boraneGainFloorN).add(1).log2().add(1))
         if(num==3)gain = gain.mul(player.b.boraneGainFloorN.add(1).ln().add(1))
         if(num==3&&hasUpgrade("b",53))gain = gain.mul(player.b.boraneGainFloorN.add(1).mul(2).add(1).ln().add(1))
         if(num==3&&hasUpgrade("p",77))gain = gain.mul(player.b.boraneGainFloorN.add(1).pow(2).add(1).ln().add(1))
         if(num==3&&hasUpgrade("n",23))gain = gain.mul(player.b.boraneGainFloorN.add(1).factorial().add(1).ln().add(1))
+        if(num==3&&fluorineBoronCompleted())gain = gain.mul(player.b.boraneGainFloorN.add(1).pow(player.b.boraneGainFloorN).add(1).ln().add(1))
         if(num==4)gain = gain.mul(player.b.boraneGainFloorN.add(1).log10().add(1))
         if(num==4&&hasUpgrade("b",54))gain = gain.mul(player.b.boraneGainFloorN.add(1).mul(2).add(1).log10().add(1))
         if(num==4&&hasUpgrade("p",77))gain = gain.mul(player.b.boraneGainFloorN.add(1).pow(2).add(1).log10().add(1))
         if(num==4&&hasUpgrade("n",23))gain = gain.mul(player.b.boraneGainFloorN.add(1).factorial().add(1).log10().add(1))
+        if(num==4&&fluorineBoronCompleted())gain = gain.mul(player.b.boraneGainFloorN.add(1).pow(player.b.boraneGainFloorN).add(1).log10().add(1))
         if(num==5)gain = gain.mul(player.b.boraneGainFloorN.add(1).log2().add(1).log2().add(1))
         if(num==5&&hasUpgrade("b",55))gain = gain.mul(player.b.boraneGainFloorN.add(1).mul(2).add(1).log2().add(1).log2().add(1))
         if(num==5&&hasUpgrade("p",77))gain = gain.mul(player.b.boraneGainFloorN.add(1).pow(2).add(1).log2().add(1).log2().add(1))
         if(num==5&&hasUpgrade("n",23))gain = gain.mul(player.b.boraneGainFloorN.add(1).factorial().add(1).log2().add(1).log2().add(1))
+        if(num==5&&fluorineBoronCompleted())gain = gain.mul(player.b.boraneGainFloorN.add(1).pow(player.b.boraneGainFloorN).add(1).log2().add(1).log2().add(1))
         if(num==6)gain = gain.mul(player.b.boraneGainFloorN.add(1).ln().add(1).ln().add(1))
         if(num==6&&hasUpgrade("b",55))gain = gain.mul(player.b.boraneGainFloorN.add(1).mul(2).add(1).add(1).ln().add(1).ln().add(1))
         if(num==6&&hasUpgrade("p",77))gain = gain.mul(player.b.boraneGainFloorN.add(1).pow(2).add(1).add(1).ln().add(1).ln().add(1))
         if(num==6&&hasUpgrade("n",23))gain = gain.mul(player.b.boraneGainFloorN.add(1).factorial().add(1).ln().add(1).ln().add(1))
+        if(num==6&&fluorineBoronCompleted())gain = gain.mul(player.b.boraneGainFloorN.add(1).pow(player.b.boraneGainFloorN).add(1).ln().add(1).ln().add(1))
         return gain
     },
     chooseBoraneGainMax(){
@@ -5695,6 +5890,13 @@ addLayer("b", {
         if (hasMilestone('b', 4)) {
             if (tmp.p && tmp.p.buyables && tmp.p.buyables[13] && tmp.p.buyables[13].unlocked && tmp.p.buyables[13].canBuy) {
                 buyBuyable("p", 13);
+            }
+        }
+        // ===== 氟化-硼效果：制取外自动获得硼烷产能 =====
+        if (fluorineBoronCompleted() && !player.b.inBorane && !boronDisabled()) {
+            let auto = player.h.balloon.mul(player.he.temPoint.pow(0.0066686));
+            if (auto.gt(player.b.boraneGainFloorN)) {
+                player.b.boraneGainFloorN = auto;
             }
         }
     },
@@ -5779,6 +5981,9 @@ addLayer("c", {
         }
         return exp
     },
+    marked(){ return fluorineCarbonCompleted()
+        ? { symbol: "F", color: "#7FFF3F" }
+        : false; },
     gainMult() {
         let mult = one
         if(hasUpgrade('c', 11)) mult = mult.mul(upgradeEffect('c', 11));
@@ -5788,8 +5993,16 @@ addLayer("c", {
         if(hasUpgrade('o', 24)) mult = mult.mul(upgradeEffect('o', 24));
         if(hasUpgrade('o', 32)) mult = mult.mul(upgradeEffect('o', 32));
         if(hasUpgrade('n', 22)) mult = mult.mul(upgradeEffect('n', 22));
-        if(player.n.ammoniaTier >= 2) mult = mult.mul(n(player.n.ammoniaTier).pow(64));
+        if(player.n.ammoniaTier >= 2) mult = mult.mul(n(player.n.ammoniaTier + 1).pow(64).add(1));
         if(hasUpgrade('b', 72)) mult = mult.mul(upgradeEffect('b', 72));
+        if (hasUpgrade("li", 153)) mult = mult.mul(layers.li.LiboostH());
+        if (hasUpgrade("li", 153)) mult = mult.mul(layers.li.LiboostHpower());
+        if (hasUpgrade("li", 153)) mult = mult.mul(layers.li.LiboostPoints());
+        if (hasUpgrade("li", 153)) mult = mult.mul(layers.li.LiboostElectrons());
+        if (hasUpgrade("li", 153)) mult = mult.mul(layers.li.LiboostCap());
+        if (hasUpgrade("li", 153)) mult = mult.mul(layers.li.LiboostPhotons());
+        if (fluorineCarbonCompleted()) mult = mult.mul(10);
+        if(hasUpgrade('f', 21)) mult = mult.mul(upgradeEffect('f', 21));
         return mult
     },
     gainExp() {
@@ -5811,6 +6024,7 @@ addLayer("c", {
         {key: "c", description: "C: 进行一次碳重置", onPress(){if(canReset(this.layer)) doReset(this.layer)}},
     ],
     getEntropyGain() {
+        if (carbonDisabled()) return zero;
         let gain = one;
         if (hasUpgrade('c', 31)) gain = gain.mul(upgradeEffect('c', 31));
         if (hasUpgrade('c', 32)) gain = gain.mul(upgradeEffect('c', 32));
@@ -5915,7 +6129,8 @@ addLayer("c", {
             title:"新的开始",
             description:"硼加成熵。",
             effect(){
-                let effect = player.b.points.add(1).pow(0.8).add(1).floor()
+                let exp = fluorineCarbonCompleted() ? 0.9 : 0.8;
+                let effect = player.b.points.add(1).pow(exp).add(1).floor()
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect())},
@@ -5967,12 +6182,17 @@ addLayer("c", {
         11: {
             title: "获取熵",
             display() {
+                if (carbonDisabled()) return "熵已被禁用。";
                 let gain = layers.c.getEntropyGain();
                 return "点击以获得 <span style='color:#BBBBBB;text-shadow:0 0 10px'>"+format(gain)+"</span> 熵。";
             },
             unlocked() { return hasUpgrade('c', 14); },
-            canClick() { return true; },
+            canClick() { 
+                if (carbonDisabled()) return false;
+                return true; 
+            },
             onClick() {
+                if (carbonDisabled()) return;
                 player.c.entropy = player.c.entropy.add(layers.c.getEntropyGain());
             },
         },
@@ -6007,9 +6227,13 @@ addLayer("c", {
                 return cost;
             },
             display() {
+                if (carbonDisabled()) return "熵已被禁用。";
                 return "自动点击获取熵。<br>价格：" + format(this.cost()) + "碳<br>当前数量：" + format(getBuyableAmount(this.layer, this.id)) + "<br>当前效果：每秒自动点击 " + format(this.effect()) + " 次";
             },
-            canAfford() { return player.c.points.gte(this.cost()); },
+            canAfford() { 
+                if (carbonDisabled()) return false;
+                return player.c.points.gte(this.cost()); 
+            },
             buy() {
                 player.c.points = player.c.points.sub(this.cost());
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1));
@@ -6229,12 +6453,21 @@ addLayer("n", {
     baseAmount() {return player.li.currentElectricity},
     nodeStyle: { color: "white" },
     type: "normal", 
-    exponent: 0.5,
+    exponent: 0.5, 
+    marked(){ return fluorineNitrogenCompleted()
+        ? { symbol: "F", color: "#7FFF3F" }
+        : false; },
     gainMult() {
         let mult = one
         if(hasAchievement('a', 52)) mult = mult.mul(achievementEffect('a', 52));
         if(player.n.ammoniaTier >= 7) mult = mult.mul(n(player.n.ammoniaTier + 1).pow(2).add(1));
         if(hasUpgrade('n', 33)) mult = mult.mul(upgradeEffect('n', 33));
+        if(hasUpgrade('n', 34)) mult = mult.mul(upgradeEffect('n', 34));
+        if(hasUpgrade('n', 41)) mult = mult.mul(upgradeEffect('n', 41));
+        if(hasUpgrade('n', 42)) mult = mult.mul(upgradeEffect('n', 42));
+        if(hasUpgrade('n', 43)) mult = mult.mul(upgradeEffect('n', 43));
+        if (fluorineNitrogenCompleted()) mult = mult.mul(10);
+        if(hasUpgrade('f', 22)) mult = mult.mul(upgradeEffect('f', 22));
         return mult
     },
     gainExp() {
@@ -6473,19 +6706,80 @@ addLayer("n", {
         32: {
             title:"氰酸",
             description:"自动获取重置时的 100% 氮 /s。",
-            cost: new Decimal("1e3220"),
+            cost: new Decimal("1e3225"),
             unlocked(){return player.n.ammoniaTier >= 6},
         },
         33: {
             title:"异氰酸",
             description:"超越水晶加成氮。",
-            cost: new Decimal("1e3232"),
+            cost: new Decimal("1e3230"),
             effect(){
-                let effect = player.b.transcendCrystals.add(1).pow(1.1).add(1)
+                let exp = fluorineNitrogenCompleted() ? 2 : 1.1;
+                let effect = player.b.transcendCrystals.add(1).pow(exp).add(1)
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect())},
             unlocked(){return player.n.ammoniaTier >= 7},
+        },
+        34: {
+            title:"雷酸",
+            description:"转生宝石加成氮。",
+            cost: new Decimal("1e3230"),
+            effect(){
+                let exp = fluorineNitrogenCompleted() ? 2 : 1.5;
+                let effect = player.be.prestiGems.add(1).pow(exp).add(1)
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            unlocked(){return player.n.ammoniaTier >= 8},
+        },
+        41: {
+            title:"三聚氰胺",
+            description:"熵加成氮。",
+            cost: new Decimal("1e3500"),
+            effect(){
+                let exp = fluorineNitrogenCompleted() ? 2 : 1.1;
+                let effect = player.c.entropy.add(1).pow(exp).add(1)
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            unlocked(){return player.n.ammoniaTier >= 9},
+        },
+        42: {
+            title:"联氨",
+            description:"氮加成自身。",
+            cost: new Decimal("1e3555"),
+            effect(){
+                let exp = fluorineNitrogenCompleted() ? 2 : 1.1;
+                let effect = player.n.points.add(1).log2().add(1).pow(exp).add(1)
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            unlocked(){return player.n.ammoniaTier >= 10},
+        },
+        43: {
+            title:"羟胺",
+            description:"氧加成氮。",
+            cost: new Decimal("1e3615"),
+            effect(){
+                let exp = fluorineOxygenCompleted() ? 2 : 1;
+                let effect = player.o.points.add(1).pow(exp).add(1)
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            unlocked(){return player.n.ammoniaTier >= 11},
+        },
+        44: {
+            title:"氨气",
+            description:"氟加成氮。",
+            cost: new Decimal("1e3725"),
+            effect(){
+                let exp = fluorineFluorineCompleted() ? 2 : 1;
+                let effect = player.f.points.add(1).pow(exp).add(1)
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            unlocked(){return player.n.ammoniaTier >= 12},
         },
     },
     clickables: {
@@ -6657,7 +6951,12 @@ addLayer("n", {
             4: { h: "1e22375", n: "1e3040", c: "1e3010", o: "45000" }, 
             5: { h: "1e24775", n: "1e3190", c: "1e3320", o: "50000" }, 
             6: { h: "1e25200", n: "1e3215", c: "1e3370", o: "55000" }, 
-            7: { h: "1e26950", n: "1e3230", c: "1e3650", o: "60000" }, 
+            7: { h: "1e26850", n: "1e3230", c: "1e3645", o: "60000" }, 
+            8: { h: "1e27850", n: "1e3230", c: "1e3850", o: "685000" }, 
+            9: { h: "1e31250", n: "1e3485", c: "1e5200", o: "2000000" }, 
+            10: { h: "1e31500", n: "1e3550", c: "1e5275", o: "4000000" }, 
+            11: { h: "1e31600", n: "1e3600", c: "1e5280", o: "6000000" }, 
+            12: { h: "1e32100", n: "1e3690", c: "1e5380", o: "8e14" }, 
         };
         return table[tier] || null;
     },
@@ -6699,7 +6998,7 @@ addLayer("n", {
                     function(){ return "你有 <span style='color:#DDDD33;text-shadow:0 0 10px'>"+format(player.li.currentElectricity)+"</span> 电能"; }
                 ],
                 ["clickables", [1,2]],
-                ["upgrades",[2,3]]
+                ["upgrades",[2,3,4]]
             ],
             unlocked(){ return hasMilestone("c",14); }
         },
@@ -6717,12 +7016,17 @@ addLayer("n", {
                         let html = "<h3>合成氨阶层 " + tier + "：</h3><br>";
                         html += "加成氮升级数量 <span style='color:#FFFFFF;text-shadow:0 0 10px'>" + formatWhole(tier) + "</span> 个<br>";
                         html += "加成铍指数 <span style='color:#55CC77;text-shadow:0 0 10px'>" + formatWhole(tier) + "</span><br>";
-                        if (tier >= 2) html += "加成碳 <span style='color:#555555;text-shadow:0 0 10px'>" + formatWhole(n(tier).pow(64)) + "</span> 倍<br>";
+                        if (tier >= 2) html += "加成碳 <span style='color:#555555;text-shadow:0 0 10px'>" + formatWhole(n(tier + 1).pow(64).add(1)) + "</span> 倍<br>";
                         if (tier >= 3) html += "解锁氨硼烷<br>";
                         if (tier >= 4) html += "解锁新层级<br>";
                         if (tier >= 5) html += "解锁氟化挑战 <span style='color:#7FFF3F;text-shadow:0 0 10px'>" + formatWhole(tier - 4) + "</span> 个<br>";
                         if (tier >= 6) html += "加成氧 <span style='color:#BBDDFF;text-shadow:0 0 10px'>" + format(n(tier + 1).log2().add(1)) + "</span> 倍<br>";
-                        if (tier >= 7) html += "加成氮 <span style='color:#000000;text-shadow:0 0 10px'>" + format(n(tier + 1).pow(2).add(1)) + "</span> 倍<br>";
+                        if (tier >= 7) html += "加成氮 <span style='color:#FFFFFF;text-shadow:0 0 10px'>" + format(n(tier + 1).pow(2).add(1)) + "</span> 倍<br>";
+                        if (tier >= 8) html += "加成氟 <span style='color:#7FFF3F;text-shadow:0 0 10px'>" + format(n(tier + 1).ln().add(1)) + "</span> 倍<br>";
+                        if (tier >= 9) html += "加成光子 <span style='color:#FFFF7F;text-shadow:0 0 10px'>" + format(n(tier + 1).log10().add(1).floor()) + "</span> 倍<br>";
+                        if (tier >= 10) html += "加成氢 <span style='color:#FF66DD;text-shadow:0 0 10px'>" + format(n(tier + 1).pow(4).add(1)) + "</span> 倍<br>";
+                        if (tier >= 11) html += "加成铍 <span style='color:#55CC77;text-shadow:0 0 10px'>" + format(n(tier + 1).pow(3).add(1)) + "</span> 倍<br>";
+                        if (tier >= 12) html += "加成中微子 <span style='color:#FFFFFF;text-shadow:0 0 10px'>" + format(n(tier + 1).pow(5).add(1)) + "</span> 倍<br>";
                         return html;
                     }
                 ],
@@ -6758,9 +7062,15 @@ addLayer("o", {
     baseAmount() {return player.be.prestiGems},
     type: "normal", 
     exponent: 0.5,
+    marked(){ return fluorineOxygenCompleted()
+        ? { symbol: "F", color: "#7FFF3F" }
+        : false; },
     gainMult() {
         let mult = one
         if (player.n.ammoniaTier >= 6) mult = mult.mul(n(player.n.ammoniaTier + 1).log2().add(1));
+        if (fluorineOxygenCompleted()) mult = mult.mul(10);
+        if(hasUpgrade('f', 23)) mult = mult.mul(upgradeEffect('f', 23));
+        if(hasAchievement('a', 53)) mult = mult.mul(achievementEffect('a', 53));
         return mult
     },
     gainExp() {
@@ -6823,7 +7133,8 @@ addLayer("o", {
             description:"转生宝石加成氢能，铍，硼烷产能，碳。",
             cost: new Decimal(1800),
             effect(){
-                let effect = player.be.prestiGems.add(1).pow(0.9).add(1)
+                let exp = fluorineOxygenCompleted() ? 1.5 : 0.9;
+                let effect = player.be.prestiGems.add(1).pow(exp).add(1)
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect())},
@@ -6876,6 +7187,11 @@ addLayer("o", {
     oxygenBalloonGain() {
         return player.o.points.add(1).ln().add(1).floor().mul(balloonGainMult());
     },
+    oxygenBalloonEffect() {
+        let eff = player.o.balloon.add(1)
+        if(fluorineOxygenCompleted()) eff = eff.add(1).pow(2).add(1)
+        return eff;
+    },
     tabFormat: {
         "主页": {
             content: [
@@ -6913,8 +7229,14 @@ addLayer("f", {
     baseAmount() {return player.c.entropy},
     type: "normal", 
     exponent: 0.5,
+    marked(){ return fluorineFluorineCompleted()
+        ? { symbol: "F", color: "#7FFF3F" }
+        : false; },
     gainMult() {
         let mult = one
+        if (player.n.ammoniaTier >= 8) mult = mult.mul(n(player.n.ammoniaTier + 1).ln().add(1));
+        if (fluorineFluorineCompleted()) mult = mult.mul(10);
+        if (hasUpgrade("f",24)) mult = mult.mul(upgradeEffect("f",24));
         return mult
     },
     gainExp() {
@@ -6938,24 +7260,90 @@ addLayer("f", {
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect())},
-            unlocked(){return hasChallenge("f",11)},
+            unlocked(){return fluorineHydrogenCompleted()},
         },
         12:{
             title:"氟化锂",
-            description:"氟加成锂。",
+            description:"氟降低锂价格。",
             cost: new Decimal(20000),
             effect(){
                 let effect = player.f.points.add(1).pow(5).add(1)
                 return effect
             },
+            effectDisplay(){return "/"+format(this.effect())},
+            unlocked(){return fluorineLithiumCompleted()},
+        },
+        13:{
+            title:"氟化铍",
+            description:"氟加成铍。",
+            cost: new Decimal(30000),
+            effect(){
+                let effect = player.f.points.add(1).pow(1.5).add(1)
+                return effect
+            },
             effectDisplay(){return "x"+format(this.effect())},
-            unlocked(){return hasChallenge("f",12)},
+            unlocked(){return fluorineBerylliumCompleted()},
+        },
+        14:{
+            title:"三氟化硼",
+            description:"氟降低硼价格。",
+            cost: new Decimal(40000),
+            effect(){
+                let effect = player.f.points.add(1).pow(3).add(1)
+                return effect
+            },
+            effectDisplay(){return "/"+format(this.effect())},
+            unlocked(){return fluorineBoronCompleted()},
+        },
+        21:{
+            title:"四氟化碳",
+            description:"氟加成碳。",
+            cost: new Decimal(50000),
+            effect(){
+                let effect = player.f.points.add(1).pow(1.4).add(1)
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            unlocked(){return fluorineCarbonCompleted()},
+        },
+        22:{
+            title:"三氟化氮",
+            description:"氟加成氮。",
+            cost: new Decimal(70000),
+            effect(){
+                let effect = player.f.points.add(1).pow(1.3).add(1)
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            unlocked(){return fluorineNitrogenCompleted()},
+        },
+        23:{
+            title:"二氟化氧",
+            description:"氟加成氧。",
+            cost: new Decimal(100000),
+            effect(){
+                let effect = player.f.points.add(1).pow(1.2).add(1)
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            unlocked(){return fluorineOxygenCompleted()},
+        },
+        24:{
+            title:"氟气",
+            description:"氟加成自身。",
+            cost: new Decimal(180000),
+            effect(){
+                let effect = player.f.points.add(1).pow(0.1).add(1)
+                return effect
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            unlocked(){return fluorineOxygenCompleted()},
         },
     },
     challenges: {
         11: {
             name: "氟化-氢",
-            challengeDescription: "重置你的中微子，氢，氢能，并禁用前五种气球。",
+            challengeDescription: "重置你的中微子，氢和氢能，并禁用前五种气球。",
             goal: new Decimal("1e28000"),
             goalDescription: "1e28000 中微子。",
             rewardDescription: "见氟化奖励。",
@@ -6968,7 +7356,6 @@ addLayer("f", {
                 player.h.power  = zero;
                 player.h.upTime = zero;
                 player.he.upTime = zero;
-
                 const balloonLayers = ['h', 'he', 'n', 'o', 'f'];
                 for (const L of balloonLayers) {
                     if (player[L]) {
@@ -6986,21 +7373,19 @@ addLayer("f", {
         },
         12: {
             name: "氟化-锂",
-            challengeDescription: "在氟化-氢的基础上，重置你的氦，温度点，锂，研究点，并禁用所有的锂效果。",
-            goal: new Decimal("1e22490"),
-            goalDescription: "1e22490 中微子。",
+            challengeDescription: "在氟化-氢的基础上，重置你的氦，温度点，锂和研究点，并禁用所有的锂效果。",
+            goal: new Decimal("1e18960"),
+            goalDescription: "1e18960 中微子。",
             rewardDescription: "见氟化奖励。",
             canComplete() {
-                return player.points.gte("1e22490");
+                return player.points.gte("1e18960");
             },
             onEnter() {
-                // ---- 氟化-氢的部分 ----
                 player.points = zero;
                 player.h.points = zero;
                 player.h.power  = zero;
                 player.h.upTime = zero;
                 player.he.upTime = zero;
-
                 const balloonLayers = ['h', 'he', 'n', 'o', 'f'];
                 for (const L of balloonLayers) {
                     if (player[L]) {
@@ -7008,12 +7393,9 @@ addLayer("f", {
                         player[L].balloonMax = zero;
                     }
                 }
-
-                // ---- 氟化-锂额外部分 ----
                 player.he.points           = zero;
                 player.he.temPoint         = zero;
                 player.he.temPointUpTime   = zero;
-
                 player.li.points             = zero;
                 player.li.currentElectricity = zero;
                 player.li.researchPoint      = zero;
@@ -7023,7 +7405,320 @@ addLayer("f", {
                 doPopup("challenge", "氟化-锂 挑战完成！", "挑战完成", 3, "#7FFF3F");
             },
             unlocked() {
-                return hasChallenge('f', 11);
+                return player.n.ammoniaTier >= 6 && fluorineHydrogenCompleted();
+            }
+        },
+        13: {
+            name: "氟化-铍",
+            challengeDescription: "在氟化-锂的基础上，重置你的铍和电子，并禁用转生宝石。",
+            goal: new Decimal("1e20720"),
+            goalDescription: "1e20720 中微子。",
+            rewardDescription: "见氟化奖励。",
+            canComplete() {
+                return player.points.gte("1e20720");
+            },
+            onEnter() {
+                player.points = zero;
+                player.h.points = zero;
+                player.h.power  = zero;
+                player.h.upTime = zero;
+                player.he.upTime = zero;
+                const balloonLayers = ['h', 'he', 'n', 'o', 'f'];
+                for (const L of balloonLayers) {
+                    if (player[L]) {
+                        player[L].balloon    = zero;
+                        player[L].balloonMax = zero;
+                    }
+                }
+                player.he.points           = zero;
+                player.he.temPoint         = zero;
+                player.he.temPointUpTime   = zero;
+                player.li.points             = zero;
+                player.li.currentElectricity = zero;
+                player.li.researchPoint      = zero;
+                player.li.buyables           = getStartBuyables('li');
+                player.be.points = zero;
+                player.be.prestiGems = zero;
+                player.p.electrons = zero;
+            },
+            onComplete() {
+                doPopup("challenge", "氟化-铍 挑战完成！", "挑战完成", 3, "#7FFF3F");
+            },
+            unlocked() {
+                return player.n.ammoniaTier >= 7 && fluorineLithiumCompleted();
+            }
+        },
+        21: {
+            name: "氟化-硼",
+            challengeDescription: "在氟化-铍的基础上，重置你的硼，硼烷和超越水晶，并禁用硼烷产能。",
+            goal: new Decimal("1e1995"),
+            goalDescription: "1e1995 中微子。",
+            rewardDescription: "见氟化奖励。",
+            canComplete() {
+                return player.points.gte("1e1995");
+            },
+            onEnter() {
+                player.points = zero;
+                player.h.points = zero;
+                player.h.power  = zero;
+                player.h.upTime = zero;
+                player.he.upTime = zero;
+            const balloonLayers = ['h', 'he', 'n', 'o', 'f'];
+                for (const L of balloonLayers) {
+                    if (player[L]) {
+                        player[L].balloon    = zero;
+                        player[L].balloonMax = zero;
+                    }
+                }
+                player.he.points           = zero;
+                player.he.temPoint         = zero;
+                player.he.temPointUpTime   = zero;
+                player.li.points             = zero;
+                player.li.currentElectricity = zero;
+                player.li.researchPoint      = zero;
+                player.li.buyables           = getStartBuyables('li');
+                player.be.points = zero;
+                player.be.prestiGems = zero;
+                player.p.electrons = zero;
+                player.b.points = zero;
+                player.b.inBorane = false;
+                player.b.borane1 = zero;
+                player.b.borane2 = zero;
+                player.b.borane3 = zero;
+                player.b.borane4 = zero;
+                player.b.borane5 = zero;
+                player.b.borane6 = zero;
+                player.b.gainBorane = [];
+                player.b.boraneGainFloorN = zero;
+                player.b.transcendCrystals = zero;
+            },
+            onComplete() {
+                doPopup("challenge", "氟化-硼 挑战完成！", "挑战完成", 3, "#7FFF3F");
+            },
+            unlocked() {
+                return player.n.ammoniaTier >= 8 && fluorineBerylliumCompleted();
+            }
+        },
+        22: {
+            name: "氟化-碳",
+            challengeDescription: "在氟化-硼的基础上，重置你的碳，并禁用熵。",
+            goal: new Decimal("5e1970"),
+            goalDescription: "5e1970 中微子。",
+            rewardDescription: "见氟化奖励。",
+            canComplete() {
+                return player.points.gte("5e1970");
+            },
+            onEnter() {
+                player.points = zero;
+                player.h.points = zero;
+                player.h.power  = zero;
+                player.h.upTime = zero;
+                player.he.upTime = zero;
+            const balloonLayers = ['h', 'he', 'n', 'o', 'f'];
+                for (const L of balloonLayers) {
+                    if (player[L]) {
+                        player[L].balloon    = zero;
+                        player[L].balloonMax = zero;
+                    }
+                }
+                player.he.points           = zero;
+                player.he.temPoint         = zero;
+                player.he.temPointUpTime   = zero;
+                player.li.points             = zero;
+                player.li.currentElectricity = zero;
+                player.li.researchPoint      = zero;
+                player.li.buyables           = getStartBuyables('li');
+                player.be.points = zero;
+                player.be.prestiGems = zero;
+                player.p.electrons = zero;
+                player.b.points = zero;
+                player.b.inBorane = false;
+                player.b.borane1 = zero;
+                player.b.borane2 = zero;
+                player.b.borane3 = zero;
+                player.b.borane4 = zero;
+                player.b.borane5 = zero;
+                player.b.borane6 = zero;
+                player.b.gainBorane = [];
+                player.b.boraneGainFloorN = zero;
+                player.b.transcendCrystals = zero;
+                player.c.points = zero;
+                player.c.entropy = zero;
+                player.c.buyables = getStartBuyables('c');
+            },
+            onComplete() {
+                doPopup("challenge", "氟化-碳 挑战完成！", "挑战完成", 3, "#7FFF3F");
+            },
+            unlocked() {
+                return player.n.ammoniaTier >= 9 && fluorineBoronCompleted();
+            }
+        },
+        23: {
+            name: "氟化-氮",
+            challengeDescription: "在氟化-碳的基础上，重置你的氮。",
+            goal: new Decimal("1e1972"),
+            goalDescription: "1e1972 中微子。",
+            rewardDescription: "见氟化奖励。",
+            canComplete() {
+                return player.points.gte("1e1972");
+            },
+            onEnter() {
+                player.points = zero;
+                player.h.points = zero;
+                player.h.power  = zero;
+                player.h.upTime = zero;
+                player.he.upTime = zero;
+            const balloonLayers = ['h', 'he', 'n', 'o', 'f'];
+                for (const L of balloonLayers) {
+                    if (player[L]) {
+                        player[L].balloon    = zero;
+                        player[L].balloonMax = zero;
+                    }
+                }
+                player.he.points           = zero;
+                player.he.temPoint         = zero;
+                player.he.temPointUpTime   = zero;
+                player.li.points             = zero;
+                player.li.currentElectricity = zero;
+                player.li.researchPoint      = zero;
+                player.li.buyables           = getStartBuyables('li');
+                player.be.points = zero;
+                player.be.prestiGems = zero;
+                player.p.electrons = zero;
+                player.b.points = zero;
+                player.b.inBorane = false;
+                player.b.borane1 = zero;
+                player.b.borane2 = zero;
+                player.b.borane3 = zero;
+                player.b.borane4 = zero;
+                player.b.borane5 = zero;
+                player.b.borane6 = zero;
+                player.b.gainBorane = [];
+                player.b.boraneGainFloorN = zero;
+                player.b.transcendCrystals = zero;
+                player.c.points = zero;
+                player.c.entropy = zero;
+                player.c.buyables = getStartBuyables('c');
+                player.n.points = zero;
+            },
+            onComplete() {
+                doPopup("challenge", "氟化-氮 挑战完成！", "挑战完成", 3, "#7FFF3F");
+            },
+            unlocked() {
+                return player.n.ammoniaTier >= 10 && fluorineCarbonCompleted();
+            }
+        },
+        31: {
+            name: "氟化-氧",
+            challengeDescription: "在氟化-氮的基础上，重置你的氧。",
+            goal: new Decimal("3e1972"),
+            goalDescription: "3e1972 中微子。",
+            rewardDescription: "见氟化奖励。",
+            canComplete() {
+                return player.points.gte("3e1972");
+            },
+            onEnter() {
+                player.points = zero;
+                player.h.points = zero;
+                player.h.power  = zero;
+                player.h.upTime = zero;
+                player.he.upTime = zero;
+            const balloonLayers = ['h', 'he', 'n', 'o', 'f'];
+                for (const L of balloonLayers) {
+                    if (player[L]) {
+                        player[L].balloon    = zero;
+                        player[L].balloonMax = zero;
+                    }
+                }
+                player.he.points           = zero;
+                player.he.temPoint         = zero;
+                player.he.temPointUpTime   = zero;
+                player.li.points             = zero;
+                player.li.currentElectricity = zero;
+                player.li.researchPoint      = zero;
+                player.li.buyables           = getStartBuyables('li');
+                player.be.points = zero;
+                player.be.prestiGems = zero;
+                player.p.electrons = zero;
+                player.b.points = zero;
+                player.b.inBorane = false;
+                player.b.borane1 = zero;
+                player.b.borane2 = zero;
+                player.b.borane3 = zero;
+                player.b.borane4 = zero;
+                player.b.borane5 = zero;
+                player.b.borane6 = zero;
+                player.b.gainBorane = [];
+                player.b.boraneGainFloorN = zero;
+                player.b.transcendCrystals = zero;
+                player.c.points = zero;
+                player.c.entropy = zero;
+                player.c.buyables = getStartBuyables('c');
+                player.n.points = zero;
+                player.o.points = zero;
+            },
+            onComplete() {
+                doPopup("challenge", "氟化-氧 挑战完成！", "挑战完成", 3, "#7FFF3F");
+            },
+            unlocked() {
+                return player.n.ammoniaTier >= 11 && fluorineNitrogenCompleted();
+            }
+        },
+        32: {
+            name: "氟化-氟",
+            challengeDescription: "在氟化-氧的基础上，重置你的氟。",
+            goal: new Decimal("1e1988"),
+            goalDescription: "1e1988 中微子。",
+            rewardDescription: "见氟化奖励。",
+            canComplete() {
+                return player.points.gte("1e1988");
+            },
+            onEnter() {
+                player.points = zero;
+                player.h.points = zero;
+                player.h.power  = zero;
+                player.h.upTime = zero;
+                player.he.upTime = zero;
+            const balloonLayers = ['h', 'he', 'n', 'o', 'f'];
+                for (const L of balloonLayers) {
+                    if (player[L]) {
+                        player[L].balloon    = zero;
+                        player[L].balloonMax = zero;
+                    }
+                }
+                player.he.points           = zero;
+                player.he.temPoint         = zero;
+                player.he.temPointUpTime   = zero;
+                player.li.points             = zero;
+                player.li.currentElectricity = zero;
+                player.li.researchPoint      = zero;
+                player.li.buyables           = getStartBuyables('li');
+                player.be.points = zero;
+                player.be.prestiGems = zero;
+                player.p.electrons = zero;
+                player.b.points = zero;
+                player.b.inBorane = false;
+                player.b.borane1 = zero;
+                player.b.borane2 = zero;
+                player.b.borane3 = zero;
+                player.b.borane4 = zero;
+                player.b.borane5 = zero;
+                player.b.borane6 = zero;
+                player.b.gainBorane = [];
+                player.b.boraneGainFloorN = zero;
+                player.b.transcendCrystals = zero;
+                player.c.points = zero;
+                player.c.entropy = zero;
+                player.c.buyables = getStartBuyables('c');
+                player.n.points = zero;
+                player.o.points = zero;
+                player.f.points = zero;
+            },
+            onComplete() {
+                doPopup("challenge", "氟化-氟 挑战完成！", "挑战完成", 3, "#7FFF3F");
+            },
+            unlocked() {
+                return player.n.ammoniaTier >= 12 && fluorineOxygenCompleted();
             }
         },
     },
@@ -7060,21 +7755,64 @@ addLayer("f", {
                 ["display-text",
                     function(){
                         let html = "";
-                        if (!hasChallenge('f', 11) && !hasChallenge('f', 12)) return "尚未完成任何氟化挑战。";
+                        if (!fluorineHydrogenCompleted()) return "尚未完成任何氟化挑战。";
                         html += "<h3>氟化效果</h3><br>";
 
-                        if (hasChallenge('f', 11)) {
-                            html += "<b style='color:#7FFF3F'>氟化-氢效果</b><br>";
+                        if (fluorineHydrogenCompleted()) {
+                            html += "<b style='color:#7FFF3F;text-shadow:0 0 10px'>氟化-氢效果</b><br>";
                             html += "解锁新的氟升级。<br>";
                             html += "翻倍除氦气球以外的前五种气球数量。<br>";
-                            html += "自动购买氮气球，氧气球，氟气球（不消耗对应资源）。<br><br>";
+                            html += "自动购买氮气球，氧气球，氟气球（不消耗对应资源）。<br>";
                         }
 
-                        if (hasChallenge('f', 12)) {
-                            html += "<b style='color:#7FFF3F'>氟化-锂效果</b><br>";
+                        if (fluorineLithiumCompleted()) {
+                            html += "<b style='color:#7FFF3F;text-shadow:0 0 10px'>氟化-锂效果</b><br>";
                             html += "解锁新的氟升级。<br>";
-                            html += "所有锂加成效果 x10。<br>";
+                            html += "加成所有锂效果 10 倍。<br>";
                             html += "解锁新的锂研究。<br>";
+                        }
+
+                        if (fluorineBerylliumCompleted()) {
+                            html += "<b style='color:#7FFF3F;text-shadow:0 0 10px'>氟化-铍效果</b><br>";
+                            html += "解锁新的氟升级。<br>";
+                            html += "进一步优化转生的公式。<br>";
+                            html += "加成铍指数 1。<br>";
+                        }
+
+                        if (fluorineBoronCompleted()) {
+                            html += "<b style='color:#7FFF3F;text-shadow:0 0 10px'>氟化-硼效果</b><br>";
+                            html += "解锁新的氟升级。<br>";
+                            html += "超级优化前六种硼烷的公式。<br>";
+                            html += "基于你的气球和^0.66686后的温度点在制取外自动获得硼烷产能。<br>";
+                        }
+
+                        if (fluorineCarbonCompleted()) {
+                            html += "<b style='color:#7FFF3F;text-shadow:0 0 10px'>氟化-碳效果</b><br>";
+                            html += "解锁新的氟升级。<br>";
+                            html += "优化 新的开始 的公式。<br>";
+                            html += "加成碳 10 倍。<br>";
+                        }
+
+                        if (fluorineNitrogenCompleted()) {
+                            html += "<b style='color:#7FFF3F;text-shadow:0 0 10px'>氟化-氮效果</b><br>";
+                            html += "解锁新的氟升级。<br>";
+                            html += "优化异氰酸，雷酸，三聚氰胺和联氨的公式。<br>";
+                            html += "加成氮 10 倍。<br>";
+                        }
+
+                        if (fluorineOxygenCompleted()) {
+                            html += "<b style='color:#7FFF3F;text-shadow:0 0 10px'>氟化-氧效果</b><br>";
+                            html += "解锁新的氟升级。<br>";
+                            html += "优化氧气球，氧化-铍和羟胺的公式。<br>";
+                            html += "加成氧 10 倍。<br>";
+                        }
+
+                        if (fluorineFluorineCompleted()) {
+                            html += "<b style='color:#7FFF3F;text-shadow:0 0 10px'>氟化-氟效果</b><br>";
+                            html += "解锁新的氟升级。<br>";
+                            html += "优化 氨气 的公式。<br>";
+                            html += "氟加成中微子。<br>";
+                            html += "加成氟 10 倍。<br>";
                         }
 
                         return html;
@@ -7414,6 +8152,23 @@ addLayer("a", {
             },
             unlocked() {return hasAchievement("a",44)}
         },
+        53: {
+            name: "味大无需多言",
+            done() {return player.f.points.gte(10000000)},
+            tooltip: function() {
+                if (hasAchievement(this.layer, this.id)) {
+                    let eff = achievementEffect(this.layer, this.id);
+                    return `要求：获得 10000000 氟。<br>奖励：已完成的成就个数加成氧。<br>当前：x${format(eff)}`;
+                } else {
+                    return `要求：获得 10000000 氟。<br>奖励：已完成的成就个数加成氧。<br>当前：x1.00`;
+                }
+            },
+            effect() {
+                let len = getAchievementCount();
+                return new Decimal(len).add(1).pow(0.01).add(1);
+            },
+            unlocked() {return hasAchievement("a",44)}
+        },
     },
     tabFormat:{
         '成就':{
@@ -7578,3 +8333,18 @@ function makeFluorineMainDisplay(shouldShow) {
 
 layers.h.mainDisplay = makeFluorineMainDisplay(fluorineHydrogenCompleted);
 layers.li.mainDisplay = makeFluorineMainDisplay(fluorineLithiumCompleted);
+layers.be.mainDisplay = makeFluorineMainDisplay(fluorineBerylliumCompleted);
+layers.b.mainDisplay = makeFluorineMainDisplay(fluorineBoronCompleted);
+layers.c.mainDisplay = makeFluorineMainDisplay(fluorineCarbonCompleted);
+layers.n.mainDisplay = makeFluorineMainDisplay(fluorineNitrogenCompleted);
+layers.o.mainDisplay = makeFluorineMainDisplay(fluorineOxygenCompleted);
+layers.f.mainDisplay = makeFluorineMainDisplay(fluorineFluorineCompleted);
+
+layers.h.prestigeButtonText  = makeFluorinePrestigeButtonText(fluorineHydrogenCompleted);
+layers.li.prestigeButtonText = makeFluorinePrestigeButtonText(fluorineLithiumCompleted);
+layers.be.prestigeButtonText = makeFluorinePrestigeButtonText(fluorineBerylliumCompleted);
+layers.b.prestigeButtonText  = makeFluorinePrestigeButtonText(fluorineBoronCompleted);
+layers.c.prestigeButtonText = makeFluorinePrestigeButtonText(fluorineCarbonCompleted);
+layers.n.prestigeButtonText = makeFluorinePrestigeButtonText(fluorineNitrogenCompleted);
+layers.o.prestigeButtonText  = makeFluorinePrestigeButtonText(fluorineOxygenCompleted);
+layers.f.prestigeButtonText  = makeFluorinePrestigeButtonText(fluorineFluorineCompleted);

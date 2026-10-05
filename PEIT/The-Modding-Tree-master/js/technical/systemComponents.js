@@ -59,15 +59,15 @@ var systemComponents = {
         v-bind:style="constructNodeStyle(layer)">
 			<span v-html="(tmp[layer] && tmp[layer].image === undefined && abb && abb !== '') ? abb : '&nbsp;'"></span>
 			<tooltip
-        v-if="tmp[layer].tooltip != ''"
-			:text="(tmp[layer].isLayer) ? (
-				player[layer].unlocked ? (tmp[layer].tooltip ? tmp[layer].tooltip : formatWhole(player[layer].points) + ' ' + tmp[layer].resource)
-				: (tmp[layer].tooltipLocked ? tmp[layer].tooltipLocked : '达到 ' + formatWhole(tmp[layer].requires) + ' ' + tmp[layer].baseResource + ' 去解锁 (你有 ' + formatWhole(tmp[layer].baseAmount) + ' ' + tmp[layer].baseResource + ')')
-			)
-			: (
-				tmp[layer].canClick ? (tmp[layer].tooltip ? tmp[layer].tooltip : 'I am a button!')
-				: (tmp[layer].tooltipLocked ? tmp[layer].tooltipLocked : 'I am a button!')
-			)"></tooltip>
+  			  v-if="tmp[layer].tooltip != ''"
+  			  :text="(tmp[layer].isLayer) ? (
+  			      player[layer].unlocked ? (tmp[layer].tooltip ? tmp[layer].tooltip : formatWhole(player[layer].points) + tooltipLabel(layer) + ' ' + tmp[layer].resource)
+  			      : (tmp[layer].tooltipLocked ? tmp[layer].tooltipLocked : '达到 ' + formatWhole(tmp[layer].requires) + ' ' + tmp[layer].baseResource + ' 去解锁 (你有 ' + formatWhole(tmp[layer].baseAmount) + ' ' + tmp[layer].baseResource + ')')
+  			  )
+  			  : (
+   			     tmp[layer].canClick ? (tmp[layer].tooltip ? tmp[layer].tooltip : 'I am a button!')
+  			      : (tmp[layer].tooltipLocked ? tmp[layer].tooltipLocked : 'I am a button!')
+  			  )"></tooltip>
 			<node-mark :layer='layer' :data='tmp[layer].marked'></node-mark>
 		</button>
 		`
@@ -139,7 +139,7 @@ var systemComponents = {
     'info-tab': {
     data() {
         return {
-            engineVersion: '3.2'
+            engineVersion: '3.2.1'
         };
     },
     template: `
