@@ -139,7 +139,7 @@ var systemComponents = {
     'info-tab': {
     data() {
         return {
-            engineVersion: '3.2.1'
+            engineVersion: '3.2.2'
         };
     },
     template: `
@@ -217,8 +217,9 @@ var systemComponents = {
             }
         },
         methods: {
-            doSave(slot) { saveToSlot(slot); this.refresh++; },
-            doLoad(slot) { loadFromSlot(slot); },
+            doSave(slot)   { saveToSlot(slot); this.refresh++; },
+            doLoad(slot)   { loadFromSlot(slot); },
+            doRename(slot) { renameSlot(slot); this.refresh++; },
             doExport(slot) { exportSlot(slot); },
             doImport(slot) { importToSlot(slot); this.refresh++; },
             doDelete(slot) { deleteSlot(slot); this.refresh++; },
@@ -235,7 +236,7 @@ var systemComponents = {
                 <br>
                 <div v-for="i in 3" :key="i" class="save-slot">
                     <div class="slot-info">
-                        <b>槽位 {{i}}</b>
+                        <b>槽位 {{i}}<span v-if="slotInfos[i-1] && slotInfos[i-1].name">：{{ slotInfos[i-1].name }}</span></b>
                         <div v-if="slotInfos[i-1]" class="slot-meta">
                             {{ formatDate(slotInfos[i-1].time) }}<br>
                             {{ slotInfos[i-1].version || '' }}
@@ -245,6 +246,7 @@ var systemComponents = {
                     <div class="slot-buttons">
                         <button class="slot-btn" @click="doSave(i)">保存</button>
                         <button class="slot-btn" @click="doLoad(i)">加载</button>
+                        <button class="slot-btn" @click="doRename(i)">改名</button>
                         <button class="slot-btn" @click="doExport(i)">导出</button>
                         <button class="slot-btn" @click="doImport(i)">导入</button>
                         <button class="slot-btn slot-btn-danger" @click="doDelete(i)">删除</button>

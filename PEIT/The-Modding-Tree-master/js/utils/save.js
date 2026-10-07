@@ -26,6 +26,13 @@ function saveToSlot(slot) {
     }
 
     const slotKey = getSaveSlotKey(slot);
+
+    // 读取已有名称（覆盖时保留）
+    let existingName = "";
+    const existing = getSlotInfo(slot);
+    if (existing && typeof existing.name === 'string') existingName = existing.name;
+
+    // 覆盖确认
     if (localStorage.getItem(slotKey)) {
         if (!confirm("槽位 " + slot + " 已有存档，确定要覆盖吗？此操作不可恢复！")) return;
     }
@@ -33,7 +40,8 @@ function saveToSlot(slot) {
     const data = {
         save: utf8_to_b64(JSON.stringify(player)),
         time: Date.now(),
-        version: (typeof VERSION !== 'undefined' && VERSION.withoutName) ? VERSION.withoutName : ''
+        version: (typeof VERSION !== 'undefined' && VERSION.withoutName) ? VERSION.withoutName : '',
+        name: existingName
     };
 
     try {
@@ -41,6 +49,23 @@ function saveToSlot(slot) {
         doPopup("info", "已保存到槽位 " + slot, "💾", 2, "#00ff00");
     } catch (e) {
         alert("保存失败：" + e.message);
+    }
+}
+
+function renameSlot(slot) {
+    const info = getSlotInfo(slot);
+    if (!info) {
+        alert("槽位 " + slot + " 为空，无法重命名！");
+        return;
+    }
+    const newName = prompt("请输入槽位 " + slot + " 的新名称（留空可清除名称）：", info.name || "");
+    if (newName === null) return; // 取消
+    info.name = String(newName).trim().slice(0, 30);
+    try {
+        localStorage.setItem(getSaveSlotKey(slot), JSON.stringify(info));
+        doPopup("info", "槽位 " + slot + " 已重命名", "✏️", 2, "#00aaff");
+    } catch (e) {
+        alert("重命名失败：" + e.message);
     }
 }
 
@@ -98,10 +123,16 @@ function importToSlot(slot) {
         if (tempPlr.versionType && tempPlr.versionType !== modInfo.id) {
             if (!confirm("这个存档似乎来自其他模组！确定要导入吗？")) return;
         }
+
+        let existingName = "";
+        const existing = getSlotInfo(slot);
+        if (existing && typeof existing.name === 'string') existingName = existing.name;
+
         const info = {
             save: cleaned,
             time: Date.now(),
-            version: tempPlr.version || '?'
+            version: tempPlr.version || '?',
+            name: existingName
         };
         localStorage.setItem(getSaveSlotKey(slot), JSON.stringify(info));
         doPopup("info", "已导入到槽位 " + slot, "📥", 2, "#00ff00");
@@ -548,7 +579,7 @@ function NaNcheck(data) {
             data[item] = new Decimal(0);
 			if (!NaNalert) {
 				NaNalert = true;
-				alert("发现未定义值, 名为 '" + item + "'。 请让模组制作者知道！你可以刷新界面，然后你的值会被定义。")
+				alert("发现 NaN 值, 名为 '" + item + "'。 请让模组制作者知道！你可以刷新界面，然后你的值会被定义。")
 				return
 			}
 		}
@@ -556,7 +587,7 @@ function NaNcheck(data) {
             data[item] = new Decimal(0);
             if (!NaNalert) {
                 NaNalert = true;
-                alert("发现未定义值, 名为 '" + item + "'。请让模组制作者知道！你可以刷新界面，然后你的值会被定义。");
+                alert("发现 NaN 值, 名为 '" + item + "'。请让模组制作者知道！你可以刷新界面，然后你的值会被定义。");
                 return;
             }
         }
