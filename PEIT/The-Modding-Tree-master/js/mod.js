@@ -30,11 +30,13 @@ let modInfo = {
 let getModID = () => modInfo.id ?? modInfo.name.replace(/\s+/g, '-');
 // Set your version in num and name
 let VERSION = {
-	num: "0.7.6",
+	num: "0.8",
 	name: "New Game"
 }
 
 let changelog = `<h1>更新日志:</h1><br>
+    <h3>NG v0.8 2026.10.7</h3><br>
+        - 增加了新的内容（???前）。<br>
     <h3>NG v0.7.6 2026.10.5</h3><br>
         - 增加了新的内容（氖前）。<br>
     <h3>NG v0.7.5 2026.10.4</h3><br>
@@ -175,7 +177,7 @@ function getPointGen() {
 	if(hasUpgrade("b",75)) gain = gain.mul(upgradeEffect("b",75))
 	if(hasUpgrade("li",13)) gain = gain.mul(layers.li.LiboostPoints())
 	if(hasMilestone("c",7)) gain = gain.mul(player.c.oil.pow(player.c.entropy).add(1).log2().add(1).floor())
-	if(player.n.ammoniaTier >= 12) gain = gain.mul(n(player.n.ammoniaTier + 1).pow(5).add(1))
+	if(totalAmmoniaTier() >= 12) gain = gain.mul(n(totalAmmoniaTier() + 1).pow(5).add(1))
 	if(fluorineFluorineCompleted()) gain = gain.mul(player.f.points.max(1))
     if(player.b.inBorane) gain = gain.pow(0.66686)
 	if(player.c.inExtract) gain = gain.pow(0.666)
@@ -229,12 +231,17 @@ var displayThings = [
         const color = labels[0].color;
         return `<div style="color:${color}; font-size:20px; margin-top:5px; text-shadow:0 0 10px ${color}; font-weight:bold;">当前挑战：${text}</div>`;
     },
+	function() {
+    	if (hasAchievement("a" ,71)) {
+            return `<div style="color: #FFBB00; font-size: 20px; margin-top: 5px; text-shadow: 0 0 10px ;">终?局: 1e33500 中微子</div>`;
+        }
+    },
 	"群号: 951232913"
 ]
 
 // Determines when the game "ends"
 function isEndgame() {
-	return hasAchievement("a",53)
+	return hasAchievement("a",71) && player.points.gte("1e33500")
 }
 
 
