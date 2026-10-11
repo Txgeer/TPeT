@@ -30,11 +30,13 @@ let modInfo = {
 let getModID = () => modInfo.id ?? modInfo.name.replace(/\s+/g, '-');
 // Set your version in num and name
 let VERSION = {
-	num: "0.8",
+	num: "0.8.1",
 	name: "New Game"
 }
 
 let changelog = `<h1>更新日志:</h1><br>
+    <h3>NG v0.8 2026.10.12</h3><br>
+        - 修复了氢里程碑1和2没有效果的问题。<br>
     <h3>NG v0.8 2026.10.7</h3><br>
         - 增加了新的内容（???前）。<br>
     <h3>NG v0.7.6 2026.10.5</h3><br>

@@ -1896,7 +1896,7 @@ addLayer("h", {
         },
         2: {
             requirementDescription: "100 氢",
-            effectDescription: "第一行重置时保留中微子可购买。",
+            effectDescription: "第一行重置时保留中微子可购买，并解锁更多新机制。",
             done(){ return player.h.points.gte(100); },
             unlocked: true,
         },
@@ -2390,12 +2390,11 @@ addLayer("h", {
         background: "linear-gradient(135deg, #000000, #3F003F)",
         minHeight: "100vh"
     },
-    onPrestige: function(gain) {
-        let newH = player.h.points.add(gain);
-        if (newH.lt(10)) {
+    onPrestige: function() {
+        if (!hasMilestone("h",1)) {
             player.p.upgrades = [];
             player.p.buyables = getStartBuyables('p');
-        } else if (newH.lt(100)) {
+        } else if (!hasMilestone("h",2)) {
             player.p.buyables = getStartBuyables('p');
         } else {
         }
